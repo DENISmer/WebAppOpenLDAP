@@ -1,0 +1,47 @@
+.Page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  font-family: "Roboto Thin", sans-serif;
+  .Admin_listOfUsers{
+    margin: 1rem 0 0 1rem;
+    width: 70%;
+    height: 30px;
+    font-size: 15px;
+    .menu {
+      width: 20%;
+      height: 30px;
+      background-color: #1e2e4b;
+      margin: 1rem 1rem 1rem 1rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      padding: 1%;
+      border-radius: 6px;
+      .logout{
+        color: white;
+        background-color: #a0bbd9;
+        width: 40%;
+        border-radius: 3px;
+
+      }
+      .Admin_Profile {
+        border-radius: 3px;
+        background-color: #a0bbd9;
+        width: 40%;
+      }
+    }
+  }
+  .Admin_UseProfile {
+    position: relative;
+    margin-top: 2rem;
+    width: 90%;
+    height: 85%;
+    background-color: rgba(30, 46, 75, 0.38);
+    border-radius: 20px;
+  }
+}
