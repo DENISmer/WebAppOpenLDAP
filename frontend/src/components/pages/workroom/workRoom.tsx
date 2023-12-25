@@ -1,18 +1,24 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 // import React from "react";
-import {test} from "@/assets/testList";
+import {test} from "@/assets/users_from_ldap";
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router";
+
 
 const WorkRoom: React.FC = () => {
 
     const [subject,setSubject] = useState(null);
+    const [searchResult, setSearchResult] = useState(null);
     const navigate = useNavigate();
     // const [currentUser, setCurrentUser] = useState({})
 
     useEffect(() => {
-        console.log(subject)
-        console.log(test[subject])
+        setSearchResult(test.filter(obj => {
+            return (obj.uidNumber || obj.uid || obj.mail || obj.street || obj.givenName || obj.sn) == subject
+        }))
+        // searchResult ? Object.keys(searchResult).map((obj, index) => (
+        //     console.log(searchResult[obj].uid)
+        // )) : null
     }, [subject])
 
     return (<>
@@ -31,19 +37,37 @@ const WorkRoom: React.FC = () => {
                 />
                 <datalist id="browsers">
                     {test.map((element,index)=>(
-                        <option key={index} value={element.id} >
-                            {element.name}
+                        <option key={index} value={element.uidNumber} >
+                            {element.displayName + " | " + element.street + " | " + element.mail
+                            + " | " + element.givenName}
                         </option>)
                     )}
                 </datalist>
-                { subject && test[subject] ? <div className={WR_S.AdminCurrentUser}>
-                    <div className={WR_S.CurrentUserName}>
-                        {test[subject].name}
-                    </div>
-                    <div className={WR_S.CurrentUserUid}>
-                        {test[subject].id}<br/>
-                        {test[subject].info}
-                    </div>
+                {/*showing current user information*/}
+                { subject && searchResult[0] ? <div className={WR_S.AdminCurrentUser}>
+                    {/*takes current user object*/}
+                        {Object.keys(searchResult).map((obj, index) => (
+                         <div key={index} className={WR_S.CurrentUserName}>
+                             Name: {searchResult[obj].displayName}
+                             <br/>
+                             uid: {searchResult[obj].uid}
+                             <div className={WR_S.CurrentUserUid}>
+                                 uidNumber: {searchResult[0].uidNumber}<br/>
+                                 mail: {typeof searchResult[0].mail === 'object' ? searchResult[0].mail.map((mail, index) => (
+                                     <div key={index}>
+                                         {index + 1 + ". "+ mail}
+                                     </div>
+                             )) : <div>{searchResult[0].mail}</div>}
+                             </div>
+                         </div>
+                        ))}
+                    {/*<div className={WR_S.CurrentUserName}>*/}
+                    {/*    name: {searchResult && searchResult[0].displayName}*/}
+                    {/*    <br/>*/}
+                    {/*    uidNumber: {searchResult && searchResult[0].uidNumber}*/}
+                    {/*</div>*/}
+                    <br/>
+                    <button>подтвердить выбор</button>
                 </div> : null}
             </div>
 
