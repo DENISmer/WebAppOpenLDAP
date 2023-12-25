@@ -1,2 +1,5 @@
 ldap3==2.9.1
 python-dotenv==0.20.0
+flask-ldap3-login==0.9.18
+Flask-RESTful==0.3.10
+orjson==3.6.1

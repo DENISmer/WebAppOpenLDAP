@@ -7,11 +7,12 @@ connection = ldap3.Connection(
     user='uid=bob,ou=People,dc=example,dc=com',
     password='bob',
     sasl_mechanism='EXTERNAL',
-    authentication=ldap3.SASL,
+    # authentication=ldap3.SASL,
 )
 connection.open()
 connection.bind()
 
+print(connection.result)
 connection_search = connection.search('dc=example,dc=com', '(uid=bob)', attributes=ldap3.ALL_ATTRIBUTES)
 print('Connection search:', connection_search)
 if connection_search:
