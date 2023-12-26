@@ -84,11 +84,36 @@
   }
   .Admin_UseProfile {
     position: relative;
+    display: flex;
+    flex-direction: column;
     margin: 2rem 2rem 2rem 2rem;
-    width: 90%;
+    overflow: auto;
+    width: auto;
     height: auto;
+    max-height: 90vh;
     background-color: rgba(30, 46, 75, 0.38);
     border-radius: 20px;
+    padding: 10px;
+    .field{
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      word-wrap: anywhere;
+      margin-right: 30%;
+      position: relative;
+      max-width: 90%;
+      height: max-content;
+      margin-top: 1rem;
+      input{
+        width: 50vw;
+        max-width: 50%;
+      }
+      textarea {
+        width: 50%;
+        height: max-content;
+        resize: vertical;      
+      }
+    }
   }
 }
 @media screen and (width < 900px) {
@@ -182,6 +207,7 @@
       margin: 1rem 1rem 1rem 2rem;
       width: 90%;
       height: 70%;
+      max-height: 50%;
       background-color: rgba(30, 46, 75, 0.38);
       border-radius: 20px;
     }

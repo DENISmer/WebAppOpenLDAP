@@ -8,6 +8,7 @@ let port = process.env.port;
 let target = 'web';
 
 if (process.argv[4] !== 'development') {
+    console.log(process.argv)
     mode = 'production';
     target = 'browserslist';
 }

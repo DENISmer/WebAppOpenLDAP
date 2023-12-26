@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cross-env SERVE=true webpack serve --mode development",
     "build": "webpack",
-    "build-prod": "webpack --mode=production",
+    "build-prod": "webpack --mode production",
     "local-deploy": "npx serve -s build",
     "deploy": "gh-pages -d build",
     "clean": "rd /s /q build",

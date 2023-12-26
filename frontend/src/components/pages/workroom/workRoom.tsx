@@ -3,6 +3,7 @@ import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 import {test} from "@/assets/users_from_ldap";
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router";
+import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 
 
 const WorkRoom: React.FC = () => {
@@ -10,6 +11,7 @@ const WorkRoom: React.FC = () => {
     const [subject,setSubject] = useState(null);
     const [searchResult, setSearchResult] = useState(null);
     const navigate = useNavigate();
+    const [viewFields, setViewFields] = useState<any[]>()
     // const [currentUser, setCurrentUser] = useState({})
 
     useEffect(() => {
@@ -20,6 +22,10 @@ const WorkRoom: React.FC = () => {
         //     console.log(searchResult[obj].uid)
         // )) : null
     }, [subject])
+
+    const testMethod = () => {
+        searchResult ? setViewFields(settingFieldsToChange(searchResult[0]).publicMethod()) : null
+    }
 
     return (<>
         <div className={WR_S.Page}>
@@ -53,6 +59,7 @@ const WorkRoom: React.FC = () => {
                              uid: {searchResult[obj].uid}
                              <div className={WR_S.CurrentUserUid}>
                                  uidNumber: {searchResult[0].uidNumber}<br/>
+                                 {/*mail render*/}
                                  mail: {typeof searchResult[0].mail === 'object' ? searchResult[0].mail.map((mail, index) => (
                                      <div key={index}>
                                          {index + 1 + ". "+ mail}
@@ -61,18 +68,22 @@ const WorkRoom: React.FC = () => {
                              </div>
                          </div>
                         ))}
-                    {/*<div className={WR_S.CurrentUserName}>*/}
-                    {/*    name: {searchResult && searchResult[0].displayName}*/}
-                    {/*    <br/>*/}
-                    {/*    uidNumber: {searchResult && searchResult[0].uidNumber}*/}
-                    {/*</div>*/}
                     <br/>
-                    <button>подтвердить выбор</button>
+                    <button onClick={() => testMethod()}>подтвердить выбор</button>
                 </div> : null}
             </div>
 
             <div className={WR_S.Admin_UseProfile}>
-
+                {viewFields && Object.keys(viewFields).map((obj, index) => (
+                    typeof viewFields === "object" && viewFields[obj][0].length > 26 ?
+                        <div className={WR_S.field}>{obj + ':'}
+                            <textarea value={viewFields[obj]} key={index} cols={10} rows={2}></textarea>
+                        </div>
+                        :
+                        <div className={WR_S.field}>{obj + ':'}
+                            <input value={viewFields[obj]} key={index} />
+                        </div>
+                    ))}
             </div>
         </div>
     </>)
