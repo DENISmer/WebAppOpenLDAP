@@ -1,8 +1,8 @@
 
-from ldap3 import Tls, Connection, Server, SASL, ALL, ALL_ATTRIBUTES
+from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES
 import ssl
 import pprint
-from backend.config import CERT_FILE, HOSTS, TEST_PASSWORD, TEST_USERNAME
+from backend.tests.config import CERT_FILE, HOSTS, TEST_PASSWORD, TEST_USERNAME
 
 # LDAP connection test
 
@@ -32,7 +32,7 @@ connection.bind()
 # pprint.pprint(connection.__dict__)
 connection_search = connection.search(
     'dc=local,dc=net',
-    '(uid=serbinovichgs)',
+    '(objectClass=person)', #'(uid=serbinovichgs)',
     attributes=ALL_ATTRIBUTES
 )
 
@@ -41,10 +41,11 @@ print('connection', connection_search)
 
 # output data
 if connection_search:
-    print('connection entries', 'connection.entries')
-    for item in connection.entries:
-        print(item['sshPublicKey'])
-    print('connection request',)
-    pprint.pprint(connection.request)
+    pprint.pprint(connection.entries)
+    # print('connection entries', 'connection.entries')
+    # for item in connection.entries:
+    #     print(item['sshPublicKey'])
+    # print('connection request',)
+    # pprint.pprint(connection.request)
 
 connection.unbind()

@@ -1,7 +1,9 @@
+import pprint
+
 from flask import Flask, url_for
 from flask_ldap3_login import LDAP3LoginManager
 from flask_login import LoginManager, login_user, UserMixin, current_user
-from flask import render_template_string, redirect
+from flask import render_template_string, redirect, request, session
 from flask_ldap3_login.forms import LDAPLoginForm
 
 app = Flask(__name__)
@@ -28,7 +30,7 @@ app.config['LDAP_SEARCH_FOR_GROUPS'] = False
 app.config['LDAP_USER_RDN_ATTR'] = 'cn'
 
 # The Attribute you want users to authenticate to LDAP with.
-app.config['LDAP_USER_LOGIN_ATTR'] = 'mail'
+app.config['LDAP_USER_LOGIN_ATTR'] = 'uid'
 
 # The Username to bind to LDAP with
 app.config['LDAP_BIND_USER_DN'] = None
@@ -121,15 +123,33 @@ def login():
     # Instantiate a LDAPLoginForm which has a validator to check if the user
     # exists in LDAP.
     form = LDAPLoginForm()
-    print(form.form_errors)
+    print('form_errors', form.form_errors)
+    print('errors', form.errors)
+    print('data', form.data)
+    print('validate_on_submit', form.validate_on_submit())
+    # print('validate_ldap', form.validate_ldap())
+    print('is_submitted', form.is_submitted())
+    print('validate', form.validate())
+    # print('is_submitted', form.validate())
+    # print(LDAPLoginForm(data={
+    #     'username': form.data['username'],
+    #     'password': form.data['password'],
+    #     'submit': form.data['submit'],
+    #     'remember_me': form.data['remember_me'],
+    # }).validate_ldap())
+    print(request.form)
+    # print(LDAPLoginForm(request.form).validate_ldap())
+
     if form.validate_on_submit():
         # Successfully logged in, We can now access the saved user object
         # via form.user.
-        login_user(form.user)  # Tell flask-login to log them in.
+        login_user_tmp = login_user(form.user)  # Tell flask-login to log them in.
+        print('user', form.user)
+        print(login_user_tmp)
         return redirect('/')  # Send them home
 
     return render_template_string(template, form=form)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
