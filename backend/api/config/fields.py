@@ -1,3 +1,5 @@
+
+# Fields for simple user
 simple_user = {
     'fields': {
         'update': [
@@ -9,6 +11,7 @@ simple_user = {
     },
 }
 
+# Fields for admin
 admin = {
     'fields': {
         'update': [

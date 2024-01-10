@@ -1,10 +1,13 @@
 from flask_restful import Resource
 
 
-class UserOpenLDAP(Resource):
+class UserOpenLDAPResource(Resource):
 
-    def get(self):
-        pass
+    def list(self):
+        return {'User': 'UserOpenLDAP'}
+
+    def get(self, uid):
+        return {'User': f'{uid} UserOpenLDAP'}
 
     def post(self):
         pass
