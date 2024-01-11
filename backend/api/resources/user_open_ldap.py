@@ -1,13 +1,13 @@
 from flask_restful import Resource
+# import backend.api.common.auth_token as at
+from backend.api.common.auth_http_token import auth
 
 
 class UserOpenLDAPResource(Resource):
 
-    def list(self):
-        return {'User': 'UserOpenLDAP'}
-
+    @auth.login_required
     def get(self, uid):
-        return {'User': f'{uid} UserOpenLDAP'}
+        return {'User': f'{uid} UserOpenLDAP'}, 200
 
     def post(self):
         pass
@@ -16,4 +16,13 @@ class UserOpenLDAPResource(Resource):
         pass
 
     def delete(self):
+        pass
+
+
+class UserListOpenLDAPResource(Resource):
+
+    def get(self):
+        return {'User': 'UserOpenLDAP'}, 200
+
+    def post(self):
         pass

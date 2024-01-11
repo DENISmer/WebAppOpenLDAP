@@ -1,4 +1,4 @@
-python-dotenv==0.21.0
+python-dotenv==0.20.0
 ldap3==2.9.1
 python-dotenv==0.20.0
 flask-ldap3-login==0.9.18

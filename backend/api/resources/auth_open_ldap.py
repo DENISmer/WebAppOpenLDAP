@@ -6,5 +6,5 @@ class AuthOpenLDAP(Resource):
     def get(self):
         pass
 
-    def post(self):
+    def post(self): # pass and uid (it is part of the dn) check ldap.
         pass
