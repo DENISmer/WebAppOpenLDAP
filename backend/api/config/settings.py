@@ -6,6 +6,7 @@ load_dotenv()
 # Config app
 SECRET_KEY = 'secret'
 DEBUG = True
+ALGORITHMS = 'HS256'
 
 # Config LDAP
 # Hostname of your LDAP Server
