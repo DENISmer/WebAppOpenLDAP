@@ -68,22 +68,32 @@ const WorkRoom: React.FC = () => {
                              </div>
                          </div>
                         ))}
-                    <br/>
                     <button onClick={() => testMethod()}>подтвердить выбор</button>
                 </div> : null}
             </div>
 
             <div className={WR_S.Admin_UseProfile}>
-                {viewFields && Object.keys(viewFields).map((obj, index) => (
-                    typeof viewFields === "object" && viewFields[obj][0].length > 26 ?
-                        <div className={WR_S.field}>{obj + ':'}
-                            <textarea value={viewFields[obj]} key={index} cols={10} rows={2}></textarea>
-                        </div>
-                        :
-                        <div className={WR_S.field}>{obj + ':'}
-                            <input value={viewFields[obj]} key={index} />
-                        </div>
+                {viewFields && Object.keys(viewFields).map((obj, indexOfAll) => (
+                    <div> {[obj]}
+                        {typeof viewFields[obj] === "object" && viewFields[obj].length > 0 ?
+                            viewFields[obj].map((field, index) => (
+                                field.length > 20 ?
+                                <div className={WR_S.field}>{indexOfAll + '.' + (index + 1)}
+                                    <textarea value={field} key={index} cols={10} rows={2}></textarea>
+                                </div>
+                                :
+                                    <div className={WR_S.field}>{indexOfAll + '.' + (index + 1)}
+                                        <input value={field} key={index}/>
+                                    </div>
+                            ))
+                            :
+                            <div className={WR_S.field}>{indexOfAll + 1}
+                                <input value={viewFields[obj]} key={indexOfAll}/>
+                            </div>}
+                    </div>
                     ))}
+                <button className={WR_S.submitButton}>сохранить изменения</button>
+                <button className={WR_S.cancelChanges}>отменить изменения</button>
             </div>
         </div>
     </>)
