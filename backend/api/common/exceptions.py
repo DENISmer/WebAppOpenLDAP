@@ -1,0 +1,3 @@
+
+class UserIsNone(Exception):
+    pass

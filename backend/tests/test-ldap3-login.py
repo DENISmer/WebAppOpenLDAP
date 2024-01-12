@@ -8,7 +8,7 @@ config = dict()
 # All configuration directives can be found in the documentation.
 
 # Hostname of your LDAP Server
-config['LDAP_HOST'] = '0.0.0.0'
+config['LDAP_HOST'] = '192.168.1.12'
 
 # Base DN of your directory
 config['LDAP_BASE_DN'] = 'dc=example,dc=com'
@@ -52,3 +52,5 @@ print(response.status)
 print(response.status.name)
 print(response.status.value)
 
+response = ldap_manager.authenticate('john', 'johnldap')
+print(response.status)

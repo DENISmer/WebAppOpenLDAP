@@ -2,6 +2,7 @@ from flask_restful import Resource, marshal_with, fields
 # import backend.api.common.auth_token as at
 from backend.api.common.auth_http_token import auth
 
+
 resource_fields = {
     'dn': fields.String,
     'uidNumber': fields.Integer,
