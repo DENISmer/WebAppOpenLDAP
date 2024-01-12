@@ -1,6 +1,3 @@
-
-from flask_ldap3_login import LDAP3LoginManager
-
 config = dict()
 
 # Setup LDAP Configuration Variables. Change these to your own settings.
@@ -31,27 +28,3 @@ config['LDAP_BIND_USER_DN'] = None
 
 # The Password to bind to LDAP with
 config['LDAP_BIND_USER_PASSWORD'] = None
-
-# Setup a LDAP3 Login Manager.
-ldap_manager = LDAP3LoginManager()
-
-# Init the mamager with the config since we aren't using an app
-ldap_manager.init_config(config)
-
-# Check if the credentials are correct
-response = ldap_manager.authenticate('bob', 'bob')
-print('-- User info:')
-print(response.user_info)
-for item in response.user_info:
-    print(item, ':', response.user_info[f'{item}'])
-print('-- Other params:')
-print(response.user_dn)
-print(response.user_id)
-print(response.status)
-print(response.status.name)
-print(response.status.value)
-
-response = ldap_manager.authenticate('john', 'john1')
-print(response.status)
-print(response.status.name)
-print(response.status.value)

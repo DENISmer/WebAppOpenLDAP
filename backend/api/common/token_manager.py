@@ -1,8 +1,6 @@
 import jwt
 import time
 
-from flask import abort
-
 from backend.api.common.exceptions import UserIsNone
 from backend.api.common.user_manager import User
 from backend.api.config import settings
@@ -38,7 +36,13 @@ class TokenManager:
                 settings.SECRET_KEY, # private key
                 algorithms=settings.ALGORITHMS, # algorithm
             )
-        except:
+        except Exception as e:
+            print(e)
             return False
 
         return data
+
+
+class Token:
+    def __init__(self, token):
+        self.token = token
