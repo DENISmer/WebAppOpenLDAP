@@ -16,7 +16,7 @@ parser.add_argument('password', type=str, required=True)
 class AuthOpenLDAP(Resource):
 
     @marshal_with(resource_field)
-    def post(self): # pass and uid (it is part of the dn) check ldap.
+    def post(self):  # pass and uid (it is part of the dn) check ldap.
         """
         This function confirms the args username and password,
         then performs authentication, if authentication is successful

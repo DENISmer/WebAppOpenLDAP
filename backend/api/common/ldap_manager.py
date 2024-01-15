@@ -1,10 +1,11 @@
 import pprint
 import time
+import orjson
+import ssl
 
 from flask_ldap3_login import LDAP3LoginManager
 
 from ldap3 import Tls, ALL_ATTRIBUTES, Connection
-import ssl
 
 from backend.api.common.user_manager import User
 from backend.api.config.fields import search_fields
@@ -43,7 +44,7 @@ class AuthenticationLDAP(InitLdap):
 
     def authenticate(self):
         response = self.ldap_manager.authenticate(username=self.user.uid, password=self.user.userPassword)
-        return response # *.status: 2 - success, 1 - failed
+        return response  # *.status: 2 - success, 1 - failed
 
 
 class ConnectionLDAP(InitLdap):
@@ -66,7 +67,12 @@ class ConnectionLDAP(InitLdap):
         """
         self._connection: Connection = self._connections.get(self.user.uid)
 
-        if not self._connection or self._connection.closed or not self._connection.listening:
+        if not self._connection:
+            conn_result = True
+        else:
+            conn_result = self._connection.closed or not self._connection.listening
+
+        if conn_result:
             self._connection = self.ldap_manager.make_connection(
                 bind_user=self.user.uid,
                 bind_password=self.user.userPassword,
@@ -77,7 +83,10 @@ class ConnectionLDAP(InitLdap):
                 self._connection.tls_started()
                 self._connection.bind()
 
-            self._connections[self.user.uid] = self
+            self._connections[self.user.uid] = self._connection
+
+    def get_connection(self):
+        return self._connection
 
     def close(self):
         """
@@ -86,27 +95,51 @@ class ConnectionLDAP(InitLdap):
         """
         self._connection.unbind()
 
-    def search(self, value, fields):
-        self._connection.search(
+    def search(self, value, fields, attributes=ALL_ATTRIBUTES):
+        status_search = self._connection.search(
             search_base='dc=example,dc=com',
             search_filter='(|%s)' % "".join([f'({field}={fields[field] % value})' for field in fields]),
-            attributes=ALL_ATTRIBUTES
+            attributes=attributes
         )
+        if not status_search:
+            return []
         return self._connection.entries
 
-    def get_user(self, uid):
-        self._connection.search(
+    def get_user(self, uid, attributes=ALL_ATTRIBUTES):
+        status_search = self._connection.search(
             'dc=example,dc=com',
             f'(uid={uid})',
-            attributes=ALL_ATTRIBUTES
+            attributes=attributes
         )
-        return self._connection.entries[0]
+
+        data_json = {}
+        if status_search:
+            data = self._connection.entries[0].entry_to_json()
+            data_json.update(orjson.loads(data))
+
+        return data_json
 
     def create_user(self, user: User):
-        pass
+        dn = user.dn
+
+        del user.__dict__['dn']
+        self._connection.add(
+            dn,
+            attributes=user.__dict__
+        )
 
     def modify_user(self, user: User):
-        pass
+        data_user = self.get_user(user.uid, attributes=[])
+        if data_user:
+            user.dn = self.get_user(user.uid, attributes=[])['dn']
+            self._connection.modify(
+                user.dn,
+                {
+
+                    for key, value in user.__dict__['attributes']
+                }
+            )
+        return user
 
     def delete_user(self, uid):
         pass
@@ -121,30 +154,29 @@ class ConnectionLDAP(InitLdap):
         pass
 
 
-connection = ConnectionLDAP(User(uid='bob', userPassword='bob'))
-connection.connect()
-
-print('__test__')
-print(connection.search('5000', fields=search_fields))
-print('_0_')
-connection.show_connections()
-
-# time.sleep(11)
-
-print('_0_')
-connection.show_connections()
-print('search _0_:', connection.get_user(uid='bob'))
-
-connection1 = ConnectionLDAP(User(uid='john', userPassword='john'))
-connection1.connect()
-
-time.sleep(5)
-
-connection.close()
-print('_1_')
-connection1.show_connections()
-# print('search _1_:', connection1.get_user(uid='john'))
-print('_0_')
-connection1.close()
-connection1.show_connections()
-
+# connection = ConnectionLDAP(User(uid='bob', userPassword='bob'))
+# connection.connect()
+#
+# print('__test__')
+# print(connection.search('5000', fields=search_fields))
+# print('_0_')
+# connection.show_connections()
+#
+# # time.sleep(11)
+#
+# print('_0_')
+# connection.show_connections()
+# print('search _0_:', connection.get_user(uid='bob'))
+#
+# connection1 = ConnectionLDAP(User(uid='john', userPassword='john'))
+# connection1.connect()
+#
+# time.sleep(5)
+#
+# connection.close()
+# print('_1_')
+# connection1.show_connections()
+# # print('search _1_:', connection1.get_user(uid='john'))
+# print('_0_')
+# connection1.close()
+# connection1.show_connections()

@@ -11,4 +11,4 @@ DEBUG = True
 
 ALGORITHMS = 'HS256'
 
-
+NOT_AUTH = True

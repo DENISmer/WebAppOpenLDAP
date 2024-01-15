@@ -24,9 +24,9 @@ class TokenManager:
                 'dn': self.user.dn,
                 'uid': self.user.uid,
                 'exp': int(time.time()) + 3600,
-            }, # payload
-            settings.SECRET_KEY, # private key
-            algorithm=settings.ALGORITHMS, # algorithm
+            },  # payload
+            settings.SECRET_KEY,  # private key
+            algorithm=settings.ALGORITHMS,  # algorithm
         )
         return token
 
@@ -39,8 +39,8 @@ class TokenManager:
 
         try:
             data = jwt.decode(
-                token, # token
-                settings.SECRET_KEY, # private key
+                token,  # token
+                settings.SECRET_KEY,  # private key
                 algorithms=settings.ALGORITHMS, # algorithm
             )
         except Exception as e:
