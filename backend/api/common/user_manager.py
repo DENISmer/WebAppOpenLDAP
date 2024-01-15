@@ -1,7 +1,10 @@
 
+class Meta:
+    pass
+
 class User(object):
-    def __init__(self, dn, uid, **kwargs):
-        self.dn = dn
+    def __init__(self, uid, **kwargs):
+        self.dn = kwargs.get('dn')
         self.uidNumber = kwargs.get('uidNumber')
         self.gidNumber = kwargs.get('gidNumber')
         self.uid = uid
@@ -14,6 +17,8 @@ class User(object):
         self.givenName = kwargs.get('givenName')
         self.sn = kwargs.get('sn')
         self.userPassword = kwargs.get('userPassword')
+        self.objectClass = kwargs.get('objectClass') or []
 
     def __repr__(self):
         return self.dn
+

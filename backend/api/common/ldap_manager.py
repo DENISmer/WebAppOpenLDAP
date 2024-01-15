@@ -1,95 +1,150 @@
-from ldap3 import ALL_ATTRIBUTES
+import pprint
+import time
 
 from flask_ldap3_login import LDAP3LoginManager
 
-from backend.api.common.exceptions import CouldNotCreateConnection
+from ldap3 import Tls, ALL_ATTRIBUTES, Connection
+import ssl
+
 from backend.api.common.user_manager import User
+from backend.api.config.fields import search_fields
 from backend.api.config.ldap import config
 
-# Setup a LDAP3 Login Manager.
-# ldap_manager = LDAP3LoginManager()
-#
-# # Init the mamager with the config since we aren't using an app
-# ldap_manager.init_config(config)
-#
-# # Check if the credentials are correct
-# response = ldap_manager.authenticate('bob', 'bob')
-# print('-- User info:')
-# print(response.user_info)
-# for item in response.user_info:
-#     print(item, ':', response.user_info[f'{item}'])
-# print('-- Other params:')
-# print(response.user_dn)
-# print(response.user_id)
-# print(response.status)
-# print(response.status.name)
-# print(response.status.value)
-#
-# response = ldap_manager.authenticate('john', 'johnldap')
-# print(response.status)
 
-
-class MetaSingleton(type):
+class LDAPManager(LDAP3LoginManager): # Singleton
     _instance = {}
 
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instance:
-            cls._instance[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
-        return cls._instance[cls]
-
-
-class LdapManager(LDAP3LoginManager, metaclass=MetaSingleton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.init_config(config)
+        self.tls_ctx = None
+        self._add_tls_ctx()
+
+        for host in config['LDAP_HOSTS']:
+            self.add_server(host, config['LDAP_PORT'], use_ssl=config['LDAP_USE_SSL'], tls_ctx=self.tls_ctx)
+
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls._instance:
+            cls._instance[cls] = super(LDAPManager, cls).__new__(cls, *args, **kwargs)
+        return cls._instance[cls]
+
+    def _add_tls_ctx(self):
+        if config['LDAP_USE_SSL']:
+            self.tls_ctx = Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLSv1, ca_certs_file=config['CERT_PATH'])
 
 
-class LdapConnection:
-    def __init__(self, user: User):
-        self.ldap_manager = LdapManager()
+class InitLdap:
+    def __init__(self, user: User, *args, **kwargs):
         self.user = user
-        self.status_auth = 1
+        self.ldap_manager = LDAPManager()
 
-    def open_connection(self):
-        if not self.status_auth == 2:
-            raise CouldNotCreateConnection(f'Authentication failed, status {self.status_auth}')
 
-        self._connection = self.ldap_manager.make_connection(
-            bind_user=self.user.uid,
-            bind_password=self.user.userPassword,
+class AuthenticationLDAP(InitLdap):
+
+    def authenticate(self):
+        response = self.ldap_manager.authenticate(username=self.user.uid, password=self.user.userPassword)
+        return response # *.status: 2 - success, 1 - failed
+
+
+class ConnectionLDAP(InitLdap):
+
+    _connections = {}
+
+    def __init__(self, user: User, *args, **kwargs):
+        super().__init__(user, args, kwargs)
+        self._connection = None
+
+    def show_connections(self):
+        print('connection - ', self._connection.usage)
+        for key, value in self._connections.items():
+            print(f'key: {key}, value: , closed: {value._connection.closed}, listening: {value._connection.listening}')
+
+    def connect(self):
+        """
+        This function performs connection to OpenLDAP server
+        :return: None
+        """
+        self._connection: Connection = self._connections.get(self.user.uid)
+
+        if not self._connection or self._connection.closed or not self._connection.listening:
+            self._connection = self.ldap_manager.make_connection(
+                bind_user=self.user.uid,
+                bind_password=self.user.userPassword,
+            )
+            self._connection.open()
+
+            if config['LDAP_USE_SSL']:
+                self._connection.tls_started()
+                self._connection.bind()
+
+            self._connections[self.user.uid] = self
+
+    def close(self):
+        """
+        This function performs close connection
+        :return: None
+        """
+        self._connection.unbind()
+
+    def search(self, value, fields):
+        self._connection.search(
+            search_base='dc=example,dc=com',
+            search_filter='(|%s)' % "".join([f'({field}={fields[field] % value})' for field in fields]),
+            attributes=ALL_ATTRIBUTES
         )
-        self._connection.open()
+        return self._connection.entries
 
-    def _authenticate(self):
-        status = self._connection.authentication(
-            self.user.uid,
-            self.user.userPassword,
+    def get_user(self, uid):
+        self._connection.search(
+            'dc=example,dc=com',
+            f'(uid={uid})',
+            attributes=ALL_ATTRIBUTES
         )
-        self.status_auth = status.value
+        return self._connection.entries[0]
+
+    def create_user(self, user: User):
+        pass
+
+    def modify_user(self, user: User):
+        pass
+
+    def delete_user(self, uid):
+        pass
+
+    def get_users(self, uid):
+        pass
+
+    def get_groups(self):
+        pass
+
+    def is_webadmin(self):
+        pass
 
 
-ldap_manager = LdapManager()
-print('ldap_manager', id(ldap_manager))
+connection = ConnectionLDAP(User(uid='bob', userPassword='bob'))
+connection.connect()
 
-ldap_manager1 = LdapManager()
-print('ldap_manager1', id(ldap_manager1))
+print('__test__')
+print(connection.search('5000', fields=search_fields))
+print('_0_')
+connection.show_connections()
 
-l = ldap_manager.authenticate('bob', 'bob')
-print('bob auth', l.status)
-l1 = ldap_manager.authenticate('john', 'john')
-print('dn', l1.user_dn)
-print('john auth', l1.status)
+# time.sleep(11)
 
-connection = ldap_manager.make_connection(
-    bind_user='john',
-    bind_password='john'
-)
-connection.open()
-print(connection.listening)
-# print(connection.)
-connection_search = connection.search(
-    'dc=example,dc=com',
-    '(objectClass=person)',
-    attributes=ALL_ATTRIBUTES,
-)
-# print(connection.entries)
+print('_0_')
+connection.show_connections()
+print('search _0_:', connection.get_user(uid='bob'))
+
+connection1 = ConnectionLDAP(User(uid='john', userPassword='john'))
+connection1.connect()
+
+time.sleep(5)
+
+connection.close()
+print('_1_')
+connection1.show_connections()
+# print('search _1_:', connection1.get_user(uid='john'))
+print('_0_')
+connection1.close()
+connection1.show_connections()
+

@@ -1,5 +1,7 @@
 
 from flask_ldap3_login import LDAP3LoginManager
+import time
+from ldap3 import ALL_ATTRIBUTES
 
 config = dict()
 
@@ -7,7 +9,7 @@ config = dict()
 # All configuration directives can be found in the documentation.
 
 # Hostname of your LDAP Server
-config['LDAP_HOST'] = '0.0.0.0'
+config['LDAP_HOST'] = '192.168.1.12'
 
 # Base DN of your directory
 config['LDAP_BASE_DN'] = 'dc=example,dc=com'
@@ -51,7 +53,37 @@ print(response.status)
 print(response.status.name)
 print(response.status.value)
 
-response = ldap_manager.authenticate('john', 'john1')
+response = ldap_manager.authenticate('john', 'john')
 print(response.status)
 print(response.status.name)
 print(response.status.value)
+
+
+_connection = ldap_manager.make_connection(
+    bind_user='bob',
+    bind_password='bob',
+)
+_connection.open()
+print(_connection.listening)
+print(_connection.closed)
+connection_search = _connection.search(
+    'dc=example,dc=com',
+    '(objectClass=person)',
+    attributes=ALL_ATTRIBUTES
+)
+print(connection_search)
+print(_connection.entries)
+# print(ldap_manager.connection.entries)
+
+time.sleep(2)
+
+print(_connection.receive_timeout)
+# _connection.unbind()
+
+connection_search = _connection.search(
+    'dc=example,dc=com',
+    '(objectClass=person)',
+    attributes=ALL_ATTRIBUTES
+)
+print(connection_search)
+print(_connection.entries)

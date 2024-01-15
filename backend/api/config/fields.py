@@ -18,7 +18,14 @@ admin = {
             'uidNumber', 'gidNumber', 'st', 'mail', 'street', 'cn', 'displayName', 'givenName', 'sn',
         ],
         'read': [
-            'dn', 'uidNumber', 'gidNumber', 'st', 'mail', 'street', 'cn', 'displayName', 'givenName', 'sn',
+            'dn', 'uidNumber', 'gidNumber', 'st', 'mail', 'street',
+            'cn', 'displayName', 'givenName', 'sn', 'objectClass',
         ]
     },
+}
+
+search_fields = {
+    'gecos': '*%s*',
+    'gidNumber': '%s',
+    'givenName': '*%s*',
 }

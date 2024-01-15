@@ -18,6 +18,9 @@ api.add_resource(UserListOpenLDAPResource, '/users/')
 # Auth resource
 api.add_resource(AuthOpenLDAP, '/auth/token/')
 
+
+# Error
+
 if __name__ == '__main__':
     app.run(debug=True)
 

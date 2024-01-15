@@ -11,7 +11,10 @@ class TokenManager:
         self.user = user
 
     def create_token(self):
-        ''' This function creates access token '''
+        '''
+        This function creates access token
+        :return token
+        '''
 
         if not self.user:
             raise UserIsNone('Not user')
@@ -28,7 +31,11 @@ class TokenManager:
         return token
 
     def check_token(self, token) -> bool:
-        ''' This function check access token '''
+        '''
+        This function check access token
+        :param token: is used to check valid
+        :return data: extracted from token or False
+        '''
 
         try:
             data = jwt.decode(
