@@ -32,7 +32,7 @@ connection.bind()
 # pprint.pprint(connection.__dict__)
 connection_search = connection.search(
     'dc=local,dc=net',
-    '(objectClass=person)',
+    '(uid=serbinovich*)',
     attributes=ALL_ATTRIBUTES
 )
 
@@ -44,6 +44,7 @@ list_users = []
 if connection_search:
     print('connection entries is performed')
     list_users = connection.entries
+    print(list_users)
     pprint.pprint(connection.request)
 
 connection.unbind()
@@ -53,13 +54,13 @@ connection.unbind()
 print('len', len(list_users))
 new_users = []
 count = 0
-for item in list_users:
+# for item in list_users:
     # sshkey_list = []
     # for sshkey in item["sshPublicKey"]:
     #     sshkey_list.append(str(sshkey))
     # print(item.items())
-    if not item.__dict__.get('sshPublicKey'):
-        count += 1
+    # if not item.__dict__.get('sshPublicKey'):
+    #     count += 1
     # user = {
     #     "homeDirectory":str(item["homeDirectory"]),
     #     "sn":str(item["sn"]),

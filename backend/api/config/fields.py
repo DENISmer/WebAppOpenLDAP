@@ -1,163 +1,177 @@
 
+TYPE_LIST = list
+TYPE_STR = str
+TYPE_INT = int
+
 # Fields for simple user
-simple_user = {
+simple_user_fields = {
     'fields': {
         'dn': {
-            'type': 'str',
-            'element_type': 'str',
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'uidNumber': {
-            'type': 'int',
-            'element_type': 'int',
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
             'operation': ['read',],
         },
         'gidNumber': {
-            'type': 'int',
-            'element_type': 'int',
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
             'operation': ['read'],
         },
         'st': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'mail': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read', 'update',],
         },
         'sshPublicKey': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read', 'update'],
         },
+        'userPassword': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['update', ],
+        },
         'street': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'cn': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'displayName': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read'],
         },
         'givenName': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'sn': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read',],
         },
         'loginShell': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read', ],
         },
         'homeDirectory': {
-            'type': 'str',
-            'element_type': 'str',
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
             'operation': ['read', ],
         },
         'objectClass': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['read', ],
         },
-        'userPassword': {
-            'type': 'str',
-            'element_type': 'str',
-            'operation': ['update', ],
-        },
+        'postalCode': {
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
+            'operation': ['read',],
+        }
     },
 }
 
 # Fields for admin
-admin = {
+admin_fields = {
     'fields': {
         'dn': {
-            'type': 'str',
-            'element_type': 'str',
-            'operation': ['create', 'read', 'update'],
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read',],
         },
         'uidNumber': {
-            'type': 'int',
-            'element_type': 'int',
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
             'operation': ['create', 'read', 'update'],
         },
         'gidNumber': {
-            'type': 'int',
-            'element_type': 'int',
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
             'operation': ['create', 'read', 'update'],
         },
         'st': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'mail': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'sshPublicKey': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'street': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'cn': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'displayName': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'givenName': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'sn': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'loginShell': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'homeDirectory': {
-            'type': 'str',
-            'element_type': 'str',
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
         },
         'objectClass': {
-            'type': 'list',
-            'element_type': 'str',
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update',],
         },
         'userPassword': {
-            'type': 'str',
-            'element_type': 'str',
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update',],
         },
+        'postalCode': {
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
+            'operation': ['create', 'read', 'update',],
+        }
     },
 }
 

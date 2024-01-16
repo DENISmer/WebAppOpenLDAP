@@ -23,7 +23,10 @@ config['LDAP_USER_DN'] = 'ou=People'
 # Groups DN to be prepended to the Base DN
 # config['LDAP_GROUP_DN'] = 'ou=groups'
 
+# Only read data form LDAP without write
 config['LDAP_READONLY'] = False
+
+# config['LDAP_BIND_AUTHENTICATION_TYPE'] = 'SIMPLE'
 
 # The RDN attribute for your user schema on LDAP
 config['LDAP_USER_RDN_ATTR'] = 'cn'
