@@ -5,7 +5,7 @@ import ssl
 
 from flask_ldap3_login import LDAP3LoginManager
 
-from ldap3 import Tls, ALL_ATTRIBUTES, Connection
+from ldap3 import Tls, ALL_ATTRIBUTES, Connection, MODIFY_REPLACE
 
 from backend.api.common.user_manager import User
 from backend.api.config.fields import search_fields
@@ -43,7 +43,7 @@ class InitLdap:
 class AuthenticationLDAP(InitLdap):
 
     def authenticate(self):
-        response = self.ldap_manager.authenticate(username=self.user.uid, password=self.user.userPassword)
+        response = self.ldap_manager.authenticate(username=self.user.username_uid, password=self.user.userPassword)
         return response  # *.status: 2 - success, 1 - failed
 
 
@@ -65,7 +65,7 @@ class ConnectionLDAP(InitLdap):
         This function performs connection to OpenLDAP server
         :return: None
         """
-        self._connection: Connection = self._connections.get(self.user.uid)
+        self._connection: Connection = self._connections.get(self.user.username_uid)
 
         if not self._connection:
             conn_result = True
@@ -74,7 +74,7 @@ class ConnectionLDAP(InitLdap):
 
         if conn_result:
             self._connection = self.ldap_manager.make_connection(
-                bind_user=self.user.uid,
+                bind_user=self.user.username_uid,
                 bind_password=self.user.userPassword,
             )
             self._connection.open()
@@ -83,7 +83,7 @@ class ConnectionLDAP(InitLdap):
                 self._connection.tls_started()
                 self._connection.bind()
 
-            self._connections[self.user.uid] = self._connection
+            self._connections[self.user.username_uid] = self._connection
 
     def get_connection(self):
         return self._connection
@@ -113,9 +113,11 @@ class ConnectionLDAP(InitLdap):
         )
 
         data_json = {}
-        if status_search:
-            data = self._connection.entries[0].entry_to_json()
-            data_json.update(orjson.loads(data))
+        if not status_search:
+            return data_json
+
+        data = self._connection.entries[0].entry_to_json()
+        data_json.update(orjson.loads(data))
 
         return data_json
 
@@ -127,24 +129,42 @@ class ConnectionLDAP(InitLdap):
             dn,
             attributes=user.__dict__
         )
+        print('result: ', self._connection.result)
 
     def modify_user(self, user: User):
-        data_user = self.get_user(user.uid, attributes=[])
-        if data_user:
-            user.dn = self.get_user(user.uid, attributes=[])['dn']
-            self._connection.modify(
-                user.dn,
-                {
+        data_user = self.get_user(user.username_uid, attributes=['mail'])
+        print('data_user', data_user)
 
-                    for key, value in user.__dict__['attributes']
-                }
-            )
+        print({
+            key: [(MODIFY_REPLACE, [value])]
+            for key, value in user.__dict__.items() if value
+        })
+
+        # if data_user:
+        #     user.dn = data_user['dn']
+        #     user_dn = user.dn
+        #     del user.__dict__['dn']
+        #     del user.__dict__['username_uid']
+        #     self._connection.modify(
+        #         user_dn,
+        #         {
+        #             key: [(MODIFY_REPLACE, [value])]
+        #             for key, value in user.__dict__.items() if value
+        #         }
+        #     )
+        # return user
         return user
 
-    def delete_user(self, uid):
-        pass
+    def delete_user(self, user: User):
+        data_user = self.get_user(user.username_uid, attributes=[])
+        if not data_user:
+            return False
 
-    def get_users(self, uid):
+        user.dn = data_user['dn']
+        self._connection.delete(user.dn)
+        return True
+
+    def get_users(self):
         pass
 
     def get_groups(self):

@@ -12,7 +12,7 @@ api = Api(app)
 
 
 # Users resource
-api.add_resource(UserOpenLDAPResource,  '/users/<string:uid>')
+api.add_resource(UserOpenLDAPResource,  '/users/<string:username_uid>')
 api.add_resource(UserListOpenLDAPResource, '/users/')
 
 # Auth resource

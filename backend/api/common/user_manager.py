@@ -8,11 +8,12 @@ class Meta(type):
 
 
 class User(metaclass=Meta):
-    def __init__(self, uid, **kwargs):
+    def __init__(self, username_uid, **kwargs):
         self.dn = kwargs.get('dn')
         self.uidNumber = kwargs.get('uidNumber')
         self.gidNumber = kwargs.get('gidNumber')
-        self.uid = uid or []
+        self.uid = kwargs.get('uid') or []
+        self.username_uid = username_uid
         self.sshPublicKey = kwargs.get('sshPublicKey') or []
         self.st = kwargs.get('st') or []
         self.mail = kwargs.get('mail') or []

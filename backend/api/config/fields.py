@@ -20,17 +20,17 @@ simple_user = {
         'st': {
             'type': 'list',
             'element_type': 'str',
-            'operation': ['create', 'read', 'update'],
+            'operation': ['read',],
         },
         'mail': {
             'type': 'list',
             'element_type': 'str',
-            'operation': ['read', 'update'],
+            'operation': ['read', 'update',],
         },
         'sshPublicKey': {
             'type': 'list',
             'element_type': 'str',
-            'operation': ['create', 'read', 'update'],
+            'operation': ['read', 'update'],
         },
         'street': {
             'type': 'list',
@@ -56,6 +56,26 @@ simple_user = {
             'type': 'list',
             'element_type': 'str',
             'operation': ['read',],
+        },
+        'loginShell': {
+            'type': 'list',
+            'element_type': 'str',
+            'operation': ['read', ],
+        },
+        'homeDirectory': {
+            'type': 'str',
+            'element_type': 'str',
+            'operation': ['read', ],
+        },
+        'objectClass': {
+            'type': 'list',
+            'element_type': 'str',
+            'operation': ['read', ],
+        },
+        'userPassword': {
+            'type': 'str',
+            'element_type': 'str',
+            'operation': ['update', ],
         },
     },
 }
@@ -117,6 +137,26 @@ admin = {
             'type': 'list',
             'element_type': 'str',
             'operation': ['create', 'read', 'update'],
+        },
+        'loginShell': {
+            'type': 'list',
+            'element_type': 'str',
+            'operation': ['create', 'read', 'update'],
+        },
+        'homeDirectory': {
+            'type': 'str',
+            'element_type': 'str',
+            'operation': ['create', 'read', 'update'],
+        },
+        'objectClass': {
+            'type': 'list',
+            'element_type': 'str',
+            'operation': ['create', 'read', 'update',],
+        },
+        'userPassword': {
+            'type': 'str',
+            'element_type': 'str',
+            'operation': ['create', 'read', 'update',],
         },
     },
 }

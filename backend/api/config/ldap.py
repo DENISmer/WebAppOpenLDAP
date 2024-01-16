@@ -23,6 +23,7 @@ config['LDAP_USER_DN'] = 'ou=People'
 # Groups DN to be prepended to the Base DN
 # config['LDAP_GROUP_DN'] = 'ou=groups'
 
+config['LDAP_READONLY'] = False
 
 # The RDN attribute for your user schema on LDAP
 config['LDAP_USER_RDN_ATTR'] = 'cn'
