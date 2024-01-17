@@ -25,7 +25,7 @@ class AuthOpenLDAP(Resource):
 
         args = parser.parse_args()
 
-        user = User(uid=args['username'], userPassword=args['password'])
+        user = User(username_uid=args['username'], userPassword=args['password'])
         ldap_auth = AuthenticationLDAP(user)
         response = ldap_auth.authenticate()
 

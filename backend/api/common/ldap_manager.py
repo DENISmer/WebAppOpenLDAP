@@ -94,26 +94,23 @@ class ConnectionLDAP(InitLdap):
 
         if conn_result:
             self._connection = self.ldap_manager.make_connection(
-                bind_user=self.user.get_username_uid(),
-                bind_password=self.user.userPassword,
-                sasl_mechanism=EXTERNAL,
+                # bind_user=self.user.get_username_uid(),
+                # bind_password=self.user.userPassword,
+                # sasl_mechanism=EXTERNAL,
             )
-            print('user', self._connection.user)
             self._connection.open()
-
-            try:
-                bind = self._connection.bind()
-                print('bind', bind)
-            except Exception as e:
-                print(e)
 
             if config['LDAP_USE_SSL']:
                 self._connection.tls_started()
-                self._connection.bind()
-            # bind = self._connection.bind()
-            # print('bind', bind)
+            self._connection.bind()
 
             self._connections[self.user.get_username_uid()] = self._connection
+
+    def rebind(self):
+        self._connection.rebind(
+            username='',
+            password='',
+        )
 
     def get_connection(self):
         return self._connection

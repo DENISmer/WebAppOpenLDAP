@@ -26,7 +26,7 @@ config['LDAP_USER_DN'] = 'ou=People'
 # Only read data form LDAP without write
 config['LDAP_READONLY'] = False
 
-# config['LDAP_BIND_AUTHENTICATION_TYPE'] = 'SIMPLE'
+# config['LDAP_BIND_AUTHENTICATION_TYPE'] = 'SASL'
 
 # The RDN attribute for your user schema on LDAP
 config['LDAP_USER_RDN_ATTR'] = 'cn'

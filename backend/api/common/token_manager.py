@@ -1,5 +1,7 @@
 import jwt
 import time
+import uuid
+import logging
 
 from backend.api.common.exceptions import UserIsNone
 from backend.api.common.user_manager import User
@@ -23,7 +25,9 @@ class TokenManager:
             {
                 'dn': self.user.dn,
                 'uid': self.user.uid,
+                'admin': self.user.is_admin,
                 'exp': int(time.time()) + 3600,
+                'jti': f'{uuid.uuid4()}',
             },  # payload
             settings.SECRET_KEY,  # private key
             algorithm=settings.ALGORITHMS,  # algorithm
@@ -41,10 +45,10 @@ class TokenManager:
             data = jwt.decode(
                 token,  # token
                 settings.SECRET_KEY,  # private key
-                algorithms=settings.ALGORITHMS, # algorithm
+                algorithms=settings.ALGORITHMS,  # algorithm
             )
         except Exception as e:
-            print(e)
+            logging.log(logging.ERROR, f'e: {e}')
             return False
 
         return data
