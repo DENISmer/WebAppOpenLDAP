@@ -1,5 +1,5 @@
-
-from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES
+import ldap3
+from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES, SUBTREE
 import ssl
 import pprint
 from backend.tests.config import CERT_FILE, HOSTS, TEST_USERNAME, TEST_PASSWORD
@@ -46,6 +46,28 @@ if connection_search:
     list_users = connection.entries
     print(list_users)
     pprint.pprint(connection.request)
+
+# entries = connection.extend.standard.paged_search(
+#     search_base='dc=local,dc=net',
+#     search_filter='(objectClass=person)',
+#     search_scope=SUBTREE,
+#     attributes=['cn', 'givenName'],
+#     paged_size=10,
+#     generator=False,
+# )
+#
+# print('len entries:', len(entries))
+
+user_gr = connection.search(
+    'dc=local,dc=net',
+    '(cn=*admin*)',
+    attributes=ALL_ATTRIBUTES
+)
+print('user_gr', user_gr)
+for item in connection.entries:
+    print(item.entry_to_json())
+# for entry in entries:
+    # print(entry['attributes'])
 
 connection.unbind()
 

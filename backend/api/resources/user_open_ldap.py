@@ -2,6 +2,7 @@ import pprint
 
 from flask_restful import Resource, marshal_with, fields, reqparse, abort, request
 from backend.api.common.auth_http_token import auth
+from backend.api.common.decorators import connection_ldap
 from backend.api.common.ldap_manager import ConnectionLDAP
 from backend.api.common.user_manager import User
 from backend.api.config.fields import simple_user_fields, admin_fields
@@ -58,21 +59,19 @@ class UserOpenLDAPResource(Resource):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_user = auth.current_user()
-        print('current_user', self.current_user)
 
-        user_dn = None
-        if self.current_user:
-            user_dn = self.current_user.get('dn') if self.current_user else None
-
-        self._conn_ldap = ConnectionLDAP(User(dn=user_dn, userPassword='bob'))  # {SSHA}icitv+lYDTUmP2Hsu8eY7MKBrwW8RePP
+        # dn='uid=bob,ou=People,dc=example,dc=com', userPassword='bob')
+        self._conn_ldap = ConnectionLDAP(User())  # {SSHA}icitv+lYDTUmP2Hsu8eY7MKBrwW8RePP
         self._conn_ldap.connect()
 
     @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
     @marshal_with(resource_fields)
+    @connection_ldap
     def get(self, username_uid, *args, **kwargs):
         user = self._conn_ldap.get_user(username_uid)
-
+        self._conn_ldap.is_webadmin()
+        print('connection -', kwargs['connection'])
+        print('-X GET id: %d, id conn: %d' % (id(self._conn_ldap), id(self._conn_ldap.get_connection())))
         # print('current_user:', auth.current_user())
         return user, 200
 
@@ -89,8 +88,12 @@ class UserOpenLDAPResource(Resource):
         args = parser_patch.parse_args()
         user = User(username_uid=username_uid, **args)
 
-        # self._conn_ldap.modify_user(user)
-        # user = self._conn_ldap.modify_user(User(username_uid=username_uid, **args))
+        self._conn_ldap.modify_user(
+            user=user,
+            fields=admin_fields['fields'],
+            operation='update'
+        )
+
         return None, 200
 
     @auth.login_required(role=[Roles.ADMIN])
@@ -107,17 +110,23 @@ class UserListOpenLDAPResource(Resource):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self._conn_ldap = ConnectionLDAP(User(username_uid='bob', userPassword='bob'))
         self._conn_ldap.connect()
 
-    @auth.login_required
+    @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
     @marshal_with(resource_fields_list)
     def get(self):
+        print('Current user GET', auth.current_user())
         return None, 200
 
     @auth.login_required(role=[Roles.ADMIN])
     def post(self):
         args = parser_post.parse_args()
-        pprint.pprint(args)
-        # self._conn_ldap.create_user(User(**args))
+        user = User(**args)
+        self._conn_ldap.create_user(
+            user=user,
+            fields=admin_fields['fields'],
+            operation='create'
+        )
         return None, 201

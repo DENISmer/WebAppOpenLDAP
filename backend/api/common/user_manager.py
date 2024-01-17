@@ -46,15 +46,12 @@ class User(metaclass=Meta):
     def get_username_uid(self):
         return self.__username_uid
 
-    def serialize_data_modify(self, fields) -> dict:
+    def serialize_data(self, fields, operation) -> dict:
         res = {
             key: getattr(self, key)
             for key, value in fields.items()
-            if 'update' in value['operation'] \
+            if operation in value['operation'] \
                and hasattr(self, key) \
                and getattr(self, key)
         }
         return res
-
-    def serialize_data_create(self):
-        pass

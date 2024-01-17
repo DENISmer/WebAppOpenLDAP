@@ -47,8 +47,15 @@ class TokenManager:
                 settings.SECRET_KEY,  # private key
                 algorithms=settings.ALGORITHMS,  # algorithm
             )
+        except jwt.exceptions.InvalidSignatureError:
+            return False
+        except jwt.exceptions.DecodeError:
+            return False
+        except jwt.exceptions.ExpiredSignatureError:
+            # clean token
+            return False
         except Exception as e:
-            logging.log(logging.ERROR, f'e: {e}')
+            logging.log(logging.ERROR, f' e: {e}')
             return False
 
         return data

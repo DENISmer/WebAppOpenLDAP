@@ -95,7 +95,7 @@ admin_fields = {
         'dn': {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
-            'operation': ['create', 'read',],
+            'operation': ['read',],
         },
         'uidNumber': {
             'type': TYPE_INT,

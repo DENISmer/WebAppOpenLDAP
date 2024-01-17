@@ -28,3 +28,7 @@ if __name__ == '__main__':
 # receive dn
 # performs rebind
 # make the best schema with pool connection
+'''
+If token is expired database clean
+ 
+'''

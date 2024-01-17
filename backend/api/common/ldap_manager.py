@@ -9,10 +9,16 @@ from flask_ldap3_login import LDAP3LoginManager
 from flask import abort
 
 from ldap3 import Tls, ALL_ATTRIBUTES, Connection, MODIFY_REPLACE, EXTERNAL
+from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult
 
 from backend.api.common.user_manager import User
 from backend.api.config.fields import search_fields, admin_fields
 from backend.api.config.ldap import config
+
+
+users = {
+
+}
 
 
 class LDAPManager(LDAP3LoginManager):  # Singleton
@@ -57,6 +63,13 @@ class AuthenticationLDAP(InitLdap):
             username=self.user.get_username_uid(),
             password=self.user.userPassword
         )
+
+        if response.status.value == 2:
+            print('STATUS: SUCCESS, user uid:', self.user.get_username_uid())
+            users[self.user.get_username_uid()] = self.user.userPassword
+
+            pprint.pprint(users)
+
         return response  # *.status: 2 - success, 1 - failed
 
 
@@ -94,9 +107,9 @@ class ConnectionLDAP(InitLdap):
 
         if conn_result:
             self._connection = self.ldap_manager.make_connection(
-                # bind_user=self.user.get_username_uid(),
-                # bind_password=self.user.userPassword,
-                # sasl_mechanism=EXTERNAL,
+                bind_user=self.user.dn,
+                bind_password=self.user.userPassword,
+                sasl_mechanism=EXTERNAL,
             )
             self._connection.open()
 
@@ -106,10 +119,10 @@ class ConnectionLDAP(InitLdap):
 
             self._connections[self.user.get_username_uid()] = self._connection
 
-    def rebind(self):
+    def rebind(self, user: User):
         self._connection.rebind(
-            username='',
-            password='',
+            username=user.dn,
+            password=user.userPassword,
         )
 
     def get_connection(self):
@@ -157,42 +170,44 @@ class ConnectionLDAP(InitLdap):
         user = User(username_uid=uid, dn=data['dn'], **data['attributes'])
         return user
 
-    def create_user(self, user: User):
+    def create_user(self, user: User, fields, operation):
         dn = user.dn
 
-        del user.__dict__['dn']
         self._connection.add(
             dn,
-            attributes=user.__dict__
+            attributes=user.serialize_data(
+                fields=fields, operation=operation
+            )
         )
         print('result: ', self._connection.result)
 
-    def modify_user(self, user: User):
+    def modify_user(self, user: User, fields, operation):
         founded_user = self.get_user(user.get_username_uid(), attributes=[])
         user.dn = founded_user.dn
 
-        serialized_data_modify = user.serialize_data_modify(
-            fields=admin_fields['fields']
+        serialized_data_modify = user.serialize_data(
+            fields=fields, operation=operation,
         )
 
         if founded_user:
-            self._connection.modify(
-                user.dn,
-                {
-                    key: [(MODIFY_REPLACE, value if type(value) == list else [value])]
-                    for key, value in serialized_data_modify.items()
-                }
-            )
-            print('result:', self._connection.result)
-
+            try:
+                self._connection.modify(
+                    user.dn,
+                    {
+                        key: [(MODIFY_REPLACE, value if type(value) == list else [value])]
+                        for key, value in serialized_data_modify.items()
+                    }
+                )
+                print('result:', self._connection.result)
+            except LDAPInsufficientAccessRightsResult:
+                abort(403, 'Insufficient access rights')
         return user
 
     def delete_user(self, user: User):
-        data_user = self.get_user(user.get_username_uid(), attributes=[])
-        if not data_user:
+        user = self.get_user(user.get_username_uid(), attributes=[])
+        if not user:
             return False
 
-        user.dn = data_user['dn']
         self._connection.delete(user.dn)
         return True
 
@@ -203,4 +218,4 @@ class ConnectionLDAP(InitLdap):
         pass
 
     def is_webadmin(self):
-        pass
+        print('webadmin:', self.search('webadmins', {'cn': '*%s*'}))
