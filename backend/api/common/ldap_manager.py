@@ -11,6 +11,7 @@ from flask import abort
 from ldap3 import Tls, ALL_ATTRIBUTES, Connection, MODIFY_REPLACE, EXTERNAL
 from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult
 
+from backend.api.common.groups import Group
 from backend.api.common.user_manager import User
 from backend.api.config.fields import search_fields, admin_fields
 from backend.api.config.ldap import config
@@ -50,46 +51,13 @@ class LDAPManager(LDAP3LoginManager):  # Singleton
                                ca_certs_file=config['CERT_PATH'])
 
 
-class InitLdap:
+class ConnectionLDAP:
+    _connections = {}
+
     def __init__(self, user: User, *args, **kwargs):
         self.user = user
         self.ldap_manager = LDAPManager()
-
-
-class AuthenticationLDAP(InitLdap):
-
-    def authenticate(self):
-        response = self.ldap_manager.authenticate(
-            username=self.user.get_username_uid(),
-            password=self.user.userPassword
-        )
-
-        if response.status.value == 2:
-            print('STATUS: SUCCESS, user uid:', self.user.get_username_uid())
-            users[self.user.get_username_uid()] = self.user.userPassword
-
-            pprint.pprint(users)
-
-        return response  # *.status: 2 - success, 1 - failed
-
-
-class ConnectionLDAP(InitLdap):
-    _connections = {}
-
-    def __init__(
-        self,
-        user: User,
-        *args,
-        **kwargs
-    ):
-
-        super().__init__(user, args, kwargs)
         self._connection = None
-
-    def show_connections(self):
-        print('connection - ', self._connection.usage)
-        for key, value in self._connections.items():
-            print(f'key: {key}, value: , closed: {value._connection.closed}, listening: {value._connection.listening}')
 
     def connect(self):
         """
@@ -119,14 +87,19 @@ class ConnectionLDAP(InitLdap):
 
             self._connections[self.user.get_username_uid()] = self._connection
 
+    def get_connection(self):
+        return self._connection
+
+    def show_connections(self):
+        print('connection - ', self._connection.usage)
+        for key, value in self._connections.items():
+            print(f'key: {key}, value: , closed: {value._connection.closed}, listening: {value._connection.listening}')
+
     def rebind(self, user: User):
         self._connection.rebind(
             username=user.dn,
             password=user.userPassword,
         )
-
-    def get_connection(self):
-        return self._connection
 
     def close(self):
         """
@@ -135,6 +108,9 @@ class ConnectionLDAP(InitLdap):
         """
         del self._connections[self.user.get_username_uid()]
         self._connection.unbind()
+
+
+class UserManagerLDAP(ConnectionLDAP):
 
     def search(
         self,
@@ -214,8 +190,40 @@ class ConnectionLDAP(InitLdap):
     def get_users(self):
         pass
 
-    def get_groups(self):
-        pass
+    def get_groups(self, value, fields):
+        search = self.search(value, fields)
+        if not search:
+            return []
 
-    def is_webadmin(self):
-        print('webadmin:', self.search('webadmins', {'cn': '*%s*'}))
+        return [
+            orjson.loads(group.entry_to_json()) for group in search
+        ]
+
+    def is_webadmin(self, dn) -> bool:
+        groups = self.get_groups(Group.WEBADMINS.value, {'cn': '%s'})
+        print('groups', groups)
+        if not groups:
+            return False
+
+        member = groups[0]['attributes']['member']
+        if dn not in member:
+            return False
+
+        return True
+
+
+class AuthenticationLDAP(UserManagerLDAP):
+
+    def authenticate(self):
+        response = self.ldap_manager.authenticate(
+            username=self.user.get_username_uid(),
+            password=self.user.userPassword
+        )
+
+        if response.status.value == 2:
+            print('STATUS: SUCCESS, user uid:', self.user.get_username_uid())
+            users[self.user.get_username_uid()] = self.user.userPassword
+
+            pprint.pprint(users)
+
+        return response  # *.status: 2 - success, 1 - failed

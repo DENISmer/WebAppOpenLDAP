@@ -4,6 +4,7 @@ from backend.api.common.token_manager import TokenManager, Token
 from backend.api.common.ldap_manager import AuthenticationLDAP
 from backend.api.common.user_manager import User
 
+
 resource_field = {
     'token': fields.String
 }
@@ -28,10 +29,16 @@ class AuthOpenLDAP(Resource):
         user = User(username_uid=args['username'], userPassword=args['password'])
         ldap_auth = AuthenticationLDAP(user)
         response = ldap_auth.authenticate()
-
         if response.status.value == 1:
             abort(403, message='Invalid username or password.')
 
+        ldap_auth.connect()
+
         user.dn = response.user_dn
+        user.uid = response.user_id
+        user.is_webadmin = ldap_auth.is_webadmin(user.dn)
+
+        ldap_auth.close()
+
         token = TokenManager(user=user).create_token()
         return Token(token=token), 200

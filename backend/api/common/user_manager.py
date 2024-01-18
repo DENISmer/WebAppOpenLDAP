@@ -7,7 +7,7 @@ class Meta(type):
 
 
 class User(metaclass=Meta):
-    def __init__(self, username_uid=None, is_admin=False, **kwargs):
+    def __init__(self, username_uid=None, is_webadmin=False, **kwargs):
         self.dn = kwargs.get('dn')
 
         uid_number = kwargs.get('uidNumber')
@@ -38,7 +38,7 @@ class User(metaclass=Meta):
         if login_shell:
             self.loginShell = kwargs.get('loginShell')
 
-        self.is_admin = is_admin
+        self.is_webadmin = is_webadmin
 
     def __repr__(self):
         return self.dn

@@ -6,6 +6,7 @@ import logging
 from backend.api.common.exceptions import UserIsNone
 from backend.api.common.user_manager import User
 from backend.api.config import settings
+from backend.api.common.groups import Group
 
 
 class TokenManager:
@@ -25,7 +26,7 @@ class TokenManager:
             {
                 'dn': self.user.dn,
                 'uid': self.user.uid,
-                'admin': self.user.is_admin,
+                Group.WEBADMINS.value: self.user.is_webadmin,
                 'exp': int(time.time()) + 3600,
                 'jti': f'{uuid.uuid4()}',
             },  # payload

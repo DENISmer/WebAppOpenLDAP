@@ -14,9 +14,9 @@ def verify_token(token):
         if not is_token:
             return False
     else:
-        token = {
+        is_token = {
             'dn': 'uid=test,ou=People,dc=example,dc=com',
             'uid': 'test',
             'admin': True,
         }
-    return token
+    return is_token

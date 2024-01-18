@@ -2,11 +2,13 @@ import pprint
 
 from flask_restful import Resource, marshal_with, fields, reqparse, abort, request
 from backend.api.common.auth_http_token import auth
-from backend.api.common.decorators import connection_ldap
-from backend.api.common.ldap_manager import ConnectionLDAP
+from backend.api.common.decorators import connection_ldap, permission_user
+from backend.api.common.groups import Group
+from backend.api.common.ldap_manager import ConnectionLDAP, UserManagerLDAP
 from backend.api.common.user_manager import User
 from backend.api.config.fields import simple_user_fields, admin_fields
-from backend.api.common.roles import Roles
+from backend.api.common.roles import Role
+
 
 resource_fields = {
     'dn': fields.String,
@@ -50,9 +52,9 @@ for key, value in admin_fields['fields'].items():
 
 @auth.get_user_roles  # roles
 def get_user_roles(user):
-    if user['admin']:
-        return Roles.ADMIN
-    return Roles.SIMPLE_USER
+    if user[Role.ADMIN.value]:
+        return Role.ADMIN
+    return Role.SIMPLE_USER
 
 
 class UserOpenLDAPResource(Resource):
@@ -61,34 +63,36 @@ class UserOpenLDAPResource(Resource):
         super().__init__(*args, **kwargs)
 
         # dn='uid=bob,ou=People,dc=example,dc=com', userPassword='bob')
-        self._conn_ldap = ConnectionLDAP(User())  # {SSHA}icitv+lYDTUmP2Hsu8eY7MKBrwW8RePP
-        self._conn_ldap.connect()
+        self._user_manager_ldap = UserManagerLDAP(User())  # {SSHA}icitv+lYDTUmP2Hsu8eY7MKBrwW8RePP
+        self._user_manager_ldap.connect()
 
-    @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
+    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     @connection_ldap
+    @permission_user
     def get(self, username_uid, *args, **kwargs):
-        user = self._conn_ldap.get_user(username_uid)
-        self._conn_ldap.is_webadmin()
+        user = self._user_manager_ldap.get_user(username_uid)
+        self._user_manager_ldap.is_webadmin(user.dn)
+
         print('connection -', kwargs['connection'])
-        print('-X GET id: %d, id conn: %d' % (id(self._conn_ldap), id(self._conn_ldap.get_connection())))
+        print('-X GET id: %d, id conn: %d' % (id(self._user_manager_ldap), id(self._user_manager_ldap.get_connection())))
         # print('current_user:', auth.current_user())
         return user, 200
 
-    @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
+    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     def put(self, username_uid, *args, **kwargs):
         args = parser_put.parse_args()
         pprint.pprint(args)
         return 200
 
-    @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
+    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     def patch(self, username_uid):
         args = parser_patch.parse_args()
         user = User(username_uid=username_uid, **args)
 
-        self._conn_ldap.modify_user(
+        self._user_manager_ldap.modify_user(
             user=user,
             fields=admin_fields['fields'],
             operation='update'
@@ -96,7 +100,7 @@ class UserOpenLDAPResource(Resource):
 
         return None, 200
 
-    @auth.login_required(role=[Roles.ADMIN])
+    @auth.login_required(role=[Role.ADMIN])
     def delete(self, username_uid):
         print('DELETE', username_uid)
         # result = self._conn_ldap.delete_user(User(username_uid=username_uid))
@@ -111,20 +115,20 @@ class UserListOpenLDAPResource(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._conn_ldap = ConnectionLDAP(User(username_uid='bob', userPassword='bob'))
-        self._conn_ldap.connect()
+        self._user_manager_ldap = UserManagerLDAP(User())  # {SSHA}icitv+lYDTUmP2Hsu8eY7MKBrwW8RePP
+        self._user_manager_ldap.connect()
 
-    @auth.login_required(role=[Roles.ADMIN, Roles.SIMPLE_USER])
+    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields_list)
     def get(self):
         print('Current user GET', auth.current_user())
         return None, 200
 
-    @auth.login_required(role=[Roles.ADMIN])
+    @auth.login_required(role=[Role.ADMIN])
     def post(self):
         args = parser_post.parse_args()
         user = User(**args)
-        self._conn_ldap.create_user(
+        self._user_manager_ldap.create_user(
             user=user,
             fields=admin_fields['fields'],
             operation='create'
