@@ -15,8 +15,8 @@ def verify_token(token):
             return False
     else:
         is_token = {
-            'dn': 'uid=test,ou=People,dc=example,dc=com',
-            'uid': 'test',
-            'admin': True,
+            'dn': 'uid=bob,ou=People,dc=example,dc=com',
+            'uid': 'bob',
+            'webadmins': True,
         }
     return is_token

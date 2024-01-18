@@ -1,21 +1,39 @@
-class Meta(type):
-    def __init__(cls, name, bases, namespace):
-        super().__init__(name, bases, namespace)
-        # print(name, bases)
-        # for key, value in namespace.items():
-        #     print(key,  value)
+from abc import ABC
 
 
-class User(metaclass=Meta):
-    def __init__(self, username_uid=None, is_webadmin=False, **kwargs):
+class UserCnAbstract(ABC):
+    def __init__(self, *args, **kwargs):
         self.dn = kwargs.get('dn')
+        self.cn = kwargs.get('cn') or []
+        self.objectClass = kwargs.get('objectClass') or []
+
+        gid_number = kwargs.get('gidNumber')
+        if gid_number:
+            self.gidNumber = gid_number[0]
+
+    def serialize_data(self, fields, operation) -> dict:
+        res = {
+            key: getattr(self, key)
+            for key, value in fields.items()
+            if operation in value['operation'] \
+               and hasattr(self, key) \
+               and getattr(self, key)
+        }
+        return res
+
+
+class User(UserCnAbstract):
+    def __init__(self, username_uid=None, is_webadmin=False, **kwargs):
+        super().__init__(
+            dn=kwargs.get('dn'),
+            cn=kwargs.get('cn'),
+            objectClass=kwargs.get('objectClass'),
+            gidNumber=kwargs.get('gidNumber'),
+        )
 
         uid_number = kwargs.get('uidNumber')
         if uid_number:
             self.uidNumber = uid_number[0]
-        gid_number = kwargs.get('gidNumber')
-        if gid_number:
-            self.gidNumber = gid_number[0]
 
         self.uid = kwargs.get('uid') or []
         self.__username_uid = username_uid
@@ -46,12 +64,12 @@ class User(metaclass=Meta):
     def get_username_uid(self):
         return self.__username_uid
 
-    def serialize_data(self, fields, operation) -> dict:
-        res = {
-            key: getattr(self, key)
-            for key, value in fields.items()
-            if operation in value['operation'] \
-               and hasattr(self, key) \
-               and getattr(self, key)
-        }
-        return res
+
+class CnUserGroup(UserCnAbstract):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            dn=kwargs.get('dn'),
+            cn=kwargs.get('cn'),
+            objectClass=kwargs.get('objectClass'),
+            gidNumber=kwargs.get('gidNumber'),
+        )

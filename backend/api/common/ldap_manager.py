@@ -1,6 +1,6 @@
 import pprint
 import time
-from typing import List, Dict
+from typing import Dict
 
 import orjson
 import ssl
@@ -15,11 +15,6 @@ from backend.api.common.groups import Group
 from backend.api.common.user_manager import User
 from backend.api.config.fields import search_fields, admin_fields
 from backend.api.config.ldap import config
-
-
-users = {
-
-}
 
 
 class LDAPManager(LDAP3LoginManager):  # Singleton
@@ -47,8 +42,11 @@ class LDAPManager(LDAP3LoginManager):  # Singleton
 
     def _add_tls_ctx(self):
         if config['LDAP_USE_SSL']:
-            self.tls_ctx = Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLSv1,
-                               ca_certs_file=config['CERT_PATH'])
+            self.tls_ctx = Tls(
+                validate=ssl.CERT_REQUIRED,
+                version=ssl.PROTOCOL_TLSv1,
+                ca_certs_file=config['CERT_PATH']
+            )
 
 
 class ConnectionLDAP:
@@ -93,7 +91,8 @@ class ConnectionLDAP:
     def show_connections(self):
         print('connection - ', self._connection.usage)
         for key, value in self._connections.items():
-            print(f'key: {key}, value: , closed: {value._connection.closed}, listening: {value._connection.listening}')
+            print(value)
+            print(f'key: {key}, value: , closed: {value.closed}, listening: {value.listening}')
 
     def rebind(self, user: User):
         self._connection.rebind(
@@ -101,7 +100,7 @@ class ConnectionLDAP:
             password=user.userPassword,
         )
 
-    def close(self):
+    def close_connection(self):
         """
         This function performs close connection
         :return: None
@@ -170,7 +169,10 @@ class UserManagerLDAP(ConnectionLDAP):
                 self._connection.modify(
                     user.dn,
                     {
-                        key: [(MODIFY_REPLACE, value if type(value) == list else [value])]
+                        key: [(
+                            MODIFY_REPLACE,
+                            value if type(value) == list else [value]
+                        )]
                         for key, value in serialized_data_modify.items()
                     }
                 )
@@ -201,7 +203,7 @@ class UserManagerLDAP(ConnectionLDAP):
 
     def is_webadmin(self, dn) -> bool:
         groups = self.get_groups(Group.WEBADMINS.value, {'cn': '%s'})
-        print('groups', groups)
+
         if not groups:
             return False
 
@@ -220,10 +222,7 @@ class AuthenticationLDAP(UserManagerLDAP):
             password=self.user.userPassword
         )
 
-        if response.status.value == 2:
-            print('STATUS: SUCCESS, user uid:', self.user.get_username_uid())
-            users[self.user.get_username_uid()] = self.user.userPassword
-
-            pprint.pprint(users)
+        # if response.status.value == 2:
+        #     users[self.user.get_username_uid()] = self.user.userPassword
 
         return response  # *.status: 2 - success, 1 - failed
