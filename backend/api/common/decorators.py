@@ -4,6 +4,7 @@ from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.ldap_manager import UserManagerLDAP
+from backend.api.common.roles import Role
 from backend.api.common.user_manager import User
 
 
@@ -40,7 +41,7 @@ def permission_user(func):
         current_user = auth.current_user()
         username_uid = kwargs['username_uid']
 
-        if current_user['uid'] != username_uid and not current_user['webadmins']:
+        if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
             abort(403, message='Insufficient access rights')
 
         res = func(*args, **kwargs)

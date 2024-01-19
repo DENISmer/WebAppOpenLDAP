@@ -26,7 +26,7 @@ class TokenManager:
             {
                 'dn': self.user.dn,
                 'uid': self.user.uid,
-                Group.WEBADMINS.value: self.user.is_webadmin,
+                'role': self.user.role.value,
                 'exp': int(time.time()) + 3600,
                 'jti': f'{uuid.uuid4()}',
             },  # payload

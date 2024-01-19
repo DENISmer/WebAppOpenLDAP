@@ -47,25 +47,25 @@ if connection_search:
     print(list_users)
     pprint.pprint(connection.request)
 
-# entries = connection.extend.standard.paged_search(
-#     search_base='dc=local,dc=net',
-#     search_filter='(objectClass=person)',
-#     search_scope=SUBTREE,
-#     attributes=['cn', 'givenName'],
-#     paged_size=10,
-#     generator=False,
-# )
-#
-# print('len entries:', len(entries))
-
-user_gr = connection.search(
-    'dc=local,dc=net',
-    '(cn=*admin*)',
-    attributes=ALL_ATTRIBUTES
+entries = connection.extend.standard.paged_search(
+    search_base='dc=local,dc=net',
+    search_filter='(objectClass=person)',
+    search_scope=SUBTREE,
+    attributes=['cn', 'givenName'],
+    paged_size=10,
+    generator=False,
 )
-print('user_gr', user_gr)
-for item in connection.entries:
-    print(item.entry_to_json())
+
+print('len entries:', len(entries))
+
+# user_gr = connection.search(
+#     'dc=local,dc=net',
+#     '(cn=*admin*)',
+#     attributes=ALL_ATTRIBUTES
+# )
+# print('user_gr', user_gr)
+# for item in connection.entries:
+#     print(item.entry_to_json())
 # for entry in entries:
     # print(entry['attributes'])
 

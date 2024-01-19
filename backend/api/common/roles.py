@@ -2,5 +2,5 @@ from enum import Enum
 
 
 class Role(Enum):
-    ADMIN = 'webadmins'
+    WEBADMIN = 'webadmins'
     SIMPLE_USER = 'simple_user'

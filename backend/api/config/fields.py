@@ -207,8 +207,17 @@ admin_fields = {
 }
 
 search_fields = {
-    'gecos': '*%s*',
-    'gidNumber': '%d',
+    'cn': '*%s*',
+    'street': '*%s*',
+    'mail': '*%s*',
+    'sn': '*%s*',
+    'st': '*%s*',
     'givenName': '*%s*',
-    'dn': '*%s*'
+    'displayName': '*%s*',
+    'uidNumber': '%d',
+    'gidNumber': '%d',
+    'postalCode': '%d',
+    'loginShell': '*%s*',
+    'homeDirectory': '*%s*',
+    # 'objectClass': '*%s*',
 }

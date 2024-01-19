@@ -117,30 +117,37 @@ class UserManagerLDAP(ConnectionLDAP):
         attributes=ALL_ATTRIBUTES,
         required_fields: Dict[str, str] = None
     ) -> list:
-        search_filter = '(|%s)' % "".join(
-            [
-                f'({field}={fields[field] % value})' for field in fields
-                if (type(value) == int and fields[field] == '%d') or ('%s' in fields[field])
-            ]
-        )
-        required_filter = '(&%s)' % "".join(
-            [
-                f'({key}={value_d})' for key, value_d in required_fields.items()
-            ]
-        )
 
-        if required_fields and value:
-            search_filter = '(&%s%s)' % (
-                search_filter,
-                required_filter
+        search_filter = ''
+        required_filter = ''
+
+        if not value and not required_fields:
+            return []
+
+        if value:
+            search_filter = '(|%s)' % "".join(
+                [
+                    f'({field}={fields[field] % value})' for field in fields
+                    if (type(value) == int and fields[field] == '%d') or ('%s' in fields[field])
+                ]
             )
-        else:
-            search_filter = required_filter
+
+        if required_fields:
+            required_filter = '(&%s)' % "".join(
+                [
+                    f'({key}={value_d})' for key, value_d in required_fields.items()
+                ]
+            )
+
+        common_filter = '(&%s%s)' % (
+            search_filter,
+            required_filter
+        )  #### must be done #### done ! test
 
         status_search = self._connection.search(
             search_base='dc=example,dc=com',
-            search_filter=search_filter,
-            attributes=attributes
+            search_filter=common_filter,#search_filter,
+            attributes=attributes,
         )
         if not status_search:
             return []
@@ -210,6 +217,7 @@ class UserManagerLDAP(ConnectionLDAP):
             fields=kwargs.get('fields'),
             required_fields=kwargs.get('required_fields')
         )
+
         if not users:
             return []
 

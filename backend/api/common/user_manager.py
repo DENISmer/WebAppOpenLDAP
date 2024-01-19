@@ -57,6 +57,7 @@ class User(UserCnAbstract):
             self.loginShell = login_shell[0]
 
         self.is_webadmin = is_webadmin
+        self.role = kwargs.get('role')
 
     def __repr__(self):
         return self.dn

@@ -9,7 +9,7 @@ olcAccess to change:
       by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
       by anonymous auth
       by * none
-
+    
     olcAccess: to *
       by self write
       by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write

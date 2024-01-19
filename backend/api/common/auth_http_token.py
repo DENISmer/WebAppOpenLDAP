@@ -17,6 +17,6 @@ def verify_token(token):
         is_token = {
             'dn': 'uid=bob,ou=People,dc=example,dc=com',
             'uid': 'bob',
-            'webadmins': True,
+            'role': 'webadmins',
         }
     return is_token

@@ -58,9 +58,7 @@ parser_get_list.add_argument('search', location='values')
 
 @auth.get_user_roles  # roles
 def get_user_roles(user):
-    if user[Role.ADMIN.value]:
-        return Role.ADMIN
-    return Role.SIMPLE_USER
+    return Role(user['role'])
 
 
 class UserOpenLDAPResource(Resource):
@@ -69,7 +67,7 @@ class UserOpenLDAPResource(Resource):
         super().__init__(*args, **kwargs)
         self._user_manager_ldap: UserManagerLDAP = None
 
-    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     @connection_ldap
     @permission_user
@@ -81,7 +79,7 @@ class UserOpenLDAPResource(Resource):
 
         return user, 200
 
-    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     def put(self, username_uid, *args, **kwargs):
         pprint.pprint(parser_put.args)
@@ -89,7 +87,7 @@ class UserOpenLDAPResource(Resource):
         pprint.pprint(args)
         return 200
 
-    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @marshal_with(resource_fields)
     @connection_ldap
     def patch(self, username_uid):
@@ -105,7 +103,7 @@ class UserOpenLDAPResource(Resource):
 
         return None, 200
 
-    @auth.login_required(role=[Role.ADMIN])
+    @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     def delete(self, username_uid):
         print('DELETE', username_uid)
@@ -125,7 +123,7 @@ class UserListOpenLDAPResource(Resource):
 
         self._user_manager_ldap: UserManagerLDAP = None
 
-    @auth.login_required(role=[Role.ADMIN])
+    @auth.login_required(role=[Role.WEBADMIN])
     @marshal_with(resource_fields_list)
     @connection_ldap
     def get(self):
@@ -147,7 +145,7 @@ class UserListOpenLDAPResource(Resource):
 
         return {'users': users, 'fields': out_fields}, 200
 
-    @auth.login_required(role=[Role.ADMIN])
+    @auth.login_required(role=[Role.WEBADMIN])
     def post(self):
         args = parser_post.parse_args()
         user = User(**args)

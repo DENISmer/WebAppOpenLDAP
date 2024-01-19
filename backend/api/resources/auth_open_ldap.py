@@ -1,5 +1,6 @@
 from flask_restful import Resource, fields, marshal_with, request, reqparse, abort
 
+from backend.api.common.roles import Role
 from backend.api.common.token_manager import TokenManager, Token
 from backend.api.common.ldap_manager import AuthenticationLDAP
 from backend.api.common.user_manager import User
@@ -37,8 +38,10 @@ class AuthOpenLDAP(Resource):
         user.dn = response.user_dn
         user.uid = response.user_id
         user.is_webadmin = ldap_auth.is_webadmin(user.dn)
+        if user.is_webadmin:
+            user.role = Role.WEBADMIN
 
-        ldap_auth.close()
+        ldap_auth.close_connection()
 
         token = TokenManager(user=user).create_token()
         return Token(token=token), 200
