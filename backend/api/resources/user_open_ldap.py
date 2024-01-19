@@ -5,7 +5,7 @@ from backend.api.common.auth_http_token import auth
 from backend.api.common.decorators import connection_ldap, permission_user
 from backend.api.common.ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import User
-from backend.api.config.fields import simple_user_fields, admin_fields
+from backend.api.config.fields import simple_user_fields, admin_fields, search_fields
 from backend.api.common.roles import Role
 
 
@@ -23,11 +23,15 @@ resource_fields = {
     'givenName': fields.List(fields.String),
     'sn': fields.List(fields.String),
     'postalCode': fields.List(fields.Integer),
+    'homeDirectory': fields.String,
+    'loginShell': fields.String,
+    'objectClass': fields.List(fields.String),
 }
 resource_fields_list = {
-    'list': fields.List(
+    'users': fields.List(
         fields.Nested(resource_fields)
-    )
+    ),
+    'fields': fields.List(fields.String),
 }
 
 parser_post = reqparse.RequestParser()
@@ -48,6 +52,9 @@ for key, value in admin_fields['fields'].items():
         action='append' if value['type'] else 'store'
     )
 
+parser_get_list = reqparse.RequestParser()
+parser_get_list.add_argument('search', location='values')
+
 
 @auth.get_user_roles  # roles
 def get_user_roles(user):
@@ -67,11 +74,10 @@ class UserOpenLDAPResource(Resource):
     @connection_ldap
     @permission_user
     def get(self, username_uid, *args, **kwargs):
-        self._user_manager_ldap.show_connections()
         print('id conn -', id(self._user_manager_ldap.get_connection()))
         print('id GET', id(self))
         user = self._user_manager_ldap.get_user(username_uid)
-        self._user_manager_ldap.is_webadmin(user.dn)
+        print('is_webadmin', self._user_manager_ldap.is_webadmin(user.dn))
 
         return user, 200
 
@@ -89,7 +95,7 @@ class UserOpenLDAPResource(Resource):
     def patch(self, username_uid):
         args = parser_patch.parse_args()
         user = User(username_uid=username_uid, **args)
-        self._user_manager_ldap.close_connection()
+        # self._user_manager_ldap.close_connection()
 
         self._user_manager_ldap.modify_user(
             user=user,
@@ -100,13 +106,16 @@ class UserOpenLDAPResource(Resource):
         return None, 200
 
     @auth.login_required(role=[Role.ADMIN])
+    @connection_ldap
     def delete(self, username_uid):
         print('DELETE', username_uid)
-        # result = self._conn_ldap.delete_user(User(username_uid=username_uid))
-        # if not result:
-        #     abort(400)
+        user = User(username_uid=username_uid)
 
-        return 204
+        result = self._user_manager_ldap. delete_user(user)
+        if not result:
+            abort(400)
+
+        return None, 204
 
 
 class UserListOpenLDAPResource(Resource):
@@ -116,12 +125,27 @@ class UserListOpenLDAPResource(Resource):
 
         self._user_manager_ldap: UserManagerLDAP = None
 
-    @auth.login_required(role=[Role.ADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.ADMIN])
     @marshal_with(resource_fields_list)
     @connection_ldap
     def get(self):
-        print('Current user GET', auth.current_user())
-        return None, 200
+        args = parser_get_list.parse_args()
+
+        search = args.get('search')
+        if search and str(args.get('search')).isdigit():
+            search = int(args.get('search'))
+
+        users = self._user_manager_ldap.get_users(
+            value=search, ####
+            fields=search_fields, ####
+            required_fields={'objectClass': 'person'},
+        )
+
+        out_fields = []
+        if not users:
+            out_fields = []
+
+        return {'users': users, 'fields': out_fields}, 200
 
     @auth.login_required(role=[Role.ADMIN])
     def post(self):
@@ -132,4 +156,4 @@ class UserListOpenLDAPResource(Resource):
             fields=admin_fields['fields'],
             operation='create'
         )
-        return None, 201
+        return user, 201

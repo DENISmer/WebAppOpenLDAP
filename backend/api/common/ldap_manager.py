@@ -13,7 +13,6 @@ from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult
 
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import User
-from backend.api.config.fields import search_fields, admin_fields
 from backend.api.config.ldap import config
 
 
@@ -115,25 +114,39 @@ class UserManagerLDAP(ConnectionLDAP):
         self,
         value,
         fields: Dict[str, str],
-        attributes=ALL_ATTRIBUTES
-    ):
+        attributes=ALL_ATTRIBUTES,
+        required_fields: Dict[str, str] = None
+    ) -> list:
+        search_filter = '(|%s)' % "".join(
+            [
+                f'({field}={fields[field] % value})' for field in fields
+                if (type(value) == int and fields[field] == '%d') or ('%s' in fields[field])
+            ]
+        )
+        required_filter = '(&%s)' % "".join(
+            [
+                f'({key}={value_d})' for key, value_d in required_fields.items()
+            ]
+        )
+
+        if required_fields and value:
+            search_filter = '(&%s%s)' % (
+                search_filter,
+                required_filter
+            )
+        else:
+            search_filter = required_filter
 
         status_search = self._connection.search(
             search_base='dc=example,dc=com',
-            search_filter='(|%s)' % "".join(
-                [f'({field}={fields[field] % value})' for field in fields]
-            ),
+            search_filter=search_filter,
             attributes=attributes
         )
         if not status_search:
             return []
         return self._connection.entries
 
-    def get_user(
-        self,
-        uid,
-        attributes=ALL_ATTRIBUTES
-    ) -> User:
+    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> User:
         search = self.search(uid, {'uid': '%s'}, attributes=attributes)
         if not search:
             abort(404, 'User not found')
@@ -145,7 +158,7 @@ class UserManagerLDAP(ConnectionLDAP):
         user = User(username_uid=uid, dn=data['dn'], **data['attributes'])
         return user
 
-    def create_user(self, user: User, fields, operation):
+    def create_user(self, user: User, fields, operation) -> User:
         dn = user.dn
 
         self._connection.add(
@@ -155,8 +168,9 @@ class UserManagerLDAP(ConnectionLDAP):
             )
         )
         print('result: ', self._connection.result)
+        return user
 
-    def modify_user(self, user: User, fields, operation):
+    def modify_user(self, user: User, fields, operation) -> User:
         founded_user = self.get_user(user.get_username_uid(), attributes=[])
         user.dn = founded_user.dn
 
@@ -181,18 +195,32 @@ class UserManagerLDAP(ConnectionLDAP):
                 abort(403, 'Insufficient access rights')
         return user
 
-    def delete_user(self, user: User):
+    def delete_user(self, user: User) -> bool:
         user = self.get_user(user.get_username_uid(), attributes=[])
         if not user:
             return False
 
         self._connection.delete(user.dn)
+        print('DELETE user', self._connection.result)
         return True
 
-    def get_users(self):
-        pass
+    def get_users(self, *args, **kwargs) -> list:
+        users = self.search(
+            value=kwargs.get('value'),
+            fields=kwargs.get('fields'),
+            required_fields=kwargs.get('required_fields')
+        )
+        if not users:
+            return []
 
-    def get_groups(self, value, fields):
+        return [
+            User(
+                dn=user_json['dn'], **user_json['attributes']
+            )
+            for user in users if (user_json := orjson.loads(user.entry_to_json()))
+        ]
+
+    def get_groups(self, value, fields) -> list:
         search = self.search(value, fields)
         if not search:
             return []

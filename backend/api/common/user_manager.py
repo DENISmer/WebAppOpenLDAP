@@ -51,10 +51,10 @@ class User(UserCnAbstract):
 
         home_directory = kwargs.get('homeDirectory')
         if home_directory:
-            self.homeDirectory = home_directory
+            self.homeDirectory = home_directory[0]
         login_shell = kwargs.get('loginShell')
         if login_shell:
-            self.loginShell = kwargs.get('loginShell')
+            self.loginShell = login_shell[0]
 
         self.is_webadmin = is_webadmin
 

@@ -208,6 +208,7 @@ admin_fields = {
 
 search_fields = {
     'gecos': '*%s*',
-    'gidNumber': '%s',
+    'gidNumber': '%d',
     'givenName': '*%s*',
+    'dn': '*%s*'
 }
