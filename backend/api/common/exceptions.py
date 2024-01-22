@@ -5,3 +5,7 @@ class UserIsNone(Exception):
 
 class CouldNotCreateConnection(Exception):
     pass
+
+
+class ItemFieldsIsNone(Exception):
+    pass

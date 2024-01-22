@@ -34,10 +34,10 @@ class Meta(SchemaMeta):
             _fields = getattr(conf_fields, user_fields)
 
             for key, value in _fields['fields'].items():
-                # copy
+                # deep copy
                 value_copy = copy.deepcopy(cls._declared_fields[key])
                 cls._declared_fields[key] = value_copy
-                # end copy
+                # end deep copy
 
                 if type_required_fields in value['required']:
                     setattr(cls._declared_fields[key], 'required', True)
@@ -99,6 +99,11 @@ class WebAdminsSchemaLdapList(Schema):
     uid = fields.List(fields.Str(dump_only=True), dump_only=True)
     cn = fields.List(fields.Str(dump_only=True), dump_only=True)
     sn = fields.List(fields.Str(dump_only=True), dump_only=True)
+    gidNumber = fields.Int(dump_only=True)
+    uidNumber = fields.Int(dump_only=True)
+
+    def __repr__(self):
+        return f'<{WebAdminsSchemaLdapList.__name__} {id(self)}>'
 
 
 class AuthUserSchemaLdap(Schema):

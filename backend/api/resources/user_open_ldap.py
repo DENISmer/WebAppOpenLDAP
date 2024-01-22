@@ -6,58 +6,10 @@ from marshmallow import ValidationError
 from backend.api.common.auth_http_token import auth
 from backend.api.common.decorators import connection_ldap, permission_user
 from backend.api.common.ldap_manager import UserManagerLDAP
-from backend.api.common.user_manager import User
-from backend.api.config.fields import simple_user_fields, webadmins_fields, search_fields
+from backend.api.common.user_manager import UserLdap, CnGroupLdap
+from backend.api.config.fields import simple_user_fields, webadmins_fields, search_fields, cn_group_fields
 from backend.api.common.roles import Role
 from backend.api.resources import schema
-
-
-# resource_fields = {
-#     'dn': fields.String,
-#     'uidNumber': fields.Integer,
-#     'gidNumber': fields.Integer,
-#     'uid': fields.List(fields.String),
-#     'sshPublicKey': fields.List(fields.String),
-#     'st': fields.List(fields.String),
-#     'mail': fields.List(fields.String),
-#     'street': fields.List(fields.String),
-#     'cn': fields.List(fields.String),
-#     'displayName': fields.List(fields.String),
-#     'givenName': fields.List(fields.String),
-#     'sn': fields.List(fields.String),
-#     'postalCode': fields.List(fields.Integer),
-#     'homeDirectory': fields.String,
-#     'loginShell': fields.String,
-#     'objectClass': fields.List(fields.String),
-# }
-# resource_fields_list = {
-#     'users': fields.List(
-#         fields.Nested(resource_fields)
-#     ),
-#     'fields': fields.List(fields.String),
-# }
-#
-# parser_post = reqparse.RequestParser()
-# parser_put = reqparse.RequestParser()
-# parser_patch = reqparse.RequestParser()
-# for key, value in webadmins_fields['fields'].items():
-#     parser_post.add_argument(
-#         key, type=value['element_type'], required=True,
-#         action='append' if value['type'] else None
-#     )
-#     parser_put.add_argument(
-#         key, type=value['element_type'],
-#         required=True if 'update' in value['operation']
-#                          and 'userPassword' != key else False,
-#         action='append' if value['type'] else 'store'
-#     )
-#     parser_patch.add_argument(
-#         key, type=value['element_type'],
-#         action='append' if value['type'] else 'store'
-#     )
-#
-# parser_get_list = reqparse.RequestParser()
-# parser_get_list.add_argument('search', location='values')
 
 
 @auth.get_user_roles  # roles
@@ -77,18 +29,15 @@ class UserOpenLDAPResource(Resource):
         self._user_manager_ldap: UserManagerLDAP = None
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
-    # @marshal_with(resource_fields)
     @connection_ldap
     @permission_user
     def get(self, username_uid, *args, **kwargs):
         user = self._user_manager_ldap.get_user(username_uid)
         user_schema = kwargs['user_schema']
         serialized_user = getattr(schema, user_schema)().dump(user)
-
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
-    # @marshal_with(resource_fields)
     @connection_ldap
     @permission_user
     def put(self, username_uid, *args, **kwargs):
@@ -105,17 +54,26 @@ class UserOpenLDAPResource(Resource):
         except ValidationError as e:
             abort(400, message=e.messages)
 
-        user = User(username_uid=username_uid, **deserialized_user)
-        self._user_manager_ldap.modify_user(
-            user=user,
-            fields=user_fields['fields'],
-            operation='update'
+        user = UserLdap(username=username_uid, **deserialized_user)
+        user.fields = user_fields['fields']
+
+        group = CnGroupLdap(
+            cn=deserialized_user['cn'],
+            memberUid=deserialized_user['cn'],
+            objectClass=['posixGroup'],
+            gidNumber=deserialized_user['gidNumber'],
         )
+        group.fields = cn_group_fields['fields']
+
+        self._user_manager_ldap.modify(
+            item=user,
+            operation='update',
+        )
+
         serialized_user = getattr(schema, user_schema)().dump(user)
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
-    # @marshal_with(resource_fields)
     @connection_ldap
     @permission_user
     def patch(self, username_uid, *args, **kwargs):
@@ -129,13 +87,21 @@ class UserOpenLDAPResource(Resource):
         except ValidationError as e:
             abort(400, message=e.messages)
 
-        user = User(username_uid=username_uid, **deserialized_user)
+        user = UserLdap(username_uid=username_uid, **deserialized_user)
+        user.fields = user_fields['fields']
+
+        group = CnGroupLdap(
+            cn=deserialized_user['cn'],
+            memberUid=deserialized_user['cn'],
+            objectClass=['posixGroup'],
+            gidNumber=deserialized_user['gidNumber'],
+        )
+        group.fields = cn_group_fields['fields']
         # self._user_manager_ldap.close_connection()
 
-        self._user_manager_ldap.modify_user(
-            user=user,
-            fields=user_fields['fields'],
-            operation='update'
+        self._user_manager_ldap.modify(
+            item=user,
+            operation='update',
         )
 
         serialized_user = getattr(schema, user_schema)().dump(user)
@@ -146,9 +112,9 @@ class UserOpenLDAPResource(Resource):
     @permission_user
     def delete(self, username_uid):
         print('DELETE', username_uid)
-        user = User(username_uid=username_uid)
+        user = UserLdap(username=username_uid)
 
-        result = self._user_manager_ldap.delete_user(user)
+        result = self._user_manager_ldap.delete(user)
         if not result:
             abort(400)
 
@@ -163,7 +129,6 @@ class UserListOpenLDAPResource(Resource):
         self._user_manager_ldap: UserManagerLDAP = None
 
     @auth.login_required(role=[Role.WEBADMIN])
-    # @marshal_with(resource_fields_list)
     @connection_ldap
     @permission_user
     def get(self, *args, **kwargs):
@@ -173,10 +138,23 @@ class UserListOpenLDAPResource(Resource):
         if search and str(search).isdigit():
             search = int(search)
 
+        for item in self._user_manager_ldap.get_users(
+                value=None, ####
+                fields=search_fields, ####
+                attributes=['uidNumber', 'gidNumber'],
+                required_fields={'objectClass': 'person'},
+        ):
+            print('uidNumber', item.uidNumber, 'gidNumber', item.gidNumber)
+
+        print(self._user_manager_ldap.ldap_manager.get_user_groups('uid=bob,ou=People,dc=example,dc=com'))
+            # get_group_info(
+            #     'cn=testuser2,ou=Groups,dc=example,dc=com'
+            # ))
+        print(self._user_manager_ldap.ldap_manager)
         users = self._user_manager_ldap.get_users(
             value=search, ####
             fields=search_fields, ####
-            attributes=['uid', 'cn', 'sn'],
+            attributes=['uid', 'cn', 'sn', 'uidNumber', 'gidNumber'],
             required_fields={'objectClass': 'person'},
         )
         serialized_users = getattr(schema, user_schema)().dump(users, many=True)
@@ -195,14 +173,36 @@ class UserListOpenLDAPResource(Resource):
 
         try:
             deserialized_user = getattr(schema, user_schema)().load(json_data, partial=False)
-            print('user', deserialized_user)
         except ValidationError as e:
             abort(400, message=e.messages)
 
-        user = User(**deserialized_user)
-        self._user_manager_ldap.create_user( ##### must done #####
-            user=user, ##### must done #####
-            fields=user_fields['fields'], ##### must done #####
-            operation='create' ##### must done #####
-        ) ##### must done #####
-        return user, 201
+        user = UserLdap(**deserialized_user)
+        user.fields = user_fields['fields']
+        user.dn = 'uid={0},{1}'.format(
+            user.uid[0],
+            str(self._user_manager_ldap.ldap_manager.full_user_search_dn)
+        )
+
+        group = CnGroupLdap(
+            cn=user.cn,
+            memberUid=user.cn,
+            objectClass=['posixGroup'],
+            gidNumber=user.gidNumber,
+        )
+        group.fields = cn_group_fields['fields']
+        group.dn = 'cn={0},{1}'.format(
+            user.cn[0],
+            str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
+        )
+
+        self._user_manager_ldap.create(
+            item=user,
+            operation='create',
+        )
+        self._user_manager_ldap.create(
+            item=group,
+            operation='create',
+        )
+
+        serialized_users = getattr(schema, user_schema)().dump(user)
+        return serialized_users, 201

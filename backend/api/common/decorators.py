@@ -5,7 +5,7 @@ from flask_restful import abort
 from backend.api.common.auth_http_token import auth
 from backend.api.common.ldap_manager import UserManagerLDAP
 from backend.api.common.roles import Role
-from backend.api.common.user_manager import User
+from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import simple_user_fields, webadmins_fields
 from backend.api.resources.schema import SimpleUserSchemaLdapModify, WebAdminsSchemaLdapModify, \
     WebAdminsSchemaLdapCreate, WebAdminsSchemaLdapList
@@ -21,7 +21,7 @@ def connection_ldap(func):
         if hasattr(args[0], '_user_manager_ldap') or not user_manager_ldap:
             current_user = auth.current_user()
             user_manager_ldap = UserManagerLDAP(
-                User(
+                UserLdap(
                     dn='uid=bob,ou=People,dc=example,dc=com',
                     username_uid='bob',
                     userPassword='bob',
@@ -49,7 +49,7 @@ def permission_user(func):
 
         role = current_user['role']
 
-        if func.__name__ in ('put', 'patch'):
+        if func.__name__ in ('put', 'patch', 'get') and username_uid:
             if role == Role.SIMPLE_USER.value:
                 kwargs['user_schema'] = SimpleUserSchemaLdapModify.__name__
                 kwargs['user_fields'] = simple_user_fields

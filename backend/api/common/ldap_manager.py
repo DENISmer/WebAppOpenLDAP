@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pprint
 import time
 from typing import Dict
@@ -9,10 +11,14 @@ from flask_ldap3_login import LDAP3LoginManager
 from flask_restful import abort
 
 from ldap3 import Tls, ALL_ATTRIBUTES, Connection, MODIFY_REPLACE, EXTERNAL
-from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult, LDAPAttributeError, LDAPException
+from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
+                                   LDAPAttributeError,
+                                   LDAPException,
+                                   LDAPEntryAlreadyExistsResult)
 
+from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.groups import Group
-from backend.api.common.user_manager import User, CnGroupLdap
+from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.config.ldap import config
 
 
@@ -51,7 +57,7 @@ class LDAPManager(LDAP3LoginManager):  # Singleton
 class ConnectionLDAP:
     _connections = {}
 
-    def __init__(self, user: User, *args, **kwargs):
+    def __init__(self, user: UserLdap, *args, **kwargs):
         self.user = user
         self.ldap_manager = LDAPManager()
         self._connection = None
@@ -62,7 +68,7 @@ class ConnectionLDAP:
         :return: None
         """
         self._connection: Connection = self._connections.get(
-            self.user.get_username_uid()
+            self.user.get_username()
         )
 
         if not self._connection:
@@ -82,7 +88,7 @@ class ConnectionLDAP:
                 self._connection.tls_started()
             self._connection.bind()
 
-            self._connections[self.user.get_username_uid()] = self._connection
+            self._connections[self.user.get_username()] = self._connection
 
     def get_connection(self):
         return self._connection
@@ -93,7 +99,7 @@ class ConnectionLDAP:
             print(value)
             print(f'key: {key}, value: , closed: {value.closed}, listening: {value.listening}')
 
-    def rebind(self, user: User):
+    def rebind(self, user: UserLdap):
         self._connection.rebind(
             username=user.dn,
             password=user.userPassword,
@@ -104,7 +110,7 @@ class ConnectionLDAP:
         This function performs close connection
         :return: None
         """
-        del self._connections[self.user.get_username_uid()]
+        del self._connections[self.user.get_username()]
         self._connection.unbind()
 
 
@@ -153,7 +159,7 @@ class UserManagerLDAP(ConnectionLDAP):
             return []
         return self._connection.entries
 
-    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> User:
+    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap | CnGroupLdap:
         search = self.search(uid, {'uid': '%s'}, attributes=attributes)
         if not search:
             abort(404, message='User not found')
@@ -162,16 +168,13 @@ class UserManagerLDAP(ConnectionLDAP):
             self._connection.entries[0].entry_to_json()
         )
 
-        user = User(username_uid=uid, dn=data['dn'], **data['attributes'])
+        user = UserLdap(username_uid=uid, dn=data['dn'], **data['attributes'])
         return user
-
-
 
     """
     CREATE USER
     
     "{
-        "dn": "uid=testuser,ou=People,dc=example,dc=com", 
         "uidNumber": 1200, 
         "gidNumber": 1200, 
         "uid": "testuser", 
@@ -180,7 +183,7 @@ class UserManagerLDAP(ConnectionLDAP):
         "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
         "street": ['green street 12'], 
         "cn": ["Test User"], 
-        "displayName": ["Test User"], 
+        "displayName": "Test User", 
         "givenName": ["testuser"], 
         "sn": ["Test User"], 
         "postalCode": [100123, 123414],
@@ -191,20 +194,16 @@ class UserManagerLDAP(ConnectionLDAP):
     
     """
 
-    def create_user(self, user: User, group: CnGroupLdap, fields, operation) -> User:
-        # dn = user.dn
+    def create(self, item: UserLdap | CnGroupLdap, operation) -> UserLdap:
+
+        if item.fields is None:
+            raise ItemFieldsIsNone('Item fields is none.')
+
         try:
             self._connection.add(
-                self.ldap_manager.full_user_search_dn,
-                attributes=user.serialize_data(
-                    fields=fields,
-                    operation=operation
-                )
-            )
-            self._connection.add(
-                self.ldap_manager.full_group_search_dn,
-                attributes=group.serialize_data(
-                    fields=fields,
+                item.dn,
+                attributes=item.serialize_data(
+                    user_fields=item.fields,
                     operation=operation
                 )
             )
@@ -214,27 +213,30 @@ class UserManagerLDAP(ConnectionLDAP):
         except LDAPAttributeError as e:
             abort(400, message=str(e))
 
-        print('result: ', self._connection.result)
+        except LDAPEntryAlreadyExistsResult as e:
+            print(e)
+
+        print('result create: ', self._connection.result)
 
         res = self._connection.result
-        if 'success' in res['description']:
+        if 'success' not in res['description']:
             abort(400, message=res['message'])
 
-        return user
+        return item
 
-    def modify_user(self, user: User, fields, operation) -> User:
-        founded_user = self.get_user(user.get_username_uid(), attributes=[])
-        user.dn = founded_user.dn
+    def modify(self,  item: UserLdap | CnGroupLdap, operation) -> UserLdap:
+        founded_user = self.get_user(item.get_username(), attributes=[])
+        item.dn = founded_user.dn
 
-        serialized_data_modify = user.serialize_data(
-            fields=fields,
+        serialized_data_modify = item.serialize_data(
+            user_fields=item.fields,
             operation=operation,
         )
 
         if founded_user:
             try:
                 self._connection.modify(
-                    user.dn,
+                    item.dn,
                     {
                         key: [(
                             MODIFY_REPLACE,
@@ -243,10 +245,10 @@ class UserManagerLDAP(ConnectionLDAP):
                         for key, value in serialized_data_modify.items()
                     }
                 )
-                print('result:', self._connection.result)
+                print('result modify:', self._connection.result)
 
                 res = self._connection.result
-                if 'success' in res['description']:
+                if 'success' not in res['description']:
                     abort(400, message=res['message'])
 
             except LDAPInsufficientAccessRightsResult:
@@ -254,16 +256,16 @@ class UserManagerLDAP(ConnectionLDAP):
             except LDAPAttributeError as e:
                 abort(400, message=str(e))
 
-        return user
+        return item
 
-    def delete_user(self, user: User) -> bool:
-        user = self.get_user(user.get_username_uid(), attributes=[])
+    def delete(self, user: UserLdap) -> bool:
+        user = self.get_user(user.get_username(), attributes=[])
         if not user:
             return False
 
         self._connection.delete(user.dn)
 
-        print('DELETE user', self._connection.result)
+        print('result delete:', self._connection.result)
 
         res = self._connection.result
         if 'success' in res['description']:
@@ -287,14 +289,14 @@ class UserManagerLDAP(ConnectionLDAP):
             return []
 
         return [
-            User(
+            UserLdap(
                 dn=user_json['dn'], **user_json['attributes']
             )
             for user in users if (user_json := orjson.loads(user.entry_to_json()))
         ]
 
-    def get_groups(self, value, fields) -> list:
-        search = self.search(value, fields)
+    def get_groups(self, value, search_fields) -> list:
+        search = self.search(value, search_fields)
         if not search:
             return []
 
@@ -319,7 +321,7 @@ class AuthenticationLDAP(UserManagerLDAP):
 
     def authenticate(self):
         response = self.ldap_manager.authenticate(
-            username=self.user.get_username_uid(),
+            username=self.user.get_username(),
             password=self.user.userPassword
         )
 

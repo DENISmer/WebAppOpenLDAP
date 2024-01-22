@@ -4,13 +4,13 @@ import uuid
 import logging
 
 from backend.api.common.exceptions import UserIsNone
-from backend.api.common.user_manager import User
+from backend.api.common.user_manager import UserLdap
 from backend.api.config import settings
 from backend.api.common.groups import Group
 
 
 class TokenManager:
-    def __init__(self, user: User = None):
+    def __init__(self, user: UserLdap = None):
         self.user = user
 
     def create_token(self):

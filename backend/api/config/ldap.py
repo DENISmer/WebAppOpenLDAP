@@ -49,3 +49,6 @@ config['CERT_PATH'] = os.getenv('CERT_PATH')
 
 # Instruct Flask-LDAP3-Login to not automatically add the server
 config['LDAP_ADD_SERVER'] = False
+
+config['LDAP_GROUP_OBJECT_FILTER'] = '(objectClass=groupOfNames)'
+config['LDAP_GROUP_MEMBERS_ATTR'] = 'member'

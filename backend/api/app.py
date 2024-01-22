@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Api
 
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
+from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
 from backend.api.resources.user_open_ldap import UserOpenLDAPResource, UserListOpenLDAPResource
 
 app = Flask(__name__)
@@ -14,6 +15,10 @@ api = Api(app)
 # Users resource
 api.add_resource(UserOpenLDAPResource,  '/users/<string:username_uid>')
 api.add_resource(UserListOpenLDAPResource, '/users')
+
+# Group resource
+api.add_resource(GroupOpenLDAPResource, '/groups/<string:username_cn>')
+api.add_resource(GroupListOpenLDAPResource, '/groups')
 
 # Auth resource
 api.add_resource(AuthOpenLDAP, '/auth/token')

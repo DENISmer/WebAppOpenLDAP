@@ -4,6 +4,7 @@ from abc import ABC
 
 class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
+        self.__username = kwargs.get('username')
         self.dn = kwargs.get('dn')
         self.cn = kwargs.get('cn') or []
         self.objectClass = kwargs.get('objectClass') or []
@@ -14,25 +15,33 @@ class UserCnAbstract(ABC):
 
         self.fields = kwargs.get('fields')
 
-    def serialize_data(self, fields, operation) -> dict:
+    def serialize_data(self, user_fields, operation) -> dict:
         res = {
             key: getattr(self, key)
-            for key, value in fields.items()
+            for key, value in user_fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
                and getattr(self, key)
         }
+
+        if not operation == 'read':
+            del res['dn']
+
         return res
 
+    def get_username(self):
+        return self.__username
 
-class User(UserCnAbstract):
-    def __init__(self, username_uid=None, is_webadmin=False, **kwargs):
+
+class UserLdap(UserCnAbstract):
+    def __init__(self, username=None, is_webadmin=False, **kwargs):
         super().__init__(
             dn=kwargs.get('dn'),
             cn=kwargs.get('cn'),
             objectClass=kwargs.get('objectClass'),
             gidNumber=kwargs.get('gidNumber'),
             fields=kwargs.get('fields'),
+            username_uid=username,
         )
 
         self.uidNumber = kwargs.get('uidNumber')
@@ -40,7 +49,6 @@ class User(UserCnAbstract):
             self.uidNumber = self.uidNumber[0]
 
         self.uid = kwargs.get('uid') or []
-        self.__username_uid = username_uid
         self.sshPublicKey = kwargs.get('sshPublicKey') or []
         self.st = kwargs.get('st') or []
         self.mail = kwargs.get('mail') or []
@@ -71,15 +79,13 @@ class User(UserCnAbstract):
     def __repr__(self):
         return self.dn
 
-    def get_username_uid(self):
-        return self.__username_uid
-
 
 class CnGroupLdap(UserCnAbstract):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, username=None, *args, **kwargs):
         super().__init__(
             dn=kwargs.get('dn'),
             cn=kwargs.get('cn'),
             objectClass=kwargs.get('objectClass'),
             gidNumber=kwargs.get('gidNumber'),
+            username=username,
         )

@@ -118,7 +118,7 @@ webadmins_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read',],
-            'required': ['create',],
+            'required': [],
         },
         'uid': {
             'type': TYPE_LIST,
@@ -166,7 +166,7 @@ webadmins_fields = {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': ['update'],
+            'required': ['create', 'update'],
         },
         'displayName': {
             'type': TYPE_STR,
@@ -184,7 +184,7 @@ webadmins_fields = {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': ['update'],
+            'required': ['create', 'update'],
         },
         'loginShell': {
             'type': TYPE_LIST,
@@ -196,7 +196,7 @@ webadmins_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': ['update'],
+            'required': ['create', 'update'],
         },
         'objectClass': {
             'type': TYPE_LIST,
@@ -217,6 +217,41 @@ webadmins_fields = {
             'required': ['update'],
         }
     },
+}
+
+cn_group_fields = {
+    'fields': {
+        'dn': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read',],
+            'required': [],
+        },
+        'gidNumber': {
+            'type': TYPE_INT,
+            'element_type': TYPE_INT,
+            'operation': ['create', 'read', 'update'],
+            'required': ['create', 'update'],
+        },
+        'objectClass': {
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read', 'update',],
+            'required': ['create', 'update'],
+        },
+        'cn': {
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read', 'update'],
+            'required': ['create', 'update'],
+        },
+        'memberUid': {
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read', 'update'],
+            'required': ['create', 'update'],
+        },
+    }
 }
 
 search_fields = {

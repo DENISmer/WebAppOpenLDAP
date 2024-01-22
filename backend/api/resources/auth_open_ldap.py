@@ -3,7 +3,7 @@ from flask_restful import Resource, fields, marshal_with, request, reqparse, abo
 from backend.api.common.roles import Role
 from backend.api.common.token_manager import TokenManager, Token
 from backend.api.common.ldap_manager import AuthenticationLDAP
-from backend.api.common.user_manager import User
+from backend.api.common.user_manager import UserLdap
 
 
 resource_field = {
@@ -27,7 +27,7 @@ class AuthOpenLDAP(Resource):
 
         args = parser.parse_args()
 
-        user = User(username_uid=args['username'], userPassword=args['password'])
+        user = UserLdap(username_uid=args['username'], userPassword=args['password'])
         ldap_auth = AuthenticationLDAP(user)
         response = ldap_auth.authenticate()
         if response.status.value == 1:
