@@ -1,3 +1,4 @@
+import pprint
 from abc import ABC
 
 
@@ -7,9 +8,11 @@ class UserCnAbstract(ABC):
         self.cn = kwargs.get('cn') or []
         self.objectClass = kwargs.get('objectClass') or []
 
-        gid_number = kwargs.get('gidNumber')
-        if gid_number:
-            self.gidNumber = gid_number[0]
+        self.gidNumber = kwargs.get('gidNumber')
+        if self.gidNumber and type(self.gidNumber) == list:
+            self.gidNumber = self.gidNumber[0]
+
+        self.fields = kwargs.get('fields')
 
     def serialize_data(self, fields, operation) -> dict:
         res = {
@@ -29,11 +32,12 @@ class User(UserCnAbstract):
             cn=kwargs.get('cn'),
             objectClass=kwargs.get('objectClass'),
             gidNumber=kwargs.get('gidNumber'),
+            fields=kwargs.get('fields'),
         )
 
-        uid_number = kwargs.get('uidNumber')
-        if uid_number:
-            self.uidNumber = uid_number[0]
+        self.uidNumber = kwargs.get('uidNumber')
+        if self.uidNumber and type(self.uidNumber) == list:
+            self.uidNumber = self.uidNumber[0]
 
         self.uid = kwargs.get('uid') or []
         self.__username_uid = username_uid
@@ -42,19 +46,24 @@ class User(UserCnAbstract):
         self.mail = kwargs.get('mail') or []
         self.street = kwargs.get('street') or []
         self.cn = kwargs.get('cn') or []
-        self.displayName = kwargs.get('displayName') or []
+
+        self.displayName = kwargs.get('displayName')
+        if self.displayName and type(self.displayName) == list:
+            self.displayName = self.displayName[0]
+
         self.givenName = kwargs.get('givenName') or []
         self.sn = kwargs.get('sn') or []
         self.userPassword = kwargs.get('userPassword')
         self.objectClass = kwargs.get('objectClass') or []
         self.postalCode = kwargs.get('postalCode') or []
 
-        home_directory = kwargs.get('homeDirectory')
-        if home_directory:
-            self.homeDirectory = home_directory[0]
-        login_shell = kwargs.get('loginShell')
-        if login_shell:
-            self.loginShell = login_shell[0]
+        self.homeDirectory = kwargs.get('homeDirectory')
+        if self.homeDirectory and type(self.homeDirectory) == list:
+            self.homeDirectory = self.homeDirectory[0]
+
+        self.loginShell = kwargs.get('loginShell')
+        if self.loginShell and type(self.loginShell):
+            self.loginShell = self.loginShell[0]
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')
@@ -66,7 +75,7 @@ class User(UserCnAbstract):
         return self.__username_uid
 
 
-class CnUserGroup(UserCnAbstract):
+class CnGroupLdap(UserCnAbstract):
     def __init__(self, *args, **kwargs):
         super().__init__(
             dn=kwargs.get('dn'),

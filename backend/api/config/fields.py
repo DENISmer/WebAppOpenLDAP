@@ -12,6 +12,12 @@ simple_user_fields = {
             'operation': ['read',],
             'required': [],
         },
+        'uid': {
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
+            'operation': ['read'],
+            'required': [],
+        },
         'uidNumber': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
@@ -46,7 +52,7 @@ simple_user_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['update', ],
-            'required': ['update']
+            'required': []
         },
         'street': {
             'type': TYPE_LIST,
@@ -61,7 +67,7 @@ simple_user_fields = {
             'required': [],
         },
         'displayName': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read'],
             'required': [],
@@ -106,90 +112,97 @@ simple_user_fields = {
 }
 
 # Fields for admin
-admin_fields = {
+webadmins_fields = {
     'fields': {
         'dn': {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
-            'operation': ['read',],
+            'operation': ['create', 'read',],
+            'required': ['create',],
+        },
+        'uid': {
+            'type': TYPE_LIST,
+            'element_type': TYPE_STR,
+            'operation': ['create', 'read', 'update'],
+            'required': ['create', 'update'],
         },
         'uidNumber': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'gidNumber': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'st': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'mail': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'sshPublicKey': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'street': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'cn': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'displayName': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'givenName': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'sn': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'loginShell': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'homeDirectory': {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': [],
+            'required': ['update'],
         },
         'objectClass': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update',],
-            'required': [],
+            'required': ['create', 'update'],
         },
         'userPassword': {
             'type': TYPE_STR,
@@ -200,8 +213,8 @@ admin_fields = {
         'postalCode': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
-            'operation': ['create', 'read', 'update',],
-            'required': [],
+            'operation': ['read', 'update',],
+            'required': ['update'],
         }
     },
 }

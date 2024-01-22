@@ -21,7 +21,7 @@ config['LDAP_BASE_DN'] = 'dc=example,dc=com'
 config['LDAP_USER_DN'] = 'ou=People'
 
 # Groups DN to be prepended to the Base DN
-# config['LDAP_GROUP_DN'] = 'ou=groups'
+config['LDAP_GROUP_DN'] = 'ou=groups'
 
 # Only read data form LDAP without write
 config['LDAP_READONLY'] = False

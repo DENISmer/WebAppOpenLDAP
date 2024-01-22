@@ -1,0 +1,109 @@
+import copy
+import pprint
+from dataclasses import dataclass
+
+from marshmallow import Schema, fields, ValidationError, validates
+from marshmallow.schema import SchemaMeta
+
+from backend.api.config.fields import simple_user_fields, webadmins_fields
+from backend.api.config import fields as conf_fields
+
+
+class Meta(SchemaMeta):
+    def __init__(cls, *args, **kwargs):
+        super(SchemaMeta, cls).__init__(*args, **kwargs)
+
+        if hasattr(cls, 'Meta'):
+            meta_class = getattr(cls, 'Meta')
+            if not hasattr(meta_class, 'user_fields'):
+                raise AttributeError('Meta class has not attribute \'user_fields\'')
+
+            if not hasattr(meta_class, 'type_required_fields'):
+                raise AttributeError('Meta class has not attribute \'type_required_fields\'')
+
+            type_required_fields = getattr(meta_class, 'type_required_fields')
+
+            if type_required_fields not in ('update', 'create'):
+                raise AttributeError('type_required_fields must has the \'update\' anb \'create\'')
+
+            user_fields = getattr(meta_class, 'user_fields')
+
+            if not hasattr(conf_fields, user_fields):
+                raise AttributeError(f'conf_fields has not attribute \'{user_fields}\'')
+
+            _fields = getattr(conf_fields, user_fields)
+
+            for key, value in _fields['fields'].items():
+                # copy
+                value_copy = copy.deepcopy(cls._declared_fields[key])
+                cls._declared_fields[key] = value_copy
+                # end copy
+
+                if type_required_fields in value['required']:
+                    setattr(cls._declared_fields[key], 'required', True)
+
+                if type_required_fields == 'update':
+                    if type_required_fields not in value['operation']:
+                        setattr(cls._declared_fields[key], 'dump_only', True)
+
+
+class BaseSchema(Schema):
+    dn = fields.Str()
+    cn = fields.List(fields.Str())
+    uidNumber = fields.Integer()
+    gidNumber = fields.Integer()
+    objectClass = fields.List(fields.Str())
+    uid = fields.List(fields.Str())
+    sshPublicKey = fields.List(fields.Str())
+    st = fields.List(fields.Str())
+    mail = fields.List(fields.Email())
+    street = fields.List(fields.Str())
+    displayName = fields.Str()
+    givenName = fields.List(fields.Str())
+    sn = fields.List(fields.Str())
+    userPassword = fields.Str(load_only=True)
+    postalCode = fields.List(fields.Int())
+    homeDirectory = fields.Str()
+    loginShell = fields.Str()
+
+
+class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'simple_user_fields'
+        type_required_fields = 'update'
+
+    def __repr__(self):
+        return f'<{SimpleUserSchemaLdapModify.__name__} {id(self)}>'
+
+
+class WebAdminsSchemaLdapModify(BaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'webadmins_fields'
+        type_required_fields = 'update'
+
+    def __repr__(self):
+        return f'<{WebAdminsSchemaLdapModify.__name__} {id(self)}>'
+
+
+class WebAdminsSchemaLdapCreate(BaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'webadmins_fields'
+        type_required_fields = 'create'
+
+    def __repr__(self):
+        return f'<{WebAdminsSchemaLdapCreate.__name__} {id(self)}>'
+
+
+class WebAdminsSchemaLdapList(Schema):
+    dn = fields.Str(dump_only=True)
+    uid = fields.List(fields.Str(dump_only=True), dump_only=True)
+    cn = fields.List(fields.Str(dump_only=True), dump_only=True)
+    sn = fields.List(fields.Str(dump_only=True), dump_only=True)
+
+
+class AuthUserSchemaLdap(Schema):
+    username = fields.Str(required=True, load_only=True)
+    password = fields.Str(required=True, load_only=True)
+
+    def __repr__(self):
+        return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'

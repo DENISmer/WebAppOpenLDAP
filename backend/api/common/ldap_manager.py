@@ -6,13 +6,13 @@ import orjson
 import ssl
 
 from flask_ldap3_login import LDAP3LoginManager
-from flask import abort
+from flask_restful import abort
 
 from ldap3 import Tls, ALL_ATTRIBUTES, Connection, MODIFY_REPLACE, EXTERNAL
-from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult
+from ldap3.core.exceptions import LDAPInsufficientAccessRightsResult, LDAPAttributeError, LDAPException
 
 from backend.api.common.groups import Group
-from backend.api.common.user_manager import User
+from backend.api.common.user_manager import User, CnGroupLdap
 from backend.api.config.ldap import config
 
 
@@ -133,7 +133,7 @@ class UserManagerLDAP(ConnectionLDAP):
             )
 
         if required_fields:
-            required_filter = '(&%s)' % "".join(
+            required_filter = '(|%s)' % "".join(
                 [
                     f'({key}={value_d})' for key, value_d in required_fields.items()
                 ]
@@ -142,11 +142,11 @@ class UserManagerLDAP(ConnectionLDAP):
         common_filter = '(&%s%s)' % (
             search_filter,
             required_filter
-        )  #### must be done #### done ! test
+        )
 
         status_search = self._connection.search(
-            search_base='dc=example,dc=com',
-            search_filter=common_filter,#search_filter,
+            search_base=config['LDAP_BASE_DN'],
+            search_filter=common_filter,
             attributes=attributes,
         )
         if not status_search:
@@ -156,7 +156,7 @@ class UserManagerLDAP(ConnectionLDAP):
     def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> User:
         search = self.search(uid, {'uid': '%s'}, attributes=attributes)
         if not search:
-            abort(404, 'User not found')
+            abort(404, message='User not found')
 
         data = orjson.loads(
             self._connection.entries[0].entry_to_json()
@@ -165,16 +165,61 @@ class UserManagerLDAP(ConnectionLDAP):
         user = User(username_uid=uid, dn=data['dn'], **data['attributes'])
         return user
 
-    def create_user(self, user: User, fields, operation) -> User:
-        dn = user.dn
 
-        self._connection.add(
-            dn,
-            attributes=user.serialize_data(
-                fields=fields, operation=operation
+
+    """
+    CREATE USER
+    
+    "{
+        "dn": "uid=testuser,ou=People,dc=example,dc=com", 
+        "uidNumber": 1200, 
+        "gidNumber": 1200, 
+        "uid": "testuser", 
+        "sshPublicKey": [], 
+        "st": ['Moskow city'], 
+        "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
+        "street": ['green street 12'], 
+        "cn": ["Test User"], 
+        "displayName": ["Test User"], 
+        "givenName": ["testuser"], 
+        "sn": ["Test User"], 
+        "postalCode": [100123, 123414],
+        "homeDirectory": "/home/testuser", 
+        "loginShell": "/bin/bash", 
+        "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
+    }"
+    
+    """
+
+    def create_user(self, user: User, group: CnGroupLdap, fields, operation) -> User:
+        # dn = user.dn
+        try:
+            self._connection.add(
+                self.ldap_manager.full_user_search_dn,
+                attributes=user.serialize_data(
+                    fields=fields,
+                    operation=operation
+                )
             )
-        )
+            self._connection.add(
+                self.ldap_manager.full_group_search_dn,
+                attributes=group.serialize_data(
+                    fields=fields,
+                    operation=operation
+                )
+            )
+        except LDAPInsufficientAccessRightsResult:
+            abort(403, message='Insufficient access rights')
+
+        except LDAPAttributeError as e:
+            abort(400, message=str(e))
+
         print('result: ', self._connection.result)
+
+        res = self._connection.result
+        if 'success' in res['description']:
+            abort(400, message=res['message'])
+
         return user
 
     def modify_user(self, user: User, fields, operation) -> User:
@@ -182,7 +227,8 @@ class UserManagerLDAP(ConnectionLDAP):
         user.dn = founded_user.dn
 
         serialized_data_modify = user.serialize_data(
-            fields=fields, operation=operation,
+            fields=fields,
+            operation=operation,
         )
 
         if founded_user:
@@ -198,8 +244,16 @@ class UserManagerLDAP(ConnectionLDAP):
                     }
                 )
                 print('result:', self._connection.result)
+
+                res = self._connection.result
+                if 'success' in res['description']:
+                    abort(400, message=res['message'])
+
             except LDAPInsufficientAccessRightsResult:
-                abort(403, 'Insufficient access rights')
+                abort(403, message='Insufficient access rights')
+            except LDAPAttributeError as e:
+                abort(400, message=str(e))
+
         return user
 
     def delete_user(self, user: User) -> bool:
@@ -208,15 +262,26 @@ class UserManagerLDAP(ConnectionLDAP):
             return False
 
         self._connection.delete(user.dn)
+
         print('DELETE user', self._connection.result)
+
+        res = self._connection.result
+        if 'success' in res['description']:
+            abort(400, message=res['message'])
+
         return True
 
     def get_users(self, *args, **kwargs) -> list:
-        users = self.search(
-            value=kwargs.get('value'),
-            fields=kwargs.get('fields'),
-            required_fields=kwargs.get('required_fields')
-        )
+        try:
+            users = self.search(
+                value=kwargs.get('value'),
+                fields=kwargs.get('fields'),
+                attributes=kwargs.get('attributes'),
+                required_fields=kwargs.get('required_fields')
+            )
+        except LDAPException as e:
+            print('e:', e)
+            abort(400, message=str(e))
 
         if not users:
             return []
