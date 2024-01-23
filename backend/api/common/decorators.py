@@ -3,12 +3,14 @@ import functools
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
-from backend.api.common.ldap_manager import UserManagerLDAP
+from backend.api.common.user_ldap_manager import UserManagerLDAP
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import simple_user_fields, webadmins_fields
-from backend.api.resources.schema import SimpleUserSchemaLdapModify, WebAdminsSchemaLdapModify, \
-    WebAdminsSchemaLdapCreate, WebAdminsSchemaLdapList
+from backend.api.resources.schema import (SimpleUserSchemaLdapModify,
+                                          WebAdminsSchemaLdapModify,
+                                          WebAdminsSchemaLdapCreate,
+                                          WebAdminsSchemaLdapList)
 
 
 def connection_ldap(func):

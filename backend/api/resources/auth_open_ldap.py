@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 
 from backend.api.common.roles import Role
 from backend.api.common.token_manager import TokenManager, Token
-from backend.api.common.ldap_manager import AuthenticationLDAP
+from backend.api.common.authentication_ldap import AuthenticationLDAP
 from backend.api.common.user_manager import UserLdap
 from backend.api.resources.schema import AuthUserSchemaLdap, TokenSchemaLdap
 

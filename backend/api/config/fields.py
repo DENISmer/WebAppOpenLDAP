@@ -118,7 +118,7 @@ webadmins_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read',],
-            'required': ['read'],
+            'required': ['create'],
         },
         'uid': {
             'type': TYPE_LIST,
@@ -211,7 +211,7 @@ webadmins_fields = {
             'required': [],
         },
         'postalCode': {
-            'type': TYPE_INT,
+            'type': TYPE_LIST,
             'element_type': TYPE_INT,
             'operation': ['read', 'update',],
             'required': ['update'],
@@ -225,7 +225,7 @@ cn_group_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read',],
-            'required': ['read'],
+            'required': ['create'],
         },
         'gidNumber': {
             'type': TYPE_INT,

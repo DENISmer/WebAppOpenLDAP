@@ -2,7 +2,7 @@ import copy
 import pprint
 from dataclasses import dataclass
 
-from marshmallow import Schema, fields, ValidationError, validates
+from marshmallow import Schema, fields, ValidationError, validates, validates_schema
 from marshmallow.schema import SchemaMeta
 
 from backend.api.config.fields import simple_user_fields, webadmins_fields
@@ -67,6 +67,10 @@ class BaseSchema(Schema):
     postalCode = fields.List(fields.Int())
     homeDirectory = fields.Str()
     loginShell = fields.Str()
+
+    @validates_schema()
+    def validate_object(self, value):
+        pass
 
 
 class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):
