@@ -33,6 +33,8 @@ config['LDAP_USER_RDN_ATTR'] = 'cn'
 
 # The Attribute you want users to authenticate to LDAP with.
 config['LDAP_USER_LOGIN_ATTR'] = 'uid'
+
+# Specifies whether or not groups should be searched for when getting user details
 config['LDAP_SEARCH_FOR_GROUPS'] = False
 
 # The Username to bind to LDAP with
@@ -50,5 +52,8 @@ config['CERT_PATH'] = os.getenv('CERT_PATH')
 # Instruct Flask-LDAP3-Login to not automatically add the server
 config['LDAP_ADD_SERVER'] = False
 
+# The group object to filter
 config['LDAP_GROUP_OBJECT_FILTER'] = '(objectClass=groupOfNames)'
+
+# Specifies the LDAP attribute where group members are declared.
 config['LDAP_GROUP_MEMBERS_ATTR'] = 'member'

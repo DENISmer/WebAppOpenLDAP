@@ -159,17 +159,33 @@ class UserManagerLDAP(ConnectionLDAP):
             return []
         return self._connection.entries
 
-    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap | CnGroupLdap:
+    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap:
         search = self.search(uid, {'uid': '%s'}, attributes=attributes)
         if not search:
-            abort(404, message='User not found')
+            abort(404, message='User not found.')
 
         data = orjson.loads(
             self._connection.entries[0].entry_to_json()
         )
-
-        user = UserLdap(username_uid=uid, dn=data['dn'], **data['attributes'])
+        pprint.pprint(data)
+        user = UserLdap(username=uid, dn=data['dn'], **data['attributes'])
         return user
+
+    def get_group_user(self, cn, attributes=ALL_ATTRIBUTES) -> CnGroupLdap:
+        search = self.search(
+            cn,
+        {'cn': '%s', 'objectClass': 'posixGroup'},
+            attributes=attributes
+        )
+        if not search:
+            abort(404, message='User not found.')
+
+        data = orjson.loads(
+            self._connection.entries[0].entry_to_json()
+        )
+        pprint.pprint(data)
+        group = CnGroupLdap(username=cn, dn=data['dn'], **data['attributes'])
+        return group
 
     """
     CREATE USER
@@ -225,36 +241,33 @@ class UserManagerLDAP(ConnectionLDAP):
         return item
 
     def modify(self,  item: UserLdap | CnGroupLdap, operation) -> UserLdap:
-        founded_user = self.get_user(item.get_username(), attributes=[])
-        item.dn = founded_user.dn
 
         serialized_data_modify = item.serialize_data(
             user_fields=item.fields,
             operation=operation,
         )
 
-        if founded_user:
-            try:
-                self._connection.modify(
-                    item.dn,
-                    {
-                        key: [(
-                            MODIFY_REPLACE,
-                            value if type(value) == list else [value]
-                        )]
-                        for key, value in serialized_data_modify.items()
-                    }
-                )
-                print('result modify:', self._connection.result)
+        try:
+            self._connection.modify(
+                item.dn,
+                {
+                    key: [(
+                        MODIFY_REPLACE,
+                        value if type(value) == list else [value]
+                    )]
+                    for key, value in serialized_data_modify.items()
+                }
+            )
+            print('result modify:', self._connection.result)
 
-                res = self._connection.result
-                if 'success' not in res['description']:
-                    abort(400, message=res['message'])
+            res = self._connection.result
+            if 'success' not in res['description']:
+                abort(400, message=res['message'])
 
-            except LDAPInsufficientAccessRightsResult:
-                abort(403, message='Insufficient access rights')
-            except LDAPAttributeError as e:
-                abort(400, message=str(e))
+        except LDAPInsufficientAccessRightsResult:
+            abort(403, message='Insufficient access rights')
+        except LDAPAttributeError as e:
+            abort(400, message=str(e))
 
         return item
 
@@ -322,7 +335,7 @@ class AuthenticationLDAP(UserManagerLDAP):
     def authenticate(self):
         response = self.ldap_manager.authenticate(
             username=self.user.get_username(),
-            password=self.user.userPassword
+            password=self.user.userPassword,
         )
 
         # if response.status.value == 2:

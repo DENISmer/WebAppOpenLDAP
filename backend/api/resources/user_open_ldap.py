@@ -47,26 +47,30 @@ class UserOpenLDAPResource(Resource):
 
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
-        print('user_schema', user_schema)
+
         try:
-            deserialized_user = getattr(schema, user_schema)().load(json_data, partial=False)
-            print('user', deserialized_user)
+            deserialized_user = getattr(
+                schema, user_schema
+            )().load(json_data, partial=False)
         except ValidationError as e:
             abort(400, message=e.messages)
 
-        user = UserLdap(username=username_uid, **deserialized_user)
-        user.fields = user_fields['fields']
-
-        group = CnGroupLdap(
-            cn=deserialized_user['cn'],
-            memberUid=deserialized_user['cn'],
-            objectClass=['posixGroup'],
-            gidNumber=deserialized_user['gidNumber'],
+        user = UserLdap(
+            username=username_uid,
+            fields=user_fields['fields'],
+            **deserialized_user,
         )
-        group.fields = cn_group_fields['fields']
+        group = CnGroupLdap(
+            gidNumber=deserialized_user['gidNumber'],
+            fields=cn_group_fields['fields'],
+        )
 
         self._user_manager_ldap.modify(
             item=user,
+            operation='update',
+        )
+        self._user_manager_ldap.modify(
+            item=group,
             operation='update',
         )
 
@@ -83,24 +87,29 @@ class UserOpenLDAPResource(Resource):
         user_fields = kwargs['user_fields']
 
         try:
-            deserialized_user = getattr(schema, user_schema)().load(json_data, partial=True)
+            deserialized_user = getattr(
+                schema, user_schema
+            )().load(json_data, partial=True)
         except ValidationError as e:
             abort(400, message=e.messages)
 
-        user = UserLdap(username_uid=username_uid, **deserialized_user)
-        user.fields = user_fields['fields']
-
-        group = CnGroupLdap(
-            cn=deserialized_user['cn'],
-            memberUid=deserialized_user['cn'],
-            objectClass=['posixGroup'],
-            gidNumber=deserialized_user['gidNumber'],
+        user = UserLdap(
+            username=username_uid,
+            fields=user_fields['fields'],
+            **deserialized_user,
         )
-        group.fields = cn_group_fields['fields']
-        # self._user_manager_ldap.close_connection()
+        group = CnGroupLdap(
+            gidNumber=user.gidNumber,
+            fields=cn_group_fields['fields'],
+        )
 
         self._user_manager_ldap.modify(
             item=user,
+            operation='update',
+        )
+
+        self._user_manager_ldap.modify(
+            item=group,
             operation='update',
         )
 
@@ -138,22 +147,12 @@ class UserListOpenLDAPResource(Resource):
         if search and str(search).isdigit():
             search = int(search)
 
-        for item in self._user_manager_ldap.get_users(
-                value=None, ####
-                fields=search_fields, ####
-                attributes=['uidNumber', 'gidNumber'],
-                required_fields={'objectClass': 'person'},
-        ):
-            print('uidNumber', item.uidNumber, 'gidNumber', item.gidNumber)
+        print(self._user_manager_ldap.ldap_manager.
+              get_group_info('cn=margo,ou=Groups,dc=example,dc=com'))
 
-        print(self._user_manager_ldap.ldap_manager.get_user_groups('uid=bob,ou=People,dc=example,dc=com'))
-            # get_group_info(
-            #     'cn=testuser2,ou=Groups,dc=example,dc=com'
-            # ))
-        print(self._user_manager_ldap.ldap_manager)
         users = self._user_manager_ldap.get_users(
-            value=search, ####
-            fields=search_fields, ####
+            value=search,
+            fields=search_fields,
             attributes=['uid', 'cn', 'sn', 'uidNumber', 'gidNumber'],
             required_fields={'objectClass': 'person'},
         )

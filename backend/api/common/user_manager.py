@@ -41,7 +41,7 @@ class UserLdap(UserCnAbstract):
             objectClass=kwargs.get('objectClass'),
             gidNumber=kwargs.get('gidNumber'),
             fields=kwargs.get('fields'),
-            username_uid=username,
+            username=username,
         )
 
         self.uidNumber = kwargs.get('uidNumber')
@@ -61,7 +61,7 @@ class UserLdap(UserCnAbstract):
 
         self.givenName = kwargs.get('givenName') or []
         self.sn = kwargs.get('sn') or []
-        self.userPassword = kwargs.get('userPassword')
+        self.userPassword = kwargs.get('userPassword') or kwargs.get('password')
         self.objectClass = kwargs.get('objectClass') or []
         self.postalCode = kwargs.get('postalCode') or []
 
@@ -88,4 +88,5 @@ class CnGroupLdap(UserCnAbstract):
             objectClass=kwargs.get('objectClass'),
             gidNumber=kwargs.get('gidNumber'),
             username=username,
+            fields=kwargs.get('fields'),
         )

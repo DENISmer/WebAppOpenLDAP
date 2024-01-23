@@ -38,6 +38,8 @@ class Meta(SchemaMeta):
                 value_copy = copy.deepcopy(cls._declared_fields[key])
                 cls._declared_fields[key] = value_copy
                 # end deep copy
+                if 'read' in value['required']:
+                    setattr(cls._declared_fields[key], 'dump_only', True)
 
                 if type_required_fields in value['required']:
                     setattr(cls._declared_fields[key], 'required', True)
@@ -112,3 +114,10 @@ class AuthUserSchemaLdap(Schema):
 
     def __repr__(self):
         return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'
+
+
+class TokenSchemaLdap(Schema):
+    token = fields.Str(dump_only=True)
+
+    def __repr__(self):
+        return f'<{TokenSchemaLdap.__name__} {id(self)}>'
