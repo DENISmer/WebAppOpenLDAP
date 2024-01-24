@@ -13,9 +13,17 @@ class ConnectionLDAP:
         self.ldap_manager = LDAPManager()
         self._connection = None
 
+    def create_connection(self):
+        self._connection = self.ldap_manager.make_connection(
+            bind_user=self.user.dn,
+            bind_password=self.user.userPassword,
+            sasl_mechanism=EXTERNAL,
+        )
+
     def connect(self):
         """
         This function performs connection to OpenLDAP server
+        :param self
         :return: None
         """
         self._connection: Connection = self._connections.get(
@@ -28,11 +36,7 @@ class ConnectionLDAP:
             conn_result = self._connection.closed or not self._connection.listening
 
         if conn_result:
-            self._connection = self.ldap_manager.make_connection(
-                bind_user=self.user.dn,
-                bind_password=self.user.userPassword,
-                sasl_mechanism=EXTERNAL,
-            )
+            self.create_connection()
             self._connection.open()
 
             if config['LDAP_USE_SSL']:
@@ -63,3 +67,5 @@ class ConnectionLDAP:
         """
         del self._connections[self.user.get_username()]
         self._connection.unbind()
+
+    def __repr__(self):

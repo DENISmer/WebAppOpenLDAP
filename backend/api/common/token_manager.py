@@ -54,7 +54,8 @@ class TokenManager:
             return False
         except jwt.exceptions.ExpiredSignatureError:
             # clean token
-            return False
+            raise jwt.exceptions.ExpiredSignatureError()
+            # return False
         except Exception as e:
             logging.log(logging.ERROR, f' e: {e}')
             return False

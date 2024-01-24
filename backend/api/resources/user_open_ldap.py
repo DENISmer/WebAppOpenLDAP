@@ -47,7 +47,7 @@ class UserOpenLDAPResource(Resource):
             **deserialized_data,
         )
 
-        if username_uid not in updated_user.uid:
+        if updated_user.uid is not None and username_uid not in updated_user.uid:
             updated_user.uid.append(username_uid)
 
         self._user_manager_ldap.modify(
@@ -57,13 +57,14 @@ class UserOpenLDAPResource(Resource):
 
         group = self._user_manager_ldap.get_group_info_posix_group(username_uid)
 
-        if group.gidNumber != updated_user.gidNumber:
-            group.gidNumber = updated_user.gidNumber
+        if (updated_user.uidNumber or updated_user.gidNumber) \
+                and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
+            group.gidNumber = updated_user.gidNumber or updated_user.uidNumber
 
             self._user_manager_ldap.modify(
                 item=group,
                 operation=operation,
-            )
+            )  # must be test
 
         return updated_user
 
@@ -143,7 +144,9 @@ class UserOpenLDAPResource(Resource):
     def delete(self, username_uid):
         print('DELETE', username_uid)
         user = self._user_manager_ldap.get_user(username_uid, [])
-        group = self._user_manager_ldap.get_group_info_posix_group(username_uid, [])
+        group = self._user_manager_ldap.get_group_info_posix_group(
+            username_uid, [], abort_raise=False
+        )
 
         self._user_manager_ldap.delete(user)
         self._user_manager_ldap.delete(group)
@@ -210,6 +213,8 @@ class UserListOpenLDAPResource(Resource):
             str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
         )
 
+        # self._user_manager_ldap.get_free_id_number()
+        # return 200
         self._user_manager_ldap.create(
             item=user,
             operation='create',

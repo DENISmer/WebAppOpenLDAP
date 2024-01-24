@@ -77,7 +77,7 @@ class UserLdap(UserCnAbstract):
         self.role = kwargs.get('role')
 
     def __repr__(self):
-        return f'u {self.uid}'
+        return f'u {self.dn}'
 
 
 class CnGroupLdap(UserCnAbstract):
@@ -93,4 +93,4 @@ class CnGroupLdap(UserCnAbstract):
         self.memberUid = kwargs.get('memberUid')
 
     def __repr__(self):
-        return f'gr {self.cn}'
+        return f'g {self.cn}'

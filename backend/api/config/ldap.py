@@ -57,3 +57,6 @@ config['LDAP_GROUP_OBJECT_FILTER'] = '(objectClass=groupOfNames)'
 
 # Specifies the LDAP attribute where group members are declared.
 config['LDAP_GROUP_MEMBERS_ATTR'] = 'member'
+
+# Check names
+config['LDAP_CHECK_NAMES'] = True

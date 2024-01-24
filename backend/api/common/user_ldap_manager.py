@@ -8,14 +8,17 @@ from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE
 from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPAttributeError,
                                    LDAPException,
-                                   LDAPEntryAlreadyExistsResult)
+                                   LDAPEntryAlreadyExistsResult,
+                                   LDAPInvalidDnError,
+                                   LDAPInvalidDNSyntaxResult,
+                                   LDAPObjectClassError)
 from flask_restful import abort
 
 from backend.api.common.connection_ldap import ConnectionLDAP
 from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
-from backend.api.config.fields import cn_group_fields
+from backend.api.config.fields import cn_group_fields, search_fields
 from backend.api.config.ldap import config
 
 
@@ -83,7 +86,7 @@ class UserManagerLDAP(ConnectionLDAP):
         user = UserLdap(username=uid, dn=data['dn'], **data['attributes'])
         return user
 
-    def get_group_info_posix_group(self, uid, attributes=ALL_ATTRIBUTES) -> CnGroupLdap:
+    def get_group_info_posix_group(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> CnGroupLdap:
         search = self.search(
             uid,
             {'cn': '%s'},
@@ -91,6 +94,8 @@ class UserManagerLDAP(ConnectionLDAP):
             required_fields={'objectClass': 'posixGroup'},
         )
         if not search:
+            if not abort_raise:
+                return
             abort(404, message='Group not found.')
 
         data = orjson.loads(
@@ -142,17 +147,24 @@ class UserManagerLDAP(ConnectionLDAP):
                 )
             )
         except LDAPInsufficientAccessRightsResult:
-            abort(403, message='Insufficient access rights')
-
+            abort(403, message='Insufficient access rights.')
+        except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult):
+            abort(400, message={'dn': 'Invalid field.'})
+        except LDAPObjectClassError:
+            abort(400, message={'objectClass': 'Invalid field.'})
         except LDAPAttributeError as e:
             abort(400, message=str(e))
-
         except LDAPEntryAlreadyExistsResult as e:
             print(e)
+            abort(400, message=f'{item.dn} already exists.')
         except LDAPException as e:
+            print(e.__dict__)
             abort(400, message=str(e))
 
         print('result create: ', self._connection.result)
+        print('response create: ', self._connection.response)
+        print('last error create: ', self._connection.last_error)
+        # pprint.pprint(self._connection.__dict__)
 
         res = self._connection.result
         if 'success' not in res['description']:
@@ -185,22 +197,25 @@ class UserManagerLDAP(ConnectionLDAP):
                 abort(400, message=res['description'])
 
         except LDAPInsufficientAccessRightsResult:
-            abort(403, message='Insufficient access rights')
+            abort(403, message='Insufficient access rights.')
+        except LDAPObjectClassError:
+            abort(400, message={'objectClass': 'Invalid field.'})
         except LDAPAttributeError as e:
             abort(400, message=str(e))
-        except LDAPException as e:
-            abort(400, message=str(e))
+        except LDAPException:
+            abort(400, message=str('Failed.'))
+
         return item
 
     def delete(self, item: UserLdap | CnGroupLdap):
-
-        self._connection.delete(item.dn)
+        if item.dn:
+            self._connection.delete(item.dn)
 
         print('result delete:', self._connection.result)
 
         res = self._connection.result
         if 'success' not in res['description']:
-            abort(400, message=res['message'])
+            abort(400, message=f'Error deletion {item.dn}')
 
     def get_users(self, *args, **kwargs) -> list:
         users = []
@@ -245,3 +260,14 @@ class UserManagerLDAP(ConnectionLDAP):
             return False
 
         return True
+
+    def get_free_id_number(self, value=None):
+        users = self.get_users(
+            value=None,
+            fields=search_fields,
+            attributes=['uidNumber'],
+            required_fields={'objectClass': 'person'},
+        )
+
+        for user in users:
+            print(user.uidNumber)

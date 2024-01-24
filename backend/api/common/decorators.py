@@ -25,7 +25,7 @@ def connection_ldap(func):
             user_manager_ldap = UserManagerLDAP(
                 UserLdap(
                     dn='uid=bob,ou=People,dc=example,dc=com',
-                    username_uid='bob',
+                    username='bob',
                     userPassword='bob',
                 )
             )

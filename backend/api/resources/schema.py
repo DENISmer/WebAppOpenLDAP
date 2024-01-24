@@ -69,7 +69,9 @@ class BaseSchema(Schema):
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
-        if data['uidNumber'] != data['gidNumber']:
+        if (uidNumber := data.get('uidNumber')) \
+                and (gidNumber := data.get('gidNumber')) \
+                and uidNumber != gidNumber:
             errors['uidNumber'] = ['uidNumber must be equals to gidNumber']
             errors['gidNumber'] = ['gidNumber must be equals to uidNumber']
 
