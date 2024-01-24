@@ -17,8 +17,8 @@ api.add_resource(UserOpenLDAPResource,  '/users/<string:username_uid>')
 api.add_resource(UserListOpenLDAPResource, '/users')
 
 # Group resource
-api.add_resource(GroupOpenLDAPResource, '/groups/<string:username_cn>')
-api.add_resource(GroupListOpenLDAPResource, '/groups')
+api.add_resource(GroupOpenLDAPResource, '/<string:type_group>/groups/<string:username_cn>')
+api.add_resource(GroupListOpenLDAPResource, '/<string:type_group>/groups')
 
 # Auth resource
 api.add_resource(AuthOpenLDAP, '/auth/token')

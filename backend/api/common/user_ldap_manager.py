@@ -22,11 +22,11 @@ from backend.api.config.ldap import config
 class UserManagerLDAP(ConnectionLDAP):
 
     def search(
-            self,
-            value,
-            fields: Dict[str, str],
-            attributes=ALL_ATTRIBUTES,
-            required_fields: Dict[str, str] = None
+        self,
+        value,
+        fields: Dict[str, str],
+        attributes=ALL_ATTRIBUTES,
+        required_fields: Dict[str, str] = None,
     ) -> list:
 
         search_filter = ''
@@ -39,7 +39,8 @@ class UserManagerLDAP(ConnectionLDAP):
             search_filter = '(|%s)' % "".join(
                 [
                     f'({field}={fields[field] % value})' for field in fields
-                    if (type(value) == int and fields[field] == '%d') or ('%s' in fields[field])
+                    if (type(value) == int and fields[field] == '%d')
+                       or ('%s' in fields[field])
                 ]
             )
 
@@ -62,34 +63,46 @@ class UserManagerLDAP(ConnectionLDAP):
         )
         if not status_search:
             return []
+
         return self._connection.entries
 
     def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap:
-        search = self.search(uid, {'uid': '%s'}, attributes=attributes)
+        search = self.search(
+            uid,
+            {'uid': '%s'},
+            attributes=attributes,
+            required_fields={'objectClass': 'person'}
+        )
         if not search:
             abort(404, message='User not found.')
 
         data = orjson.loads(
             self._connection.entries[0].entry_to_json()
         )
-        pprint.pprint(data)
+
         user = UserLdap(username=uid, dn=data['dn'], **data['attributes'])
         return user
 
     def get_group_info_posix_group(self, uid, attributes=ALL_ATTRIBUTES) -> CnGroupLdap:
         search = self.search(
             uid,
-            {'cn': '%s', 'objectClass': 'posixGroup'},
-            attributes=attributes
+            {'cn': '%s'},
+            attributes=attributes,
+            required_fields={'objectClass': 'posixGroup'},
         )
         if not search:
             abort(404, message='Group not found.')
-        print(self._connection.entries[0])
+
         data = orjson.loads(
             self._connection.entries[0].entry_to_json()
         )
 
-        group = CnGroupLdap(username=uid, dn=data['dn'], **data['attributes'], fields=cn_group_fields['fields'])
+        group = CnGroupLdap(
+            username=uid,
+            dn=data['dn'],
+            **data['attributes'],
+            fields=cn_group_fields['fields']
+        )
         return group
 
     """
@@ -136,6 +149,8 @@ class UserManagerLDAP(ConnectionLDAP):
 
         except LDAPEntryAlreadyExistsResult as e:
             print(e)
+        except LDAPException as e:
+            abort(400, message=str(e))
 
         print('result create: ', self._connection.result)
 
@@ -167,21 +182,19 @@ class UserManagerLDAP(ConnectionLDAP):
 
             res = self._connection.result
             if 'success' not in res['description']:
-                abort(400, message=res['message'])
+                abort(400, message=res['description'])
 
         except LDAPInsufficientAccessRightsResult:
             abort(403, message='Insufficient access rights')
         except LDAPAttributeError as e:
             abort(400, message=str(e))
-
+        except LDAPException as e:
+            abort(400, message=str(e))
         return item
 
-    def delete(self, user: UserLdap) -> bool:
-        user = self.get_user(user.get_username(), attributes=[])
-        if not user:
-            return False
+    def delete(self, item: UserLdap | CnGroupLdap):
 
-        self._connection.delete(user.dn)
+        self._connection.delete(item.dn)
 
         print('result delete:', self._connection.result)
 
@@ -189,9 +202,8 @@ class UserManagerLDAP(ConnectionLDAP):
         if 'success' not in res['description']:
             abort(400, message=res['message'])
 
-        return True
-
     def get_users(self, *args, **kwargs) -> list:
+        users = []
         try:
             users = self.search(
                 value=kwargs.get('value'),

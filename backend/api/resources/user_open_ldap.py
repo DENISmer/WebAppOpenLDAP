@@ -35,26 +35,37 @@ class UserOpenLDAPResource(Resource):
         operation: str,
         deserialized_data
     ) -> UserLdap:
-        user = UserLdap(
+
+        user = self._user_manager_ldap.get_user(
+            username_uid, ['gidNumber', 'uidNumber']
+        )
+
+        updated_user = UserLdap(
+            dn=user.dn,
             username=username_uid,
             fields=user_fields['fields'],
             **deserialized_data,
         )
-        group = CnGroupLdap(
-            gidNumber=deserialized_data['gidNumber'],
-            fields=cn_group_fields['fields'],
-        )
+
+        if username_uid not in updated_user.uid:
+            updated_user.uid.append(username_uid)
 
         self._user_manager_ldap.modify(
-            item=user,
-            operation=operation,
-        )
-        self._user_manager_ldap.modify(
-            item=group,
+            item=updated_user,
             operation=operation,
         )
 
-        return user
+        group = self._user_manager_ldap.get_group_info_posix_group(username_uid)
+
+        if group.gidNumber != updated_user.gidNumber:
+            group.gidNumber = updated_user.gidNumber
+
+            self._user_manager_ldap.modify(
+                item=group,
+                operation=operation,
+            )
+
+        return updated_user
 
     def __deserialized_data(
         self, user_schema, json_data, partial=False
@@ -81,7 +92,7 @@ class UserOpenLDAPResource(Resource):
     def get(self, username_uid, *args, **kwargs):
         user = self._user_manager_ldap.get_user(username_uid)
         user_schema = kwargs['user_schema']
-        pprint.pprint(self._user_manager_ldap.get_group_user(username_uid).serialize_data(cn_group_fields['fields'], 'read'))
+        # pprint.pprint(self._user_manager_ldap.get_group_info_posix_group(username_uid).serialize_data(cn_group_fields['fields'], 'read'))
         serialized_user = self.__serialized_data(user_schema, user)
         return serialized_user, 200
 
@@ -93,32 +104,13 @@ class UserOpenLDAPResource(Resource):
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
 
-        deserialized_data = self.__deserialized_data(user_schema, json_data)
+        deserialized_data = self.__deserialized_data(user_schema, json_data, partial=False)
 
-        return 200
-        user = self._user_manager_ldap.get_user(
-            username_uid, ['gidNumber', 'uidNumber']
-        )
-
-        updated_user = UserLdap(
-            dn=user.dn,
-            username=username_uid,
-            fields=user_fields['fields'],
-            **deserialized_data,
-        )
-
-        self._user_manager_ldap.modify(
-            item=user,
-            operation='update',
-        )
-
-        group = self._user_manager_ldap.get_group_info_posix_group(username_uid)
-        if group.gidNumber != user.gidNumber:
-            group.gidNumber = user.gidNumber
-
-        self._user_manager_ldap.modify(
-            item=group,
-            operation='update',
+        user = self.__modify_user_group(
+            username_uid=username_uid,
+            deserialized_data=deserialized_data,
+            user_fields=user_fields,
+            operation='update'
         )
 
         serialized_user = self.__serialized_data(user_schema, item=user)
@@ -128,51 +120,33 @@ class UserOpenLDAPResource(Resource):
     @connection_ldap
     @permission_user
     def patch(self, username_uid, *args, **kwargs):
-        deserialized_user = {}
+
         json_data = request.get_json()
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
 
-        try:
-            deserialized_user = getattr(
-                schema, user_schema
-            )().load(json_data, partial=True)
-        except ValidationError as e:
-            abort(400, message=e.messages)
+        deserialized_data = self.__deserialized_data(user_schema, json_data, partial=True)
 
-        user = UserLdap(
-            username=username_uid,
-            fields=user_fields['fields'],
-            **deserialized_user,
-        )
-        group = CnGroupLdap(
-            gidNumber=user.gidNumber,
-            fields=cn_group_fields['fields'],
+        user = self.__modify_user_group(
+            username_uid=username_uid,
+            deserialized_data=deserialized_data,
+            user_fields=user_fields,
+            operation='update'
         )
 
-        self._user_manager_ldap.modify(
-            item=user,
-            operation='update',
-        )
-
-        self._user_manager_ldap.modify(
-            item=group,
-            operation='update',
-        )
-
-        serialized_user = getattr(schema, user_schema)().dump(user)
-        return serialized_user, 200
+        serialized_data = self.__serialized_data(user_schema, user)
+        return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user
     def delete(self, username_uid):
         print('DELETE', username_uid)
-        user = UserLdap(username=username_uid)
+        user = self._user_manager_ldap.get_user(username_uid, [])
+        group = self._user_manager_ldap.get_group_info_posix_group(username_uid, [])
 
-        result = self._user_manager_ldap.delete(user)
-        if not result:
-            abort(400)
+        self._user_manager_ldap.delete(user)
+        self._user_manager_ldap.delete(group)
 
         return None, 204
 
@@ -193,9 +167,6 @@ class UserListOpenLDAPResource(Resource):
         search = request.args.get('search')
         if search and str(search).isdigit():
             search = int(search)
-
-        # print(self._user_manager_ldap.ldap_manager.
-        #       get_group_info('cn=margo,ou=Groups,dc=example,dc=com'))
 
         users = self._user_manager_ldap.get_users(
             value=search,

@@ -1,11 +1,9 @@
 import copy
 import pprint
-from dataclasses import dataclass
 
 from marshmallow import Schema, fields, ValidationError, validates, validates_schema
 from marshmallow.schema import SchemaMeta
 
-from backend.api.config.fields import simple_user_fields, webadmins_fields
 from backend.api.config import fields as conf_fields
 
 
@@ -68,9 +66,15 @@ class BaseSchema(Schema):
     homeDirectory = fields.Str()
     loginShell = fields.Str()
 
-    @validates_schema()
-    def validate_object(self, value):
-        pass
+    @validates_schema
+    def validate_object(self, data, **kwargs):
+        errors = {}
+        if data['uidNumber'] != data['gidNumber']:
+            errors['uidNumber'] = ['uidNumber must be equals to gidNumber']
+            errors['gidNumber'] = ['gidNumber must be equals to uidNumber']
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):
@@ -125,3 +129,29 @@ class TokenSchemaLdap(Schema):
 
     def __repr__(self):
         return f'<{TokenSchemaLdap.__name__} {id(self)}>'
+
+
+class GroupBaseSchema(Schema):
+    dn = fields.Str()
+    gidNumber = fields.Str()
+    objectClass = fields.List(fields.Str())
+    cn = fields.List(fields.Str())
+    memberUid = fields.List(fields.Str())
+
+
+class CnGroupSchemaModify(GroupBaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'cn_group_fields'
+        type_required_fields = 'update'
+
+    def __repr__(self):
+        return f'<{CnGroupSchemaModify.__name__} {id(self)}>'
+
+
+class CnGroupSchemaCreate(GroupBaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'cn_group_fields'
+        type_required_fields = 'create'
+
+    def __repr__(self):
+        return f'<{CnGroupSchemaCreate.__name__} {id(self)}>'

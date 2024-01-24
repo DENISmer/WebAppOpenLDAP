@@ -24,7 +24,7 @@ class UserCnAbstract(ABC):
                and getattr(self, key)
         }
 
-        if not operation == 'read':
+        if not operation == 'read' and res.get('dn'):
             del res['dn']
 
         return res

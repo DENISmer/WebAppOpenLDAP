@@ -30,7 +30,7 @@ class AuthOpenLDAP(Resource):
         response = ldap_auth.authenticate()
 
         if response.status.value == 1:
-            abort(403, message='Invalid username or password.')
+            abort(401, message='Invalid username or password.')
 
         ldap_auth.connect()
 
