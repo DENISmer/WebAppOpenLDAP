@@ -77,20 +77,21 @@ class UserLdap(UserCnAbstract):
         self.role = kwargs.get('role')
 
     def __repr__(self):
-        return f'u {self.dn}'
+        return f'DN {self.dn}'
 
 
 class CnGroupLdap(UserCnAbstract):
     def __init__(self, username=None, *args, **kwargs):
         super().__init__(
-            dn=kwargs.get('dn'),
-            cn=kwargs.get('cn'),
-            objectClass=kwargs.get('objectClass'),
-            gidNumber=kwargs.get('gidNumber'),
             username=username,
-            fields=kwargs.get('fields'),
+            **kwargs,
+            # dn=kwargs.get('dn'),
+            # cn=kwargs.get('cn'),
+            # objectClass=kwargs.get('objectClass'),
+            # gidNumber=kwargs.get('gidNumber'),
+            # fields=kwargs.get('fields'),
         )
         self.memberUid = kwargs.get('memberUid')
 
     def __repr__(self):
-        return f'g {self.cn}'
+        return f'DN {self.dn}'

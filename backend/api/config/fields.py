@@ -208,7 +208,7 @@ webadmins_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'update',],
-            'required': [],
+            'required': ['create'],
         },
         'postalCode': {
             'type': TYPE_LIST,
@@ -219,7 +219,7 @@ webadmins_fields = {
     },
 }
 
-cn_group_fields = {
+webadmins_cn_group_fields = {
     'fields': {
         'dn': {
             'type': TYPE_STR,

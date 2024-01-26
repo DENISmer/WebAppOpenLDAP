@@ -21,7 +21,7 @@ class Meta(SchemaMeta):
 
             type_required_fields = getattr(meta_class, 'type_required_fields')
 
-            if type_required_fields not in ('update', 'create'):
+            if type_required_fields not in ('update', 'create', 'list'):
                 raise AttributeError('type_required_fields must has the \'update\' anb \'create\'')
 
             user_fields = getattr(meta_class, 'user_fields')
@@ -36,15 +36,19 @@ class Meta(SchemaMeta):
                 value_copy = copy.deepcopy(cls._declared_fields[key])
                 cls._declared_fields[key] = value_copy
                 # end deep copy
-                if 'read' in value['required']:
+
+                if type_required_fields == 'list':
                     setattr(cls._declared_fields[key], 'dump_only', True)
-
-                if type_required_fields in value['required']:
-                    setattr(cls._declared_fields[key], 'required', True)
-
-                if type_required_fields == 'update':
-                    if type_required_fields not in value['operation']:
+                else:
+                    if 'read' in value['required']:
                         setattr(cls._declared_fields[key], 'dump_only', True)
+
+                    if type_required_fields in value['required']:
+                        setattr(cls._declared_fields[key], 'required', True)
+
+                    if type_required_fields == 'update':
+                        if type_required_fields not in value['operation']:
+                            setattr(cls._declared_fields[key], 'dump_only', True)
 
 
 class BaseSchema(Schema):
@@ -77,6 +81,11 @@ class BaseSchema(Schema):
 
         if errors:
             raise ValidationError(errors)
+
+    # @validates('userPassword')
+    # def validate_password(self, value):
+    #     if len(value) < 8:
+    #         raise ValidationError('The userPassword must be longer than 8 characters.')
 
 
 class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):
@@ -128,6 +137,7 @@ class AuthUserSchemaLdap(Schema):
 
 class TokenSchemaLdap(Schema):
     token = fields.Str(dump_only=True)
+    uid = fields.Str(dump_only=True)
 
     def __repr__(self):
         return f'<{TokenSchemaLdap.__name__} {id(self)}>'
@@ -135,7 +145,7 @@ class TokenSchemaLdap(Schema):
 
 class GroupBaseSchema(Schema):
     dn = fields.Str()
-    gidNumber = fields.Str()
+    gidNumber = fields.Int()
     objectClass = fields.List(fields.Str())
     cn = fields.List(fields.Str())
     memberUid = fields.List(fields.Str())
@@ -143,7 +153,7 @@ class GroupBaseSchema(Schema):
 
 class CnGroupSchemaModify(GroupBaseSchema, metaclass=Meta):
     class Meta:
-        user_fields = 'cn_group_fields'
+        user_fields = 'webadmins_cn_group_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
@@ -152,8 +162,17 @@ class CnGroupSchemaModify(GroupBaseSchema, metaclass=Meta):
 
 class CnGroupSchemaCreate(GroupBaseSchema, metaclass=Meta):
     class Meta:
-        user_fields = 'cn_group_fields'
+        user_fields = 'webadmins_cn_group_fields'
         type_required_fields = 'create'
 
     def __repr__(self):
         return f'<{CnGroupSchemaCreate.__name__} {id(self)}>'
+
+
+class CnGroupSchemaList(GroupBaseSchema, metaclass=Meta):
+    class Meta:
+        user_fields = 'webadmins_cn_group_fields'
+        type_required_fields = 'list'
+
+    def __repr__(self):
+        return f'<{CnGroupSchemaList.__name__} {id(self)}>'

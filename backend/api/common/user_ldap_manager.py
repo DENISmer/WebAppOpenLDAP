@@ -11,14 +11,14 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPEntryAlreadyExistsResult,
                                    LDAPInvalidDnError,
                                    LDAPInvalidDNSyntaxResult,
-                                   LDAPObjectClassError)
+                                   LDAPObjectClassError, LDAPNoSuchObjectResult)
 from flask_restful import abort
 
 from backend.api.common.connection_ldap import ConnectionLDAP
 from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
-from backend.api.config.fields import cn_group_fields, search_fields
+from backend.api.config.fields import webadmins_cn_group_fields, search_fields
 from backend.api.config.ldap import config
 
 
@@ -69,44 +69,50 @@ class UserManagerLDAP(ConnectionLDAP):
 
         return self._connection.entries
 
-    def get_user(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap:
-        search = self.search(
+    def get_user(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> UserLdap | None:
+
+        dn = 'uid={0},{1}'.format(
             uid,
-            {'uid': '%s'},
-            attributes=attributes,
-            required_fields={'objectClass': 'person'}
+            self.ldap_manager.full_user_search_dn
         )
-        if not search:
+        data = {}
+        try:
+            data = self.ldap_manager.get_object(
+                dn=dn,
+                filter='(objectClass=person)',
+                attributes=attributes,
+                _connection=None,
+            )
+        except LDAPNoSuchObjectResult:
+            if not abort_raise:
+                return None
             abort(404, message='User not found.')
 
-        data = orjson.loads(
-            self._connection.entries[0].entry_to_json()
-        )
+        return UserLdap(username=uid, **data)
 
-        user = UserLdap(username=uid, dn=data['dn'], **data['attributes'])
-        return user
+    def get_group_info_posix_group(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> CnGroupLdap | None:
 
-    def get_group_info_posix_group(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> CnGroupLdap:
-        search = self.search(
+        dn = 'cn={0},{1}'.format(
             uid,
-            {'cn': '%s'},
-            attributes=attributes,
-            required_fields={'objectClass': 'posixGroup'},
+            self.ldap_manager.full_group_search_dn
         )
-        if not search:
+        data = {}
+        try:
+            data = self.ldap_manager.get_object(
+                dn=dn,
+                filter='(objectClass=posixGroup)',
+                attributes=attributes,
+                _connection=None,
+            )
+        except LDAPNoSuchObjectResult:
             if not abort_raise:
-                return
+                return None
             abort(404, message='Group not found.')
-
-        data = orjson.loads(
-            self._connection.entries[0].entry_to_json()
-        )
 
         group = CnGroupLdap(
             username=uid,
-            dn=data['dn'],
-            **data['attributes'],
-            fields=cn_group_fields['fields']
+            **data,
+            fields=webadmins_cn_group_fields['fields']
         )
         return group
 
@@ -146,33 +152,62 @@ class UserManagerLDAP(ConnectionLDAP):
                     operation=operation
                 )
             )
-        except LDAPInsufficientAccessRightsResult:
-            abort(403, message='Insufficient access rights.')
-        except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult):
-            abort(400, message={'dn': 'Invalid field.'})
-        except LDAPObjectClassError:
-            abort(400, message={'objectClass': 'Invalid field.'})
+        except LDAPInsufficientAccessRightsResult as e:
+            print('##LDAPInsufficientAccessRightsResult##')
+            pprint.pprint(e)
+            abort(403, message='Insufficient access rights')
+        except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
+            print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
+            print(e)
+            fields = {
+                'fields': {
+                    'dn': 'Invalid field',
+                }
+            }
+            abort(400, message=fields)
+        except LDAPObjectClassError as e:
+            print('##LDAPObjectClassError##')
+            print(e)
+            fields = dict(
+                fields=dict(
+                    objectClass=str(e)
+                )
+            )
+            abort(400, message=fields)
         except LDAPAttributeError as e:
+            print('##LDAPATTRERROR##')
+            pprint.pprint(e.__dict__)
+            pprint.pprint(e)
             abort(400, message=str(e))
         except LDAPEntryAlreadyExistsResult as e:
-            print(e)
-            abort(400, message=f'{item.dn} already exists.')
+            print('##LDAPEntryAlreadyExistsResult##')
+            pprint.pprint(e.__dict__)
+            fields = {
+                'fields': {
+                    'dn': f'{item} already exists'
+                }
+            }
+            abort(400, message=fields)
         except LDAPException as e:
-            print(e.__dict__)
-            abort(400, message=str(e))
-
-        print('result create: ', self._connection.result)
-        print('response create: ', self._connection.response)
-        print('last error create: ', self._connection.last_error)
-        # pprint.pprint(self._connection.__dict__)
+            print('##LDAPException##')
+            pprint.pprint(self._connection.result)
+            pprint.pprint(e.__dict__)
+            pprint.pprint(e.args)
+            pprint.pprint(e)
+            abort(400, message=e.__dict__)
 
         res = self._connection.result
+        print('##result')
+        pprint.pprint(self._connection.result)
+        print('##result')
+        # abort(400, message=res['message'])
         if 'success' not in res['description']:
             abort(400, message=res['message'])
+        print('Success')
 
         return item
 
-    def modify(self,  item: UserLdap | CnGroupLdap, operation) -> UserLdap:
+    def modify(self,  item: UserLdap | CnGroupLdap, operation) -> UserLdap | CnGroupLdap:
 
         serialized_data_modify = item.serialize_data(
             user_fields=item.fields,
@@ -201,9 +236,10 @@ class UserManagerLDAP(ConnectionLDAP):
         except LDAPObjectClassError:
             abort(400, message={'objectClass': 'Invalid field.'})
         except LDAPAttributeError as e:
-            abort(400, message=str(e))
-        except LDAPException:
-            abort(400, message=str('Failed.'))
+            abort(400, message=e)
+        except LDAPException as e:
+            print(e)
+            abort(400, message=e.__dict__)
 
         return item
 
@@ -240,26 +276,60 @@ class UserManagerLDAP(ConnectionLDAP):
             for user in users if (user_json := orjson.loads(user.entry_to_json()))
         ]
 
-    def get_groups(self, value, search_fields) -> list:
-        search = self.search(value, search_fields)
-        if not search:
+    def get_posix_group(self, value, search_fields, required_fields):
+        pass
+
+    def get_groups(self, value, search_fields, required_fields) -> list:
+        groups = self.search(value, fields=search_fields, required_fields=required_fields)
+        if not groups:
             return []
 
         return [
-            orjson.loads(group.entry_to_json()) for group in search
+            {
+                'dn': json_data['dn'],
+                **json_data['attributes']
+            }
+            for group in groups if (json_data := orjson.loads(group.entry_to_json()))
         ]
 
     def is_webadmin(self, dn) -> bool:
-        groups = self.get_groups(Group.WEBADMINS.value, {'cn': '%s'})
-
+        groups = self.get_groups(
+            Group.WEBADMINS.value,
+            {'cn': '%s'},
+            {'objectClass': 'groupOfNames'}
+        )
         if not groups:
             return False
-
-        member = groups[0]['attributes']['member']
+        member = groups[0]['member']
         if dn not in member:
             return False
 
         return True
+
+    def get_free_spaces(self, ids):
+        ids = sorted(ids)
+        length = ids[-1] - len(ids) - ids[0]+1
+        free_ids = [0] * length
+        i = 0
+        j = 0
+        min_val = ids[0]
+        max_val = ids[1]
+        while i + 1 < len(ids) and ids[i] < max_val:
+
+            if min_val + 1 < max_val:
+                min_val += 1
+                # free_ids.append(min_val)
+                free_ids[j] = min_val
+                j += 1
+
+            if min_val + 1 == max_val:
+
+                i += 1
+                if i + 1 < len(ids):
+                    min_val = ids[i]
+                    max_val = ids[i + 1]
+
+        return free_ids
 
     def get_free_id_number(self, value=None):
         users = self.get_users(
@@ -269,5 +339,9 @@ class UserManagerLDAP(ConnectionLDAP):
             required_fields={'objectClass': 'person'},
         )
 
+        ids = []
         for user in users:
-            print(user.uidNumber)
+            ids.append(user.uidNumber)
+
+        unique_ids = list(set(ids))
+        self.get_free_spaces(unique_ids)

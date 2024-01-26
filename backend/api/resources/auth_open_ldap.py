@@ -3,6 +3,7 @@ from flask_restful import Resource, fields, marshal_with, request, reqparse, abo
 from marshmallow import ValidationError
 
 from backend.api.common.roles import Role
+from backend.api.common.common_serialize_open_ldap import CommonSerialize
 from backend.api.common.token_manager import TokenManager, Token
 from backend.api.common.authentication_ldap import AuthenticationLDAP
 from backend.api.common.user_manager import UserLdap
@@ -39,10 +40,12 @@ class AuthOpenLDAP(Resource):
         user.is_webadmin = ldap_auth.is_webadmin(user.dn)
         if user.is_webadmin:
             user.role = Role.WEBADMIN
+        else:
+            user.role = Role.SIMPLE_USER
 
         ldap_auth.close_connection()
 
         token = TokenManager(user=user).create_token()
-        serialized_data = TokenSchemaLdap().dump({'token': token})
+        serialized_data = TokenSchemaLdap().dump({'token': token, 'uid': user.uid})
 
         return serialized_data, 200

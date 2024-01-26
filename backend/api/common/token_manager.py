@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import jwt
 import time
 import uuid
@@ -27,7 +29,7 @@ class TokenManager:
                 'dn': self.user.dn,
                 'uid': self.user.uid,
                 'role': self.user.role.value,
-                'exp': int(time.time()) + 3600,
+                'exp': datetime.utcnow() + timedelta(days=2),#int(time.time()) + 3600 * 10,
                 'jti': f'{uuid.uuid4()}',
             },  # payload
             settings.SECRET_KEY,  # private key

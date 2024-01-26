@@ -69,3 +69,4 @@ class ConnectionLDAP:
         self._connection.unbind()
 
     def __repr__(self):
+        return f'Connection(user={self._connection.user}; password={self._connection.password})'

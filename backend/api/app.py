@@ -1,9 +1,12 @@
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
-from backend.api.resources.user_open_ldap import UserOpenLDAPResource, UserListOpenLDAPResource
+from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
+                                                  UserListOpenLDAPResource,
+                                                  UserMeOpenLDAPResource)
 
 app = Flask(__name__)
 app.config.from_object('backend.api.config.settings') # or this
@@ -11,8 +14,12 @@ app.config.from_object('backend.api.config.settings') # or this
 
 api = Api(app)
 
+# Cross Origin Resource Sharing
+cors = CORS(app, resources={r'/users': {'origins': '*'}})
+
 
 # Users resource
+api.add_resource(UserMeOpenLDAPResource,  '/users/me/')
 api.add_resource(UserOpenLDAPResource,  '/users/<string:username_uid>')
 api.add_resource(UserListOpenLDAPResource, '/users')
 

@@ -4,10 +4,15 @@ from flask_restful import Resource, marshal_with, fields, reqparse, abort, reque
 from marshmallow import ValidationError
 
 from backend.api.common.auth_http_token import auth
+from backend.api.common.common_serialize_open_ldap import CommonSerialize
 from backend.api.common.decorators import connection_ldap, permission_user
 from backend.api.common.user_ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
-from backend.api.config.fields import simple_user_fields, webadmins_fields, search_fields, cn_group_fields
+from backend.api.config.fields import (simple_user_fields,
+                                       webadmins_fields,
+                                       search_fields,
+                                       webadmins_cn_group_fields)
+
 from backend.api.common.roles import Role
 from backend.api.resources import schema
 
@@ -22,7 +27,7 @@ def auth_error(status):
     return {'message': 'Unauthorized Access'}, status
 
 
-class UserOpenLDAPResource(Resource):
+class UserOpenLDAPResource(Resource, CommonSerialize):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -50,6 +55,11 @@ class UserOpenLDAPResource(Resource):
         if updated_user.uid is not None and username_uid not in updated_user.uid:
             updated_user.uid.append(username_uid)
 
+        if updated_user.uidNumber:
+            updated_user.gidNumber = updated_user.uidNumber
+        if updated_user.gidNumber:
+            updated_user.uidNumber = updated_user.gidNumber
+
         self._user_manager_ldap.modify(
             item=updated_user,
             operation=operation,
@@ -68,44 +78,25 @@ class UserOpenLDAPResource(Resource):
 
         return updated_user
 
-    def __deserialized_data(
-        self, user_schema, json_data, partial=False
-    ) -> dict:
-        deserialized_data = {}
-        try:
-            deserialized_data = getattr(
-                schema, user_schema
-            )().load(json_data, partial=partial)
-        except ValidationError as e:
-            abort(400, message=e.messages)
-
-        return deserialized_data
-
-    def __serialized_data(
-        self, user_schema, item, many=False
-    ):
-        serialized_data = getattr(schema, user_schema)().dump(item, many=many)
-        return serialized_data
-
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def get(self, username_uid, *args, **kwargs):
         user = self._user_manager_ldap.get_user(username_uid)
+        # self._user_manager_ldap._connection
         user_schema = kwargs['user_schema']
-        # pprint.pprint(self._user_manager_ldap.get_group_info_posix_group(username_uid).serialize_data(cn_group_fields['fields'], 'read'))
-        serialized_user = self.__serialized_data(user_schema, user)
+        serialized_user = self._serialize_data(user_schema, user)
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def put(self, username_uid, *args, **kwargs):
         json_data = request.get_json()
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
 
-        deserialized_data = self.__deserialized_data(user_schema, json_data, partial=False)
+        deserialized_data = self._deserialize_data(user_schema, json_data, partial=False)
 
         user = self.__modify_user_group(
             username_uid=username_uid,
@@ -114,19 +105,18 @@ class UserOpenLDAPResource(Resource):
             operation='update'
         )
 
-        serialized_user = self.__serialized_data(user_schema, item=user)
+        serialized_user = self._serialize_data(user_schema, item=user)
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def patch(self, username_uid, *args, **kwargs):
-
         json_data = request.get_json()
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
 
-        deserialized_data = self.__deserialized_data(user_schema, json_data, partial=True)
+        deserialized_data = self._deserialize_data(user_schema, json_data, partial=True)
 
         user = self.__modify_user_group(
             username_uid=username_uid,
@@ -135,35 +125,34 @@ class UserOpenLDAPResource(Resource):
             operation='update'
         )
 
-        serialized_data = self.__serialized_data(user_schema, user)
+        serialized_data = self._serialize_data(user_schema, user)
         return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def delete(self, username_uid):
-        print('DELETE', username_uid)
         user = self._user_manager_ldap.get_user(username_uid, [])
         group = self._user_manager_ldap.get_group_info_posix_group(
             username_uid, [], abort_raise=False
         )
 
         self._user_manager_ldap.delete(user)
-        self._user_manager_ldap.delete(group)
+        if group:
+            self._user_manager_ldap.delete(group)
 
         return None, 204
 
 
-class UserListOpenLDAPResource(Resource):
+class UserListOpenLDAPResource(Resource, CommonSerialize):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self._user_manager_ldap: UserManagerLDAP = None
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def get(self, *args, **kwargs):
         user_schema = kwargs['user_schema']
 
@@ -177,44 +166,81 @@ class UserListOpenLDAPResource(Resource):
             attributes=['uid', 'cn', 'sn', 'uidNumber', 'gidNumber'],
             required_fields={'objectClass': 'person'},
         )
-        serialized_users = getattr(schema, user_schema)().dump(users, many=True)
+
+        serialized_users = self._serialize_data(user_schema, users, many=True)
 
         return {'users': serialized_users}, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
-    @permission_user
+    @permission_user()
     def post(self, *args, **kwargs):
         json_data = request.get_json()
 
-        deserialized_user = {}
         user_schema = kwargs['user_schema']
         user_fields = kwargs['user_fields']
 
-        try:
-            deserialized_user = getattr(schema, user_schema)().load(json_data, partial=False)
-        except ValidationError as e:
-            abort(400, message=e.messages)
+        deserialized_data = self._deserialize_data(user_schema, json_data, partial=False)
 
-        user = UserLdap(
-            fields=user_fields['fields'],
-            **deserialized_user
-        )
 
-        group = CnGroupLdap(
-            cn=user.cn,
-            memberUid=user.cn,
-            objectClass=['posixGroup'],
-            gidNumber=user.gidNumber,
-            fields=cn_group_fields['fields'],
-        )
-        group.dn = 'cn={0},{1}'.format(
-            user.cn[0],
-            str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
-        )
+        if True:
+            user = UserLdap(
+                fields=user_fields['fields'],
+                **deserialized_data
+            )
+            group = CnGroupLdap(
+                cn=user.cn,
+                memberUid=user.cn,
+                objectClass=['posixGroup'],
+                gidNumber=user.gidNumber,
+                fields=webadmins_cn_group_fields['fields'],
+            )
+            group.dn = 'cn={0},{1}'.format(
+                user.cn[0],
+                str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
+            )
 
-        # self._user_manager_ldap.get_free_id_number()
-        # return 200
+            self._user_manager_ldap.get_free_id_number()
+
+        if False:
+            for i in range(100):
+                uid = f'test_user_{i}'
+                user = UserLdap(
+                    dn='uid={0},{1}'.format(
+                        uid,
+                        str(self._user_manager_ldap.ldap_manager.full_user_search_dn)
+                    ),
+                    uid=[uid],
+                    uidNumber=10000+i,
+                    gidNumber=10000+i,
+                    cn=[uid],
+                    sn=[uid],
+                    objectClass=["inetOrgPerson", "posixAccount", "shadowAccount"],
+                    userPassword=[uid],
+                    fields=user_fields['fields'],
+                    homeDirectory=f'/home/{uid}'
+                )
+                group = CnGroupLdap(
+                    dn='cn={0},{1}'.format(
+                        uid,
+                        str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
+                    ),
+                    cn=user.cn[0],
+                    memberUid=user.cn[0],
+                    objectClass=['posixGroup'],
+                    gidNumber=user.gidNumber,
+                    fields=webadmins_cn_group_fields['fields'],
+                )
+                self._user_manager_ldap.create(
+                    item=user,
+                    operation='create',
+                )
+                self._user_manager_ldap.create(
+                    item=group,
+                    operation='create',
+                )
+
+        return 200
         self._user_manager_ldap.create(
             item=user,
             operation='create',
@@ -224,5 +250,24 @@ class UserListOpenLDAPResource(Resource):
             operation='create',
         )
 
-        serialized_users = getattr(schema, user_schema)().dump(user)
+        serialized_users = self._serialize_data(user_schema, user)
         return serialized_users, 201
+
+
+class UserMeOpenLDAPResource(Resource, CommonSerialize):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._user_manager_ldap: UserManagerLDAP = None
+
+    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @connection_ldap
+    @permission_user(miss=True)
+    def get(self, *args, **kwargs):
+        current_user = auth.current_user()
+
+        user_schema = kwargs['user_schema']
+
+        user = self._user_manager_ldap.get_user(current_user['uid'])
+        serialized_data = self._serialize_data(user_schema, user)
+
+        return serialized_data, 200
