@@ -1,10 +1,11 @@
 import functools
 import pprint
+import logging
 
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
-from backend.api.common.user_ldap_manager import UserManagerLDAP
+from backend.api.common.exceptions import get_attribute_error_fields
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import (simple_user_fields,
@@ -18,8 +19,19 @@ from backend.api.resources.schema import (SimpleUserSchemaLdapModify,
                                           CnGroupSchemaCreate,
                                           CnGroupSchemaList)
 
+from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
+                                   LDAPAttributeError,
+                                   LDAPException,
+                                   LDAPEntryAlreadyExistsResult,
+                                   LDAPInvalidDnError,
+                                   LDAPInvalidDNSyntaxResult,
+                                   LDAPObjectClassError,
+                                   LDAPNoSuchObjectResult,
+                                   LDAPOperationResult)
+
 
 def connection_ldap(func):
+    from backend.api.common.user_ldap_manager import UserManagerLDAP
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
@@ -114,6 +126,88 @@ def permission_group(func):
             abort(404, message='Type group not found.')
 
         res = func(*args, **kwargs)
+
+        return res
+
+    return wraps
+
+
+def error_operation_ldap(func):
+
+    @functools.wraps(func)
+    def wraps(*args, **kwargs):
+        operation = kwargs['operation']
+        object_item = kwargs['item']
+
+        try:
+            res = func(*args, **kwargs)
+        except LDAPInsufficientAccessRightsResult as e:
+            print('##LDAPInsufficientAccessRightsResult##')
+            pprint.pprint(e)
+            logging.log(logging.ERROR, e)
+            abort(403, message='Insufficient access rights')
+        except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
+            print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
+            print(e)
+            logging.log(logging.ERROR, e)
+            fields = {
+                'fields': {
+                    'dn': f'Invalid field, {e}',
+                }
+            }
+            abort(400, message=fields)
+        except LDAPObjectClassError as e:
+            print('##LDAPObjectClassError##')
+            print(str(e))
+            print(e.__dict__)
+            logging.log(logging.ERROR, e)
+            fields = {
+                'fields': {
+                    'objectClass': str(e),
+                }
+            }
+            abort(400, message=fields)
+        except LDAPAttributeError as e:
+            print('##LDAPATTRERROR##')
+            pprint.pprint(e.__dict__)
+            pprint.pprint(e)
+            logging.log(logging.ERROR, e)
+            fields = {
+                'fields': {
+                    item: str(e)
+                    for item in get_attribute_error_fields(
+                        list(object_item.fields.keys()), str(e)
+                    )
+                }
+            }
+            abort(400, message=fields)
+        except LDAPEntryAlreadyExistsResult as e:
+            print('##LDAPEntryAlreadyExistsResult##')
+            pprint.pprint(e.__dict__)
+            logging.log(logging.ERROR, e)
+            fields = {
+                'fields': {
+                    'dn': f'An element with such a dn already exists',
+                }
+            }
+            abort(400, message=fields)
+        except LDAPOperationResult as e:
+            print('##LDAPOperationResult##')
+            logging.log(logging.ERROR, e)
+            print(e.__dict__)
+            abort(
+                400,
+                message=f'The operation {operation} has not '
+                        f'been completed (description={e.__dict__["description"]},'
+                        f' message={e.__dict__["message"]})')
+        except LDAPException as e:
+            print('##LDAPException##')
+            # pprint.pprint(self._connection.result)
+            pprint.pprint(e.__dict__)
+            pprint.pprint(e.args)
+            pprint.pprint(e)
+            logging.log(logging.ERROR, e)
+            abort(400, message='Failed 500. Unhandled errors')
 
         return res
 

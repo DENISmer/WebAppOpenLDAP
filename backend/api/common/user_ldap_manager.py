@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import pprint
 from typing import Dict
 import orjson
@@ -11,18 +12,20 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPEntryAlreadyExistsResult,
                                    LDAPInvalidDnError,
                                    LDAPInvalidDNSyntaxResult,
-                                   LDAPObjectClassError, LDAPNoSuchObjectResult)
+                                   LDAPObjectClassError, LDAPNoSuchObjectResult, LDAPOperationResult)
 from flask_restful import abort
 
 from backend.api.common.connection_ldap import ConnectionLDAP
-from backend.api.common.exceptions import ItemFieldsIsNone
+from backend.api.common.decorators import error_operation_ldap
+from backend.api.common.exceptions import ItemFieldsIsNone, get_attribute_error_fields
+from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.config.fields import webadmins_cn_group_fields, search_fields
 from backend.api.config.ldap import config
 
 
-class UserManagerLDAP(ConnectionLDAP):
+class UserManagerLDAP(ConnectionLDAP, GetFreeId):
 
     def search(
         self,
@@ -139,67 +142,22 @@ class UserManagerLDAP(ConnectionLDAP):
     
     """
 
+    @error_operation_ldap
     def create(self, item: UserLdap | CnGroupLdap, operation) -> UserLdap:
 
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
 
-        try:
-            self._connection.add(
-                item.dn,
-                attributes=item.serialize_data(
-                    user_fields=item.fields,
-                    operation=operation
-                )
+        self._connection.add(
+            item.dn,
+            attributes=item.serialize_data(
+                user_fields=item.fields,
+                operation=operation
             )
-        except LDAPInsufficientAccessRightsResult as e:
-            print('##LDAPInsufficientAccessRightsResult##')
-            pprint.pprint(e)
-            abort(403, message='Insufficient access rights')
-        except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
-            print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
-            print(e)
-            fields = {
-                'fields': {
-                    'dn': 'Invalid field',
-                }
-            }
-            abort(400, message=fields)
-        except LDAPObjectClassError as e:
-            print('##LDAPObjectClassError##')
-            print(e)
-            fields = dict(
-                fields=dict(
-                    objectClass=str(e)
-                )
-            )
-            abort(400, message=fields)
-        except LDAPAttributeError as e:
-            print('##LDAPATTRERROR##')
-            pprint.pprint(e.__dict__)
-            pprint.pprint(e)
-            abort(400, message=str(e))
-        except LDAPEntryAlreadyExistsResult as e:
-            print('##LDAPEntryAlreadyExistsResult##')
-            pprint.pprint(e.__dict__)
-            fields = {
-                'fields': {
-                    'dn': f'{item} already exists'
-                }
-            }
-            abort(400, message=fields)
-        except LDAPException as e:
-            print('##LDAPException##')
-            pprint.pprint(self._connection.result)
-            pprint.pprint(e.__dict__)
-            pprint.pprint(e.args)
-            pprint.pprint(e)
-            abort(400, message=e.__dict__)
+        )
 
         res = self._connection.result
-        print('##result')
-        pprint.pprint(self._connection.result)
-        print('##result')
+
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
             abort(400, message=res['message'])
@@ -207,6 +165,7 @@ class UserManagerLDAP(ConnectionLDAP):
 
         return item
 
+    @error_operation_ldap
     def modify(self,  item: UserLdap | CnGroupLdap, operation) -> UserLdap | CnGroupLdap:
 
         serialized_data_modify = item.serialize_data(
@@ -214,36 +173,26 @@ class UserManagerLDAP(ConnectionLDAP):
             operation=operation,
         )
 
-        try:
-            self._connection.modify(
-                item.dn,
-                {
-                    key: [(
-                        MODIFY_REPLACE,
-                        value if type(value) == list else [value]
-                    )]
-                    for key, value in serialized_data_modify.items()
-                }
-            )
-            print('result modify:', self._connection.result)
+        self._connection.modify(
+            item.dn,
+            {
+                key: [(
+                    MODIFY_REPLACE,
+                    value if type(value) == list else [value]
+                )]
+                for key, value in serialized_data_modify.items()
+            }
+        )
+        print('result modify:', self._connection.result)
 
-            res = self._connection.result
-            if 'success' not in res['description']:
-                abort(400, message=res['description'])
-
-        except LDAPInsufficientAccessRightsResult:
-            abort(403, message='Insufficient access rights.')
-        except LDAPObjectClassError:
-            abort(400, message={'objectClass': 'Invalid field.'})
-        except LDAPAttributeError as e:
-            abort(400, message=e)
-        except LDAPException as e:
-            print(e)
-            abort(400, message=e.__dict__)
+        res = self._connection.result
+        if 'success' not in res['description']:
+            abort(400, message=res['description'])
 
         return item
 
-    def delete(self, item: UserLdap | CnGroupLdap):
+    @error_operation_ldap
+    def delete(self, item: UserLdap | CnGroupLdap, operation='delete'):
         if item.dn:
             self._connection.delete(item.dn)
 
@@ -306,32 +255,7 @@ class UserManagerLDAP(ConnectionLDAP):
 
         return True
 
-    def get_free_spaces(self, ids):
-        ids = sorted(ids)
-        length = ids[-1] - len(ids) - ids[0]+1
-        free_ids = [0] * length
-        i = 0
-        j = 0
-        min_val = ids[0]
-        max_val = ids[1]
-        while i + 1 < len(ids) and ids[i] < max_val:
-
-            if min_val + 1 < max_val:
-                min_val += 1
-                # free_ids.append(min_val)
-                free_ids[j] = min_val
-                j += 1
-
-            if min_val + 1 == max_val:
-
-                i += 1
-                if i + 1 < len(ids):
-                    min_val = ids[i]
-                    max_val = ids[i + 1]
-
-        return free_ids
-
-    def get_free_id_number(self, value=None):
+    def get_free_id_number(self):
         users = self.get_users(
             value=None,
             fields=search_fields,
@@ -343,5 +267,5 @@ class UserManagerLDAP(ConnectionLDAP):
         for user in users:
             ids.append(user.uidNumber)
 
-        unique_ids = list(set(ids))
-        self.get_free_spaces(unique_ids)
+        unique_ids = set(ids)
+        return self.get_free_spaces(unique_ids)

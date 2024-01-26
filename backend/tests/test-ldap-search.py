@@ -1,4 +1,5 @@
 import ldap3
+import orjson
 from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES, SUBTREE
 import ssl
 import pprint
@@ -32,20 +33,53 @@ connection.bind()
 # pprint.pprint(connection.__dict__)
 connection_search = connection.search(
     'dc=local,dc=net',
-    '(uid=serbinovich*)',
-    attributes=ALL_ATTRIBUTES
+    '(objectClass=person)',
+    attributes=['gidNumber']
 )
+
 
 # True - not empty, False - empty
 print('connection', connection_search)
 
 # output data
-list_users = []
+list_gid_number = []
 if connection_search:
     print('connection entries is performed')
-    list_users = connection.entries
-    print(list_users)
-    pprint.pprint(connection.request)
+    for item in connection.entries:
+        json_data = orjson.loads(item.entry_to_json())
+        # print(json_data['attributes'])
+        list_gid_number.append(json_data['attributes']['gidNumber'][0])
+
+
+def get_free_spaces(ids):
+    sorted_ids = sorted(ids)
+    for i in range(len(sorted_ids) - 1):
+        count_free_spaces = sorted_ids[i+1] - sorted_ids[i] - 1
+        if count_free_spaces > 0:
+            return sorted_ids[i] + 1
+
+# print(list_gid_number)
+# print(len(list_gid_number))
+# print(len(set(list_gid_number)))
+sorted_list = sorted(list_gid_number)
+# sorted_list.insert(0, 9990)
+
+print(get_free_spaces(sorted_list))
+
+
+
+# for i in range(len(sorted_list)-1):
+#     # print(sorted_list[i])
+#     len_free_spaces = sorted_list[i+1] - sorted_list[i] - 1
+#     if len_free_spaces > 0:
+#         print(len_free_spaces, '[', sorted_list[i], '-', sorted_list[i+1], ']')
+#         for j in range(sorted_list[i]+1, sorted_list[i+1]):
+#             print(j, end=' ')
+#         print('')
+    # print('\t', len_free_spaces)
+
+connection.unbind()
+exit(0)
 
 entries = connection.extend.standard.paged_search(
     search_base='dc=local,dc=net',

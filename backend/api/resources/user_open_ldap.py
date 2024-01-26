@@ -14,7 +14,6 @@ from backend.api.config.fields import (simple_user_fields,
                                        webadmins_cn_group_fields)
 
 from backend.api.common.roles import Role
-from backend.api.resources import schema
 
 
 @auth.get_user_roles  # roles
@@ -42,7 +41,7 @@ class UserOpenLDAPResource(Resource, CommonSerialize):
     ) -> UserLdap:
 
         user = self._user_manager_ldap.get_user(
-            username_uid, ['gidNumber', 'uidNumber']
+            username_uid
         )
 
         updated_user = UserLdap(
@@ -65,9 +64,9 @@ class UserOpenLDAPResource(Resource, CommonSerialize):
             operation=operation,
         )
 
-        group = self._user_manager_ldap.get_group_info_posix_group(username_uid)
+        group = self._user_manager_ldap.get_group_info_posix_group(username_uid, abort_raise=False)
 
-        if (updated_user.uidNumber or updated_user.gidNumber) \
+        if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
             group.gidNumber = updated_user.gidNumber or updated_user.uidNumber
 
@@ -76,7 +75,9 @@ class UserOpenLDAPResource(Resource, CommonSerialize):
                 operation=operation,
             )  # must be test
 
-        return updated_user
+        # update info user
+        user.__dict__.update(deserialized_data)
+        return user
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
@@ -137,9 +138,9 @@ class UserOpenLDAPResource(Resource, CommonSerialize):
             username_uid, [], abort_raise=False
         )
 
-        self._user_manager_ldap.delete(user)
+        self._user_manager_ldap.delete(item=user, operation='delete')
         if group:
-            self._user_manager_ldap.delete(group)
+            self._user_manager_ldap.delete(item=group, operation='delete')
 
         return None, 204
 
@@ -182,6 +183,9 @@ class UserListOpenLDAPResource(Resource, CommonSerialize):
 
         deserialized_data = self._deserialize_data(user_schema, json_data, partial=False)
 
+        if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
+            deserialized_data['uidNumber'] = \
+                deserialized_data['gidNumber'] = self._user_manager_ldap.get_free_id_number()
 
         if True:
             user = UserLdap(
@@ -200,7 +204,7 @@ class UserListOpenLDAPResource(Resource, CommonSerialize):
                 str(self._user_manager_ldap.ldap_manager.full_group_search_dn)
             )
 
-            self._user_manager_ldap.get_free_id_number()
+            # self._user_manager_ldap.get_free_id_number()
 
         if False:
             for i in range(100):
@@ -240,7 +244,7 @@ class UserListOpenLDAPResource(Resource, CommonSerialize):
                     operation='create',
                 )
 
-        return 200
+        # return 200
         self._user_manager_ldap.create(
             item=user,
             operation='create',
@@ -249,7 +253,7 @@ class UserListOpenLDAPResource(Resource, CommonSerialize):
             item=group,
             operation='create',
         )
-
+        self._user_manager_ldap.del_from_reserved(user.gidNumber)
         serialized_users = self._serialize_data(user_schema, user)
         return serialized_users, 201
 

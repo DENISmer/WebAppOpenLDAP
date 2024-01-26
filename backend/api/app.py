@@ -17,18 +17,19 @@ api = Api(app)
 # Cross Origin Resource Sharing
 cors = CORS(app, resources={r'/users': {'origins': '*'}})
 
+route = '/api/v1'
 
 # Users resource
-api.add_resource(UserMeOpenLDAPResource,  '/users/me/')
-api.add_resource(UserOpenLDAPResource,  '/users/<string:username_uid>')
-api.add_resource(UserListOpenLDAPResource, '/users')
+api.add_resource(UserMeOpenLDAPResource,  f'{route}users/me/')
+api.add_resource(UserOpenLDAPResource,  f'{route}users/<string:username_uid>')
+api.add_resource(UserListOpenLDAPResource, f'{route}/users')
 
 # Group resource
-api.add_resource(GroupOpenLDAPResource, '/groups/<string:type_group>/<string:username_cn>')
-api.add_resource(GroupListOpenLDAPResource, '/groups/<string:type_group>')
+api.add_resource(GroupOpenLDAPResource, f'{route}/groups/<string:type_group>/<string:username_cn>')
+api.add_resource(GroupListOpenLDAPResource, f'{route}/groups/<string:type_group>')
 
 # Auth resource
-api.add_resource(AuthOpenLDAP, '/auth/token')
+api.add_resource(AuthOpenLDAP, f'{route}/auth/token')
 
 
 # Error

@@ -85,11 +85,6 @@ class CnGroupLdap(UserCnAbstract):
         super().__init__(
             username=username,
             **kwargs,
-            # dn=kwargs.get('dn'),
-            # cn=kwargs.get('cn'),
-            # objectClass=kwargs.get('objectClass'),
-            # gidNumber=kwargs.get('gidNumber'),
-            # fields=kwargs.get('fields'),
         )
         self.memberUid = kwargs.get('memberUid')
 

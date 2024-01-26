@@ -73,11 +73,14 @@ class BaseSchema(Schema):
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
-        if (uidNumber := data.get('uidNumber')) \
-                and (gidNumber := data.get('gidNumber')) \
-                and uidNumber != gidNumber:
+        uidNumber = data.get('uidNumber')
+        gidNumber = data.get('gidNumber')
+        if uidNumber and gidNumber and uidNumber != gidNumber:
             errors['uidNumber'] = ['uidNumber must be equals to gidNumber']
             errors['gidNumber'] = ['gidNumber must be equals to uidNumber']
+        if (uidNumber and uidNumber < 10000) or (gidNumber and gidNumber < 10000):
+            errors['uidNumber'] = ['uidNumber must be greater than or equal to 10000']
+            errors['gidNumber'] = ['uidNumber must be greater than or equal to 10000']
 
         if errors:
             raise ValidationError(errors)
@@ -129,7 +132,7 @@ class WebAdminsSchemaLdapList(Schema):
 
 class AuthUserSchemaLdap(Schema):
     username = fields.Str(required=True, load_only=True)
-    password = fields.Str(required=True, load_only=True)
+    userPassword = fields.Str(required=True, load_only=True)
 
     def __repr__(self):
         return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'
