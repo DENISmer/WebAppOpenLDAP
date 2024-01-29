@@ -7,6 +7,12 @@ from marshmallow.schema import SchemaMeta
 from backend.api.config import fields as conf_fields
 
 
+class OuterFields:
+
+    def fetch_fields(self):
+        return [field for field in self._declared_fields.keys() if field != 'dn']
+
+
 class Meta(SchemaMeta):
     def __init__(cls, *args, **kwargs):
         super(SchemaMeta, cls).__init__(*args, **kwargs)
@@ -118,7 +124,7 @@ class WebAdminsSchemaLdapCreate(BaseSchema, metaclass=Meta):
         return f'<{WebAdminsSchemaLdapCreate.__name__} {id(self)}>'
 
 
-class WebAdminsSchemaLdapList(Schema):
+class WebAdminsSchemaLdapList(Schema, OuterFields):
     dn = fields.Str(dump_only=True)
     uid = fields.List(fields.Str(dump_only=True), dump_only=True)
     cn = fields.List(fields.Str(dump_only=True), dump_only=True)
@@ -172,10 +178,12 @@ class CnGroupSchemaCreate(GroupBaseSchema, metaclass=Meta):
         return f'<{CnGroupSchemaCreate.__name__} {id(self)}>'
 
 
-class CnGroupSchemaList(GroupBaseSchema, metaclass=Meta):
-    class Meta:
-        user_fields = 'webadmins_cn_group_fields'
-        type_required_fields = 'list'
+class CnGroupSchemaList(GroupBaseSchema, OuterFields):
+    dn = fields.Str(dump_only=True)
+    gidNumber = fields.Int(dump_only=True)
+    objectClass = fields.List(fields.Str(dump_only=True), dump_only=True)
+    cn = fields.List(fields.Str(dump_only=True), dump_only=True)
+    memberUid = fields.List(fields.Str(dump_only=True), dump_only=True)
 
     def __repr__(self):
         return f'<{CnGroupSchemaList.__name__} {id(self)}>'

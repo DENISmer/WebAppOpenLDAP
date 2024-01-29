@@ -2,7 +2,7 @@
 # import random
 # import time
 #
-from backend.api.common.getting_free_id import GetFreeId
+# from backend.api.common.getting_free_id import GetFreeId
 #
 # ids = []
 # min_value = 0
@@ -121,3 +121,30 @@ from backend.api.common.getting_free_id import GetFreeId
 # id2 = g2.get_free_spaces(l)
 # print(id2)
 # l.append(id2)
+
+# list_test = [
+#     {
+#         'key': i,
+#         'text1': 'gggggg'*100,
+#         'text2': 'gggggg'*100,
+#         'text3': 'gggggg'*100,
+#         'text4': 'gggggg'*100,
+#         'text5': 'gggggg'*100,
+#         'text6': 'gggggg'*100,
+#         'text7': 'gggggg'*100,
+#         'text8': 'gggggg'*100,
+#         'text9': 'gggggg'*100,
+#         'text10': 'gggggg'*100,
+#         'text11': 'gggggg'*100,
+#         'text12': 'gggggg'*100,
+#         'text13': 'gggggg'*100,
+#         'text14': 'gggggg'*100,
+#         'text15': 'gggggg'*100,
+#         'text16': 'gggggg'*100,
+#         'text17': 'gggggg'*100,
+#         'text18': 'gggggg'*100,
+#         'text19': 'gggggg'*100,
+#     } for i in range(1, 10000)
+# ]
+#
+# print(len(list_test))

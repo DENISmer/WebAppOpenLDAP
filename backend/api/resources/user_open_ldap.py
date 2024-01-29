@@ -1,4 +1,5 @@
 import pprint
+from typing import Union
 
 from flask_restful import Resource, marshal_with, fields, reqparse, abort, request
 from marshmallow import ValidationError
@@ -14,6 +15,7 @@ from backend.api.config.fields import (simple_user_fields,
                                        webadmins_cn_group_fields)
 
 from backend.api.common.roles import Role
+from backend.api.resources import schema
 
 
 @auth.get_user_roles  # roles
@@ -159,20 +161,27 @@ class UserListOpenLDAPResource(Resource):
     def get(self, *args, **kwargs):
         user_schema = kwargs['user_schema']
 
-        search = request.args.get('search')
-        if search and str(search).isdigit():
-            search = int(search)
+        search = request.args.get('search', type=str)
+        page = request.args.get('page', type=int, default=1)
 
+        out_fields = getattr(schema, user_schema)().fetch_fields()
         users = self._user_manager_ldap.get_users(
             value=search,
             fields=search_fields,
-            attributes=['uid', 'cn', 'sn', 'uidNumber', 'gidNumber'],
+            attributes=out_fields,#['uid', 'cn', 'sn', 'uidNumber', 'gidNumber'],
             required_fields={'objectClass': 'person'},
         )
 
         serialized_users = self.serializer.serialize_data(user_schema, users, many=True)
 
-        return {'users': serialized_users}, 200
+        size = len(serialized_users)
+
+
+        return {
+            'users': serialized_users,
+            'num_pages': 10,
+            'page': 1,
+        }, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
@@ -216,7 +225,7 @@ class UserListOpenLDAPResource(Resource):
             item=group,
             operation='create',
         )
-        self._user_manager_ldap.del_from_reserved(user.gidNumber)
+        self._user_manager_ldap.free_id.del_from_reserved(user.gidNumber)
         serialized_users = self.serializer.serialize_data(user_schema, user)
         return serialized_users, 201
 

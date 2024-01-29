@@ -42,7 +42,7 @@ class UserManagerLDAP(ConnectionLDAP):
             search_filter = '(|%s)' % "".join(
                 [
                     f'({field}={fields[field] % value})' for field in fields
-                    if (type(value) == int and fields[field] == '%d')
+                    if (fields[field] == '%d' and str(value).isdigit() and (value := int(value)))
                        or ('%s' in fields[field])
                 ]
             )
@@ -58,7 +58,7 @@ class UserManagerLDAP(ConnectionLDAP):
             search_filter,
             required_filter
         )
-
+        print(common_filter)
         status_search = self.connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,
@@ -222,11 +222,13 @@ class UserManagerLDAP(ConnectionLDAP):
             for user in users if (user_json := orjson.loads(user.entry_to_json()))
         ]
 
-    def get_posix_group(self, value, search_fields, required_fields):
-        pass
-
-    def get_groups(self, value, search_fields, required_fields) -> list:
-        groups = self.search(value, fields=search_fields, required_fields=required_fields)
+    def get_groups(self, *args, **kwargs) -> list:
+        groups = self.search(
+            value=kwargs.get('value'),
+            fields=kwargs.get('fields'),
+            attributes=kwargs.get('attributes'),
+            required_fields=kwargs.get('required_fields')
+        )
         if not groups:
             return []
 

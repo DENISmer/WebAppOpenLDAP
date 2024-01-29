@@ -43,13 +43,19 @@ def connection_ldap(func):
             current_user = auth.current_user()
             print('current_user', current_user)
             user_manager_ldap = UserManagerLDAP(
+                # UserLdap(
+                #     dn=current_user['dn'],
+                # )
                 UserLdap(
-                    dn=current_user['dn'],
+                    dn='uid=bob,ou=People,dc=example,dc=com',
+                    username='bob',
+                    userPassword='bob',
                 )
             )
 
             setattr(args[0], '_user_manager_ldap', user_manager_ldap)
         user_manager_ldap.show_connections()
+        user_manager_ldap.create_connection_new()
         user_manager_ldap.connect_new()
 
         res = func(*args, **kwargs)

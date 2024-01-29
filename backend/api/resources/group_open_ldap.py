@@ -114,7 +114,13 @@ class GroupListOpenLDAPResource(Resource):
     @permission_group
     def get(self, type_group, *args, **kwargs):
         group_schema = kwargs['group_schema']
-        json_groups = self._user_manager_ldap.get_groups(None, None, {'objectClass':  type_group})
+        out_fields = getattr(schema, group_schema)().fetch_fields()
+        json_groups = self._user_manager_ldap.get_groups(
+            value=None,
+            fields=None,
+            required_fields={'objectClass':  type_group},
+            attributes=out_fields
+        )
         groups = [
             CnGroupLdap(**group) for group in json_groups
         ]
