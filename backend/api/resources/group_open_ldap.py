@@ -125,7 +125,7 @@ class GroupListOpenLDAPResource(Resource):
             CnGroupLdap(**group) for group in json_groups
         ]
         serialized_data = self.serializer.serialize_data(group_schema, groups, many=True)
-        return serialized_data, 200
+        return {"groups": serialized_data}, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap

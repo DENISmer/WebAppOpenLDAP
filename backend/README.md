@@ -52,3 +52,288 @@ Install required packages:
 Run app:
 
     flask --app application run --reload
+
+## Routes
+
+- /api/v1/groups
+- /api/v1/groups/{type_group}
+- /api/v1/groups/{type_group}/{username_cn}
+
+
+- /api/v1/users/
+- /api/v1/users/me/
+- /api/v1/users/{username_uid}
+
+
+- /api/v1/auth/token
+
+## Requests groups
+
+-----
+### GET LIST
+**route**: /api/v1/groups/posixgroup
+**GET PARAMS**: search 
+```json
+{
+    "groups": [
+        {
+            "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
+            "gidNumber": 10000,
+            "cn": ["testuser"],
+            "objectClass": ["posixGroup"],
+            "memberUid": ["testuser"]
+        }
+    ]
+}
+```
+**status code**: 200
+
+### GET
+**route**: /api/v1/groups/posixgroup/testuser
+```json
+{
+    "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
+    "gidNumber": 10000,
+    "cn": ["testuser"],
+    "objectClass": ["posixGroup"],
+    "memberUid": ["testuser"]
+}
+```
+**status code**: 200
+### POST
+**route**: /api/v1/groups/posixgroup
+```json
+{
+    "dn": required,
+    "gidNumber": required,
+    "cn": [required, required],
+    "objectClass": [required],
+    "memberUid": [required]
+}
+```
+**status code**: 201
+### PATCH
+**route**: /api/v1/groups/posixgroup/testuser
+```json
+{
+    "gidNumber": nonrequired,
+    "cn": [nonrequired, nonrequired],
+    "objectClass": [nonrequired],
+    "memberUid": [nonrequired]
+}
+```
+**status code**: 200
+### PUT
+**route**: /api/v1/groups/posixgroup/testuser
+- **role**: webadmins
+  ```json
+  {
+      "gidNumber": required,
+      "cn": [required, required],
+      "objectClass": [required],
+      "memberUid": [required]
+  }
+  ```
+**status code**: 200
+### DELETE
+**route**: /api/v1/groups/posixgroup/testuser
+- **role**: webadmins
+
+**status code**: 204
+
+## Requests users
+
+-----
+### GET LIST
+
+**GET PARAMS**: search 
+
+**route**: /api/v1/users
+```json
+{
+  "users":[ 
+      {
+        "uidNumber": 10000, 
+        "gidNumber": 10000, 
+        "uid": "testuser", 
+        "sshPublicKey": [], 
+        "st": ["Moskow city"], 
+        "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
+        "street": ["green street 12"], 
+        "cn": ["Test User"], 
+        "displayName": "Test User", 
+        "givenName": ["testuser"], 
+        "sn": ["Test User"], 
+        "postalCode": [100123, 123414],
+        "homeDirectory": "/home/testuser", 
+        "loginShell": "/bin/bash", 
+        "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
+      }
+  ] 
+}
+```
+### GET
+**route**: /api/v1/users/testuser
+```json
+{
+    "uidNumber": 10000, 
+    "gidNumber": 10000, 
+    "uid": "testuser", 
+    "sshPublicKey": [], 
+    "st": ["Moskow city"], 
+    "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
+    "street": ["green street 12"], 
+    "cn": ["Test User"], 
+    "displayName": "Test User", 
+    "givenName": ["testuser"], 
+    "sn": ["Test User"], 
+    "postalCode": [100123, 123414],
+    "homeDirectory": "/home/testuser", 
+    "loginShell": "/bin/bash", 
+    "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
+}
+```
+**status code**: 200
+### GET
+**route**: /api/v1/users/me/
+
+**role**: webadmins
+
+**role**: user
+```json
+{
+    "uidNumber": 10000, 
+    "gidNumber": 10000, 
+    "uid": "testuser", 
+    "sshPublicKey": [], 
+    "st": ["Moskow city"], 
+    "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
+    "street": ["green street 12"], 
+    "cn": ["testuser"], 
+    "displayName": "Test User", 
+    "givenName": ["testuser"], 
+    "sn": ["Test User"], 
+    "postalCode": [100123, 123414],
+    "homeDirectory": "/home/testuser", 
+    "loginShell": "/bin/bash", 
+    "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
+}
+```
+**status code**: 200
+### POST
+**route**: /api/v1/users
+
+**role**: webadmins
+```json
+{
+    "dn": required
+    "uidNumber": nonrequired, 
+    "gidNumber": nonrequired, 
+    "uid": required, 
+    "sshPublicKey": [nonrequired], 
+    "st": [nonrequired], 
+    "mail": [nonrequired], 
+    "street": [nonrequired], 
+    "cn": [required], 
+    "displayName": nonrequired, 
+    "givenName": [nonrequired], 
+    "sn": [required], 
+    "postalCode": [nonrequired],
+    "homeDirectory": required, 
+    "loginShell": [nonrequired], 
+    "objectClass": [required],
+    "userPassword": required
+}
+```
+**status code**: 201
+### PUT
+**route**: /api/v1/users/testuser
+- **role**: webadmins
+    ```json
+    {
+        "uidNumber": required, 
+        "gidNumber": required, 
+        "uid": required, 
+        "sshPublicKey": [required], 
+        "st": [required], 
+        "mail": [required], 
+        "street": [required], 
+        "cn": [required], 
+        "displayName": required, 
+        "givenName": [required], 
+        "sn": [required], 
+        "postalCode": [required],
+        "homeDirectory": required, 
+        "loginShell": [required], 
+        "objectClass": [required],
+        "userPassword": required
+    }
+    ```
+- **role**: user
+    ```json
+    {
+        "sshPublicKey": [required], 
+        "mail": [required], 
+        "userPassword": [required]
+    }
+    ```
+**status code**: 200
+### PATCH
+**route**: /api/v1/users/testuser
+- **role**: webadmins
+    ```json
+    {
+        "dn": nonrequired
+        "uidNumber": nonrequired, 
+        "gidNumber": nonrequired, 
+        "uid": nonrequired, 
+        "sshPublicKey": [nonrequired], 
+        "st": [nonrequired], 
+        "mail": [nonrequired], 
+        "street": [nonrequired], 
+        "cn": [nonrequired], 
+        "displayName": nonrequired, 
+        "givenName": [nonrequired], 
+        "sn": [nonrequired], 
+        "postalCode": [nonrequired],
+        "homeDirectory": nonrequired, 
+        "loginShell": [nonrequired], 
+        "objectClass": [nonrequired],
+        "userPassword": nonrequired
+    }
+    ```
+- **role**: user
+    ```json
+    {
+        "sshPublicKey": [nonrequired], 
+        "mail": [nonrequired], 
+        "userPassword": nonrequired
+    }
+    ```
+**status code**: 200
+### DELETE
+**route**: /api/v1/users/testuser
+- **role**: webadmins
+
+**status code**: 204
+
+
+## Requests tokens
+
+-----
+### POST
+**route**: /api/v1/auth/token
+```json
+{
+    "username": required,
+    "userPassword": required
+}
+```
+Response:
+```json
+{
+    "token": "adsdasdasfasdfsdgfasdsgdsdgsd",
+    "uid": "testuser"
+}
+```
+**status code**: 200
