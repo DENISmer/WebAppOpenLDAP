@@ -2,7 +2,7 @@
 # import random
 # import time
 #
-# from backend.api.common.getting_free_id import GetFreeId
+from backend.api.common.getting_free_id import GetFreeId
 #
 # ids = []
 # min_value = 0
@@ -106,3 +106,18 @@
 # row_split = set(row.split(' '))
 # fields = dict((row_split & keys))
 # fields['a_param'] = 'das'
+
+#
+# l = []
+#
+# g1 = GetFreeId()
+# id1 = g1.get_free_spaces(l)
+# print(id1)
+# l.append(id1)
+#
+# print(l)
+#
+# g2 = GetFreeId()
+# id2 = g2.get_free_spaces(l)
+# print(id2)
+# l.append(id2)

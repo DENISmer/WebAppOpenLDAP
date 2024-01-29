@@ -20,8 +20,8 @@ cors = CORS(app, resources={r'/users': {'origins': '*'}})
 route = '/api/v1'
 
 # Users resource
-api.add_resource(UserMeOpenLDAPResource,  f'{route}users/me/')
-api.add_resource(UserOpenLDAPResource,  f'{route}users/<string:username_uid>')
+api.add_resource(UserMeOpenLDAPResource,  f'{route}/users/me/')
+api.add_resource(UserOpenLDAPResource,  f'{route}/users/<string:username_uid>')
 api.add_resource(UserListOpenLDAPResource, f'{route}/users')
 
 # Group resource

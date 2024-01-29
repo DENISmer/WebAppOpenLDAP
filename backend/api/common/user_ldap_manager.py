@@ -1,23 +1,16 @@
 from __future__ import annotations
 
-import logging
-import pprint
 from typing import Dict
 import orjson
 
-from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE
-from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
-                                   LDAPAttributeError,
-                                   LDAPException,
-                                   LDAPEntryAlreadyExistsResult,
-                                   LDAPInvalidDnError,
-                                   LDAPInvalidDNSyntaxResult,
-                                   LDAPObjectClassError, LDAPNoSuchObjectResult, LDAPOperationResult)
+from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, Connection
+from ldap3.core.exceptions import (LDAPException,
+                                   LDAPNoSuchObjectResult)
 from flask_restful import abort
 
 from backend.api.common.connection_ldap import ConnectionLDAP
 from backend.api.common.decorators import error_operation_ldap
-from backend.api.common.exceptions import ItemFieldsIsNone, get_attribute_error_fields
+from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
@@ -25,7 +18,11 @@ from backend.api.config.fields import webadmins_cn_group_fields, search_fields
 from backend.api.config.ldap import config
 
 
-class UserManagerLDAP(ConnectionLDAP, GetFreeId):
+class UserManagerLDAP(ConnectionLDAP):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.free_id = GetFreeId()
 
     def search(
         self,
@@ -62,7 +59,7 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
             required_filter
         )
 
-        status_search = self._connection.search(
+        status_search = self.connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,
             attributes=attributes,
@@ -70,7 +67,7 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
         if not status_search:
             return []
 
-        return self._connection.entries
+        return self.connection.entries
 
     def get_user(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> UserLdap | None:
 
@@ -148,7 +145,7 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
 
-        self._connection.add(
+        self.connection.add(
             item.dn,
             attributes=item.serialize_data(
                 user_fields=item.fields,
@@ -156,7 +153,7 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
             )
         )
 
-        res = self._connection.result
+        res = self.connection.result
 
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
@@ -173,7 +170,7 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
             operation=operation,
         )
 
-        self._connection.modify(
+        self.connection.modify(
             item.dn,
             {
                 key: [(
@@ -183,9 +180,9 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
                 for key, value in serialized_data_modify.items()
             }
         )
-        print('result modify:', self._connection.result)
+        print('result modify:', self.connection.result)
 
-        res = self._connection.result
+        res = self.connection.result
         if 'success' not in res['description']:
             abort(400, message=res['description'])
 
@@ -194,11 +191,11 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
     @error_operation_ldap
     def delete(self, item: UserLdap | CnGroupLdap, operation='delete'):
         if item.dn:
-            self._connection.delete(item.dn)
+            self.connection.delete(item.dn)
 
-        print('result delete:', self._connection.result)
+        print('result delete:', self.connection.result)
 
-        res = self._connection.result
+        res = self.connection.result
         if 'success' not in res['description']:
             abort(400, message=f'Error deletion {item.dn}')
 
@@ -268,4 +265,4 @@ class UserManagerLDAP(ConnectionLDAP, GetFreeId):
             ids.append(user.uidNumber)
 
         unique_ids = set(ids)
-        return self.get_free_spaces(unique_ids)
+        return self.free_id.get_free_spaces(unique_ids)

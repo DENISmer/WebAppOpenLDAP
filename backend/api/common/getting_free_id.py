@@ -11,6 +11,10 @@ class GetFreeId:
         cls.reserved_identifiers.remove(value)
 
     def get_free_spaces(self, ids):
+
+        if not ids:
+            return 10000
+
         sorted_ids = sorted(ids)
         j = 1
         for i in range(len(sorted_ids)-1):

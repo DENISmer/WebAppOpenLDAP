@@ -4,7 +4,7 @@ import pprint
 
 from flask_restful import Resource, request
 
-from backend.api.common.common_serialize_open_ldap import CommonSerialize
+from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_group
 from backend.api.common.auth_http_token import auth
 from backend.api.common.roles import Role
@@ -13,10 +13,11 @@ from backend.api.common.user_manager import CnGroupLdap
 from backend.api.resources import schema
 
 
-class GroupOpenLDAPResource(Resource, CommonSerialize):
+class GroupOpenLDAPResource(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._user_manager_ldap: UserManagerLDAP = None
+        self.serializer = CommonSerializer()
 
     def __modify_group(
         self,
@@ -53,7 +54,7 @@ class GroupOpenLDAPResource(Resource, CommonSerialize):
     def get(self, username_cn, type_group, *args, **kwargs):
         group_schema = kwargs['group_schema']
         group = self._user_manager_ldap.get_group_info_posix_group(username_cn)
-        serialized_data = self._serialize_data(group_schema, group, many=False)
+        serialized_data = self.serializer.serialize_data(group_schema, group, many=False)
         return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
@@ -65,11 +66,11 @@ class GroupOpenLDAPResource(Resource, CommonSerialize):
         webadmins_user_fields = kwargs['webadmins_user_fields']
         json_data = request.get_json()
 
-        deserialized_data = self._deserialize_data(group_schema, json_data, partial=False)
+        deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=False)
         updated_group = self.__modify_group(
             username_cn, deserialized_data, group_fields, webadmins_user_fields, True
         )
-        serialized_user = self._serialize_data(group_schema, item=updated_group)
+        serialized_user = self.serializer.serialize_data(group_schema, item=updated_group)
 
         return serialized_user, 200
 
@@ -82,13 +83,13 @@ class GroupOpenLDAPResource(Resource, CommonSerialize):
         webadmins_user_fields = kwargs['webadmins_user_fields']
         json_data = request.get_json()
 
-        deserialized_data = self._deserialize_data(group_schema, json_data, partial=True)
+        deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=True)
         updated_group = self.__modify_group(
             username_cn, deserialized_data,
             group_fields, webadmins_user_fields,
             True
         )
-        serialized_user = self._serialize_data(group_schema, item=updated_group)
+        serialized_user = self.serializer.serialize_data(group_schema, item=updated_group)
 
         return serialized_user, 200
 
@@ -101,11 +102,12 @@ class GroupOpenLDAPResource(Resource, CommonSerialize):
         return None, 204
 
 
-class GroupListOpenLDAPResource(Resource, CommonSerialize):
+class GroupListOpenLDAPResource(Resource):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._user_manager_ldap: UserManagerLDAP = None
+        self.serializer = CommonSerializer()
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
@@ -116,7 +118,7 @@ class GroupListOpenLDAPResource(Resource, CommonSerialize):
         groups = [
             CnGroupLdap(**group) for group in json_groups
         ]
-        serialized_data = self._serialize_data(group_schema, groups, many=True)
+        serialized_data = self.serializer.serialize_data(group_schema, groups, many=True)
         return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
@@ -126,7 +128,7 @@ class GroupListOpenLDAPResource(Resource, CommonSerialize):
         json_data = request.get_json()
         group_schema = kwargs['group_schema']
         group_field = kwargs['group_fields']
-        deserialized_data = self._deserialize_data(group_schema, json_data)
+        deserialized_data = self.serializer.deserialize_data(group_schema, json_data)
 
         group = CnGroupLdap(
             **deserialized_data,
@@ -134,5 +136,5 @@ class GroupListOpenLDAPResource(Resource, CommonSerialize):
         )
         new_group = self._user_manager_ldap.create(group, 'create')
 
-        serialized_data = self._serialize_data(group_schema, new_group, many=False)
+        serialized_data = self.serializer.serialize_data(group_schema, new_group, many=False)
         return serialized_data, 201

@@ -4,8 +4,8 @@ from marshmallow import ValidationError
 from backend.api.resources import schema
 
 
-class CommonSerialize:
-    def _deserialize_data(
+class CommonSerializer:
+    def deserialize_data(
         self, user_schema, json_data, partial=False
     ) -> dict:
         deserialized_data = {}
@@ -18,7 +18,7 @@ class CommonSerialize:
 
         return deserialized_data
 
-    def _serialize_data(
+    def serialize_data(
         self, user_schema, item, many=False
     ):
         serialized_data = getattr(schema, user_schema)().dump(item, many=many)

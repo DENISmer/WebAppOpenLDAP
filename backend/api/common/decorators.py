@@ -27,6 +27,7 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidDNSyntaxResult,
                                    LDAPObjectClassError,
                                    LDAPNoSuchObjectResult,
+                                   LDAPInvalidCredentialsResult,
                                    LDAPOperationResult)
 
 
@@ -40,17 +41,19 @@ def connection_ldap(func):
         user_manager_ldap = getattr(args[0], '_user_manager_ldap')
         if hasattr(args[0], '_user_manager_ldap') or not user_manager_ldap:
             current_user = auth.current_user()
+            print('current_user', current_user)
             user_manager_ldap = UserManagerLDAP(
                 UserLdap(
-                    dn='uid=bob,ou=People,dc=example,dc=com',
-                    username='bob',
-                    userPassword='bob',
+                    dn=current_user['dn'],
                 )
             )
+
             setattr(args[0], '_user_manager_ldap', user_manager_ldap)
-        user_manager_ldap.connect()
+        user_manager_ldap.show_connections()
+        user_manager_ldap.connect_new()
 
         res = func(*args, **kwargs)
+        user_manager_ldap.close()
         return res
 
     return wraps
@@ -191,6 +194,9 @@ def error_operation_ldap(func):
                 }
             }
             abort(400, message=fields)
+        except LDAPInvalidCredentialsResult as e:
+            logging.log(logging.ERROR, e.__dict__)
+            abort(400, message='Invalid credentials')
         except LDAPOperationResult as e:
             print('##LDAPOperationResult##')
             logging.log(logging.ERROR, e)

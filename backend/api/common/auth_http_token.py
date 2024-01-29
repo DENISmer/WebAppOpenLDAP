@@ -13,12 +13,7 @@ auth = HTTPTokenAuth(scheme='Bearer')
 def verify_token(token):
     # print(ConnectionLDAP._connections)
     if not settings.NOT_AUTH:
-        try:
-            is_token = TokenManager().check_token(token)
-        except jwt.exceptions.ExpiredSignatureError:
-            # remove connection
-            print('ExpiredSignatureError')
-            return False
+        is_token = TokenManager().check_token(token)
         if not is_token:
             return False
     else:
