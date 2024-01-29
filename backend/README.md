@@ -49,6 +49,12 @@ Install required packages:
 
     pip install -r requirements.txt
 
+Add to the .env file:
+
+    export LDAP_HOSTS = 192.168.1.12
+    export LDAP_PORT = 389
+    export CERT_PATH = ///
+
 Run app:
 
     flask --app application run --reload
