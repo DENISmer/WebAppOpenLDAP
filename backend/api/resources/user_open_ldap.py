@@ -1,17 +1,11 @@
-import pprint
-from typing import Union
-
-from flask_restful import Resource, marshal_with, fields, reqparse, abort, request
-from marshmallow import ValidationError
+from flask_restful import Resource, request
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user
-from backend.api.common.user_ldap_manager import UserManagerLDAP
+from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
-from backend.api.config.fields import (simple_user_fields,
-                                       webadmins_fields,
-                                       search_fields,
+from backend.api.config.fields import (search_fields,
                                        webadmins_cn_group_fields)
 
 from backend.api.common.roles import Role

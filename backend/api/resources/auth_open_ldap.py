@@ -1,11 +1,9 @@
-from flask_restful import Resource, fields, marshal_with, request, reqparse, abort
-
-from marshmallow import ValidationError
+from flask_restful import Resource, request, abort
 
 from backend.api.common.roles import Role
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
-from backend.api.common.token_manager import TokenManager, Token
-from backend.api.common.authentication_ldap import AuthenticationLDAP
+from backend.api.common.token_manager import TokenManager
+from backend.api.common.managers_ldap.authentication_ldap_manager import AuthenticationManagerLDAP
 from backend.api.common.user_manager import UserLdap
 from backend.api.resources.schema import AuthUserSchemaLdap, TokenSchemaLdap
 
@@ -26,7 +24,7 @@ class AuthOpenLDAP(Resource):
         deserialized_data = self.serializer.deserialize_data(AuthUserSchemaLdap.__name__, json_data)
 
         user = UserLdap(**deserialized_data)
-        ldap_auth = AuthenticationLDAP(user)
+        ldap_auth = AuthenticationManagerLDAP(user)
         response = ldap_auth.authenticate()
 
         if response.status.value == 1:

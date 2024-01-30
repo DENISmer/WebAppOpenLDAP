@@ -1,7 +1,5 @@
-import jwt.exceptions
 from flask_httpauth import HTTPTokenAuth
 
-from backend.api.common.connection_ldap import ConnectionLDAP
 from backend.api.common.token_manager import TokenManager
 from backend.api.config import settings
 

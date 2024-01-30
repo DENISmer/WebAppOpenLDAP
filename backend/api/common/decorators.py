@@ -6,6 +6,7 @@ from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.exceptions import get_attribute_error_fields
+from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import (simple_user_fields,
@@ -26,23 +27,21 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidDnError,
                                    LDAPInvalidDNSyntaxResult,
                                    LDAPObjectClassError,
-                                   LDAPNoSuchObjectResult,
                                    LDAPInvalidCredentialsResult,
                                    LDAPOperationResult)
 
 
 def connection_ldap(func):
-    from backend.api.common.user_ldap_manager import UserManagerLDAP
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
         # args[0] - self of the function
-        user_manager_ldap = getattr(args[0], '_user_manager_ldap')
-        if hasattr(args[0], '_user_manager_ldap') or not user_manager_ldap:
+        connection = getattr(args[0], 'connection')
+        if hasattr(args[0], 'connection') or not connection:
             current_user = auth.current_user()
             print('current_user', current_user)
-            user_manager_ldap = UserManagerLDAP(
+            connection = ConnectionManagerLDAP(
                 # UserLdap(
                 #     dn=current_user['dn'],
                 # )
@@ -53,13 +52,13 @@ def connection_ldap(func):
                 )
             )
 
-            setattr(args[0], '_user_manager_ldap', user_manager_ldap)
-        user_manager_ldap.show_connections()
-        user_manager_ldap.create_connection_new()
-        user_manager_ldap.connect_new()
+            setattr(args[0], 'connection', connection)
+        connection.show_connections()
+        connection.create_connection_new()
+        connection.connect_new()
 
         res = func(*args, **kwargs)
-        user_manager_ldap.close()
+        connection.close()
         return res
 
     return wraps

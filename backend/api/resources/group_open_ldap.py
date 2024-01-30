@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import pprint
-
 from flask_restful import Resource, request
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_group
 from backend.api.common.auth_http_token import auth
 from backend.api.common.roles import Role
-from backend.api.common.user_ldap_manager import UserManagerLDAP
+from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import CnGroupLdap
 from backend.api.resources import schema
 

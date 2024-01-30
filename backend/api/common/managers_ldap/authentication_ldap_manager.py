@@ -1,10 +1,7 @@
-from backend.api.common.connection_ldap import ConnectionLDAP
-from backend.api.common.ldap_manager import LDAPManager
-from backend.api.common.user_ldap_manager import UserManagerLDAP
-from backend.api.common.user_manager import UserLdap
+from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 
 
-class AuthenticationLDAP(UserManagerLDAP):
+class AuthenticationManagerLDAP(UserManagerLDAP):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

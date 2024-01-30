@@ -6,7 +6,7 @@ from ldap3 import Tls
 from backend.api.config.ldap import config
 
 
-class LDAPManager(LDAP3LoginManager):  # Singleton
+class ManagerLDAP(LDAP3LoginManager):  # Singleton
     _instance = {}
 
     def __init__(self, *args, **kwargs):
@@ -25,7 +25,7 @@ class LDAPManager(LDAP3LoginManager):  # Singleton
 
     def __new__(cls, *args, **kwargs):
         if cls not in cls._instance:
-            cls._instance[cls] = super(LDAPManager, cls) \
+            cls._instance[cls] = super(ManagerLDAP, cls) \
                 .__new__(cls, *args, **kwargs)
         return cls._instance[cls]
 
