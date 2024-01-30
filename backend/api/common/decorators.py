@@ -11,7 +11,7 @@ from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import (simple_user_fields,
                                        webadmins_fields,
-                                       webadmins_cn_group_fields)
+                                       webadmins_cn_posixgroup_fields)
 from backend.api.resources.schema import (SimpleUserSchemaLdapModify,
                                           WebAdminsSchemaLdapModify,
                                           WebAdminsSchemaLdapCreate,
@@ -40,25 +40,29 @@ def connection_ldap(func):
         connection = getattr(args[0], 'connection')
         if hasattr(args[0], 'connection') or not connection:
             current_user = auth.current_user()
+            # if current_user:
+            #     user = UserLdap(dn=current_user['dn'],userPassword=)
+
             print('current_user', current_user)
             connection = ConnectionManagerLDAP(
-                # UserLdap(
-                #     dn=current_user['dn'],
-                # )
                 UserLdap(
-                    dn='uid=bob,ou=People,dc=example,dc=com',
-                    username='bob',
-                    userPassword='bob',
+                    dn=current_user['dn'],
                 )
+                # UserLdap(
+                #     dn='uid=bob,ou=People,dc=example,dc=com',
+                #     username='bob',
+                #     userPassword='bob',
+                # )
             )
 
             setattr(args[0], 'connection', connection)
         connection.show_connections()
-        connection.create_connection_new()
-        connection.connect_new()
+        # connection.create_connection()
+        connection.connect()
 
         res = func(*args, **kwargs)
         connection.close()
+        # connection.clear()
         return res
 
     return wraps
@@ -119,12 +123,12 @@ def permission_group(func):
             if func.__name__ in ('put', 'patch', 'get') and username_cn:
                 if role == Role.WEBADMIN.value:
                     kwargs['group_schema'] = CnGroupSchemaModify.__name__
-                    kwargs['group_fields'] = webadmins_cn_group_fields
+                    kwargs['group_fields'] = webadmins_cn_posixgroup_fields
                     kwargs['webadmins_user_fields'] = webadmins_fields
             elif func.__name__ in 'post':
                 if role == Role.WEBADMIN.value:
                     kwargs['group_schema'] = CnGroupSchemaCreate.__name__
-                    kwargs['group_fields'] = webadmins_cn_group_fields
+                    kwargs['group_fields'] = webadmins_cn_posixgroup_fields
                     kwargs['webadmins_user_fields'] = webadmins_fields
             elif func.__name__ in 'get':
                 if role == Role.WEBADMIN.value:
@@ -223,3 +227,7 @@ def error_operation_ldap(func):
         return res
 
     return wraps
+
+
+def define_schema():
+    pass # must be done

@@ -219,7 +219,7 @@ webadmins_fields = {
     },
 }
 
-webadmins_cn_group_fields = {
+webadmins_cn_posixgroup_fields = {
     'fields': {
         'dn': {
             'type': TYPE_STR,
@@ -268,4 +268,11 @@ search_fields = {
     'loginShell': '*%s*',
     'homeDirectory': '*%s*',
     # 'objectClass': '*%s*',
+}
+
+
+search_posixgroup_fields = {
+    'cn': '*%s*',
+    'memberUid': '*%s*',
+    'gidNumber': '%d',
 }

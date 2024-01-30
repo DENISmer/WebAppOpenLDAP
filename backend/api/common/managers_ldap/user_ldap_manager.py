@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, List
 import orjson
 
 from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE
@@ -15,7 +15,7 @@ from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
-from backend.api.config.fields import webadmins_cn_group_fields, search_fields
+from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_fields
 from backend.api.config.ldap import config
 
 
@@ -46,7 +46,7 @@ class UserManagerLDAP(CommonManagerLDAP):
 
         return UserLdap(username=uid, **data)
 
-    def list(self, *args, **kwargs) -> list:
+    def list(self, *args, **kwargs) -> List[UserLdap]:
         users = []
         try:
             users = self.search(
@@ -69,12 +69,8 @@ class UserManagerLDAP(CommonManagerLDAP):
             for user in users if (user_json := orjson.loads(user.entry_to_json()))
         ]
 
-    def is_webadmin(self, dn) -> bool:
-        groups = self.get_groups(
-            Group.WEBADMINS.value,
-            {'cn': '%s'},
-            {'objectClass': 'groupOfNames'}
-        )
+    def is_webadmin(self, dn, groups) -> bool:
+
         if not groups:
             return False
         member = groups[0]['member']
@@ -84,7 +80,7 @@ class UserManagerLDAP(CommonManagerLDAP):
         return True
 
     def get_free_id_number(self):
-        users = self.get_users(
+        users = self.list(
             value=None,
             fields=search_fields,
             attributes=['uidNumber'],

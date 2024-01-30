@@ -8,12 +8,14 @@ from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.config.ldap import config
 
 
-class CommonManagerLDAP:
-
+class IniCommonManagerLDAP:
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.ldap_manager = kwargs.get('ldap_manager')
-        self.connection = kwargs.get('connection')
+        connection = kwargs.get('connection')
+        self.ldap_manager = connection.ldap_manager
+        self._connection = connection.connection
+
+
+class CommonManagerLDAP(IniCommonManagerLDAP):
 
     def list(self, *args, **kwargs):
         raise NotImplementedError('Not Implemented method list.')
@@ -56,7 +58,7 @@ class CommonManagerLDAP:
             required_filter
         )
         print(common_filter)
-        status_search = self.connection.search(
+        status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,
             attributes=attributes,
@@ -64,7 +66,7 @@ class CommonManagerLDAP:
         if not status_search:
             return []
 
-        return self.connection.entries
+        return self._connection.entries
 
     @error_operation_ldap
     def create(self, item, operation):
@@ -72,7 +74,7 @@ class CommonManagerLDAP:
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
 
-        self.connection.add(
+        self._connection.add(
             item.dn,
             attributes=item.serialize_data(
                 user_fields=item.fields,
@@ -80,7 +82,7 @@ class CommonManagerLDAP:
             )
         )
 
-        res = self.connection.result
+        res = self._connection.result
 
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
@@ -97,7 +99,7 @@ class CommonManagerLDAP:
             operation=operation,
         )
 
-        self.connection.modify(
+        self._connection.modify(
             item.dn,
             {
                 key: [(
@@ -107,9 +109,9 @@ class CommonManagerLDAP:
                 for key, value in serialized_data_modify.items()
             }
         )
-        print('result modify:', self.connection.result)
+        print('result modify:', self._connection.result)
 
-        res = self.connection.result
+        res = self._connection.result
         if 'success' not in res['description']:
             abort(400, message=res['description'])
 
@@ -118,10 +120,10 @@ class CommonManagerLDAP:
     @error_operation_ldap
     def delete(self, item, operation='delete'):
         if item.dn:
-            self.connection.delete(item.dn)
+            self._connection.delete(item.dn)
 
-        print('result delete:', self.connection.result)
+        print('result delete:', self._connection.result)
 
-        res = self.connection.result
+        res = self._connection.result
         if 'success' not in res['description']:
             abort(400, message=f'Error deletion {item.dn}')

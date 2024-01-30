@@ -16,7 +16,7 @@ class ConnectionManagerLDAP:
         self.user = user
         self.ldap_manager = ManagerLDAP()
 
-    def create_connection(self):
+    def make_connection(self):
         self.connection = self.ldap_manager.make_connection(
             bind_user=self.user.dn,
             bind_password=self.user.userPassword,
@@ -27,17 +27,13 @@ class ConnectionManagerLDAP:
     def _add_connection(cls, connection):
         cls._connections[connection.user] = connection
 
-    def create_connection_new(self):
-        self.connection = self.ldap_manager.make_connection(
-            bind_user=self.user.dn,
-            bind_password=self.user.userPassword,
-            sasl_mechanism=EXTERNAL,
-        )
+    def create_connection(self):
+        self.make_connection()
         self._add_connection(self.connection)
 
         # self._connections[self.user.dn] = self.connection
 
-    def connect_new(self):
+    def connect(self):
         self.connection = self._connections.get(self.user.dn)
         if not self.connection:
             abort(403, message='Insufficient access rights.')
@@ -47,33 +43,8 @@ class ConnectionManagerLDAP:
             self.connection.tls_started()
         self.connection.bind()
 
-    def connect(self):  # deprecated
-        """
-        This function performs connection to OpenLDAP server
-        :param self
-        :return: None
-        """
-        self._connection: Connection = self._connections.get(
-            self.user.get_username()
-        )
-
-        if not self.connection:
-            conn_result = True
-        else:
-            conn_result = self.connection.closed or not self.connection.listening
-
-        if conn_result:
-            self.create_connection()
-            self._connection.open()
-
-            if config['LDAP_USE_SSL']:
-                self._connection.tls_started()
-            self.connection.bind()
-
-            self._connections[self.user.get_username()] = self.connection
-
     def get_connection(self):
-        return self._connection
+        return self.connection
 
     def show_connections(self):
         # print('connection - ', self.connection.usage)

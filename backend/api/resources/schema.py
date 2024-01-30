@@ -52,6 +52,9 @@ class Meta(SchemaMeta):
                     if type_required_fields in value['required']:
                         setattr(cls._declared_fields[key], 'required', True)
 
+                        if hasattr(cls._declared_fields[key], 'inner'):
+                            setattr(cls._declared_fields[key].inner, 'required', True)
+
                     if type_required_fields == 'update':
                         if type_required_fields not in value['operation']:
                             setattr(cls._declared_fields[key], 'dump_only', True)
@@ -86,7 +89,7 @@ class BaseSchema(Schema):
             errors['gidNumber'] = ['gidNumber must be equals to uidNumber']
         if (uidNumber and uidNumber < 10000) or (gidNumber and gidNumber < 10000):
             errors['uidNumber'] = ['uidNumber must be greater than or equal to 10000']
-            errors['gidNumber'] = ['uidNumber must be greater than or equal to 10000']
+            errors['gidNumber'] = ['gidNumber must be greater than or equal to 10000']
 
         if errors:
             raise ValidationError(errors)
@@ -95,6 +98,10 @@ class BaseSchema(Schema):
     # def validate_password(self, value):
     #     if len(value) < 8:
     #         raise ValidationError('The userPassword must be longer than 8 characters.')
+
+    # @validates('objectClass')
+    # def validate_object_class(self, value):
+    #     print(value)
 
 
 class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):
@@ -159,10 +166,15 @@ class GroupBaseSchema(Schema):
     cn = fields.List(fields.Str())
     memberUid = fields.List(fields.Str())
 
+    @validates('gidNumber')
+    def validate_gid_number(self, value):
+        if value < 10000:
+            raise ValidationError('gidNumber must be greater than or equal to 10000')
+
 
 class CnGroupSchemaModify(GroupBaseSchema, metaclass=Meta):
     class Meta:
-        user_fields = 'webadmins_cn_group_fields'
+        user_fields = 'webadmins_cn_posixgroup_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
@@ -171,7 +183,7 @@ class CnGroupSchemaModify(GroupBaseSchema, metaclass=Meta):
 
 class CnGroupSchemaCreate(GroupBaseSchema, metaclass=Meta):
     class Meta:
-        user_fields = 'webadmins_cn_group_fields'
+        user_fields = 'webadmins_cn_posixgroup_fields'
         type_required_fields = 'create'
 
     def __repr__(self):
