@@ -26,7 +26,7 @@ Reconfiguration OpenLDAP:
 
     sudo dpkg-reconfigure slapd
 
-Input domain name - example, organization name - com;
+Input domain name - example.com, organization name - People;
 
 Add some content such as groups, users:
 
@@ -38,13 +38,21 @@ Add webadmins group:
 
 Modify olcDatabase:
     
-    ldapmodify -H ldap:/// -f modify_olcdatabase.ldif -D cn=admin,dc=example,dc=com -W
+    sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f modify_olcdatabase.ldif -D cn=admin,dc=example,dc=com -W
 
 
 
 ## Flask
 
 -----
+Install python environments:  
+
+    python -m venv venv
+
+Activate venv:
+
+    source venv/bin/activate
+
 Install required packages:
 
     pip install -r requirements.txt
