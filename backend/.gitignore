@@ -8,3 +8,7 @@
 **/*.json
 
 rabbish.txt
+
+*.sqlite
+*.db
+
