@@ -1,37 +1,40 @@
-from typing import Union
-
-from sqlalchemy.exc import IntegrityError
-
-from backend.api.db.models import Token
+import logging
 
 
 class DbQueries:
     def __init__(self, session):
         self.session = session
 
-    def get_item(self, model, **kwargs) -> Union[Token, None]:
-        item = self.session.query(model).filter_by(**kwargs).one_or_none()
-        return item
+    def get_instance(self, model, **kwargs):
+        instance = self.session.query(model).filter_by(**kwargs).one_or_none()
+        return instance
 
-    def get_or_create(self, model, **kwargs):
-        item = self.get_item(model, **kwargs)
-        if not item:
-            pass
+    def create_instance(self, model, **kwargs):
+        instance = model(**kwargs)
 
-        # from backend.api.db.database import db
-        # from backend.api.db.models import Token
-        # item = db.session.query(Token).filter(Token.dn == 'user.dn').one_or_none()
-        #
-        # if not item:
-        #     try:
-        #         token = Token(
-        #             dn=user.dn,
-        #             token='sdfsdfwfwsdfsdf'
-        #         )
-        #         db.session.add(token)
-        #         db.session.commit()
-        #     except Exception as e:
-        #         print(e)
-        #         db.session.rollback()
+        try:
+            self.session.add(instance)
+            self.session.commit()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            self.session.rollback()
+            return None
 
-        return item
+        return instance
+
+    def update_instance(self, instance, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                setattr(instance, key, value)
+
+            self.session.flush()
+            self.session.commit()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            self.session.rollback()
+            return None
+
+        return instance
+
+    def delete_instance(self, instance):
+        self.session.delete(instance)

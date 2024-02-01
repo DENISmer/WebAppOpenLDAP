@@ -2,6 +2,7 @@ from flask import Flask, jsonify, json
 from flask_restful import Api
 from flask_cors import CORS
 
+from backend.api.celery.celery_app import celery_init_app
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
 from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
@@ -71,6 +72,8 @@ def not_found(e):
 #     response.content_type = "application/json"
 #     return response
 
+
+celery_app = celery_init_app(app)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -56,7 +56,7 @@ def connection_ldap(func):
             )
 
             setattr(args[0], 'connection', connection)
-        connection.show_connections()
+        # connection.show_connections()
         # connection.create_connection()
         connection.connect()
 
@@ -78,7 +78,7 @@ def permission_user(miss=False):
 
             if not miss:
                 if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
-                    abort(403, message='Insufficient access rights.')
+                    abort(403, message='Insufficient access rights.', status=403)
             else:
                 username_uid = current_user['uid']
 

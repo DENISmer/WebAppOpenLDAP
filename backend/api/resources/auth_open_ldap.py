@@ -5,7 +5,7 @@ from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.roles import Role
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
-from backend.api.common.token_manager import TokenManager
+from backend.api.common.token_manager import TokenManagerDB
 from backend.api.common.managers_ldap.authentication_ldap_manager import AuthenticationManagerLDAP
 from backend.api.common.user_manager import UserLdap
 from backend.api.resources.schema import AuthUserSchemaLdap, TokenSchemaLdap
@@ -32,17 +32,15 @@ class AuthOpenLDAP(Resource):
         response = ldap_auth.authenticate()
 
         if response.status.value == 1:
-            abort(401, message='Invalid username or password.')
+            abort(401, message='Invalid username or password.', status=401)
 
         user.dn = response.user_dn
         user.uid = response.user_id
 
-        # ldap_auth.user.dn = response.user_dn
-
         connection = ConnectionManagerLDAP(user)
-        connection.show_connections()
+        # connection.show_connections()
         connection.create_connection()
-        connection.show_connections()
+        # connection.show_connections()
 
         groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
         user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, groups)
@@ -51,7 +49,9 @@ class AuthOpenLDAP(Resource):
 
         connection.close()
 
-        token = TokenManager(user=user).create_token()
+        token = TokenManagerDB(user=user).create_token()
+        if not token:
+            abort(400, message='try again now or later', status=400)
 
         serialized_data = self.serializer.serialize_data(
             TokenSchemaLdap.__name__, {'token': token, 'uid': user.uid}
