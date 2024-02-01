@@ -69,12 +69,13 @@ class GroupManagerLDAP(CommonManagerLDAP):
         return group
 
     def get_webadmins_groups(self) -> list:
-        groups = self.list(
-            Group.WEBADMINS.value,
-            {'cn': '%s'},
-            {'objectClass': 'groupOfNames'}
+        groups = self.search(
+            value=Group.WEBADMINS.value,
+            fields={'cn': '%s'},
+            required_fields={'objectClass': 'groupOfNames'}
         )
-        return groups
+
+        return [orjson.loads(group.entry_to_json()) for group in groups]
 
     def get_group_info_posix_group(self, username_cn, attributes=ALL_ATTRIBUTES, abort_raise=True):
         return self.item(

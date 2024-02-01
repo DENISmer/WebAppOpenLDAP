@@ -73,7 +73,7 @@ class UserManagerLDAP(CommonManagerLDAP):
 
         if not groups:
             return False
-        member = groups[0]['member']
+        member = groups[0]['attributes']['member']
         if dn not in member:
             return False
 

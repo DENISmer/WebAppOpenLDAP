@@ -58,6 +58,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             required_filter
         )
         print(common_filter)
+        # exception connection is open!!!!!
         status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,

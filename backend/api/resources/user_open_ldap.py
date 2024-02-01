@@ -22,7 +22,7 @@ def get_user_roles(user):
 
 @auth.error_handler
 def auth_error(status):
-    return {'message': 'Unauthorized Access'}, status
+    return {'message': 'Unauthorized Access', 'status': status}, status
 
 
 class UserOpenLDAPResource(Resource):

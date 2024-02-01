@@ -9,7 +9,7 @@ config = dict()
 # All configuration directives can be found in the documentation.
 
 # Hostname of your LDAP Server
-config['LDAP_HOST'] = '192.168.1.12'
+config['LDAP_HOST'] = '0.0.0.0'
 
 # Base DN of your directory
 config['LDAP_BASE_DN'] = 'dc=example,dc=com'
@@ -71,8 +71,8 @@ connection_search = _connection.search(
     '(objectClass=person)',
     attributes=ALL_ATTRIBUTES
 )
-print(connection_search)
-print(_connection.entries)
+# print(connection_search)
+# print(_connection.entries)
 # print(ldap_manager.connection.entries)
 
 time.sleep(2)
@@ -82,7 +82,7 @@ print(_connection.receive_timeout)
 
 connection_search = _connection.search(
     'dc=example,dc=com',
-    '(objectClass=person)',
+    '(&(cn=webadmins)(objectClass=groupOfNames))',
     attributes=ALL_ATTRIBUTES
 )
 print(connection_search)

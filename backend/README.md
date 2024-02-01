@@ -66,9 +66,23 @@ Add to the .env file:
 Run app:
 
     flask --app application run --reload
+## Celery
+
+-----
+First, install and start redis server.
+
+Go to root directory of the app:
+
+    cd WebAppOpenLDAP/
+
+Run celery (example):
+
+    celery -A backend.api.app.celery_app worker --beat --loglevel=debug --concurrency=4
+
 
 ## Routes
 
+-----
 - /api/v1/groups
 - /api/v1/groups/{type_group}
 - /api/v1/groups/{type_group}/{username_cn}

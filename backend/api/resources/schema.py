@@ -94,10 +94,10 @@ class BaseSchema(Schema):
         if errors:
             raise ValidationError(errors)
 
-    # @validates('userPassword')
-    # def validate_password(self, value):
-    #     if len(value) < 8:
-    #         raise ValidationError('The userPassword must be longer than 8 characters.')
+    @validates('userPassword')
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise ValidationError('The userPassword must be longer than 8 characters.')
 
     # @validates('objectClass')
     # def validate_object_class(self, value):
