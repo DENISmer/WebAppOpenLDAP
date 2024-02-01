@@ -38,11 +38,13 @@ class AuthOpenLDAP(Resource):
         user.uid = response.user_id
 
         connection = ConnectionManagerLDAP(user)
-        # connection.show_connections()
+        connection.show_connections()
         connection.create_connection()
-        # connection.show_connections()
+        connection.connect()
+        connection.show_connections()
 
         groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
+        print(groups)
         user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, groups)
         if user.is_webadmin: user.role = Role.WEBADMIN
         else: user.role = Role.SIMPLE_USER
