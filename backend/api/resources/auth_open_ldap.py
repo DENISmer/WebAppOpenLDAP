@@ -54,7 +54,7 @@ class AuthOpenLDAP(Resource):
             abort(400, message='try again now or later', status=400)
 
         serialized_data = self.serializer.serialize_data(
-            TokenSchemaLdap.__name__, {'token': token, 'uid': user.uid}
+            TokenSchemaLdap.__name__, {'token': token, 'uid': user.uid, 'role': user.role.value}
         )
 
         return serialized_data, 200
