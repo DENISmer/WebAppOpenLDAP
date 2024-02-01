@@ -1,6 +1,6 @@
-from backend.api.common.managers_ldap.common_ldap_manager import IniCommonManagerLDAP
 from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
-from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
+from flask_restful import abort
 
 
 class AuthenticationManagerLDAP:
@@ -9,9 +9,12 @@ class AuthenticationManagerLDAP:
         self.ldap_manager = ManagerLDAP()
 
     def authenticate(self):
-        response = self.ldap_manager.authenticate(
-            username=self.user.get_username(),
-            password=self.user.userPassword,
-        )
+        try:
+            response = self.ldap_manager.authenticate(
+                username=self.user.get_username(),
+                password=self.user.userPassword,
+            )
+        except LDAPNoSuchObjectResult as e:
+            abort(400, message='User not found', status=400)
 
         return response  # *.status: 2 - success, 1 - failed
