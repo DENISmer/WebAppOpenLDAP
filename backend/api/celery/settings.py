@@ -11,3 +11,7 @@ CELERY_IGNORE_RESULT = True
 CELERY_IMPORTS = (
     'backend.api.celery.tasks',
 )
+
+TIMES_SCHEDULE = {
+    'TIME_REMOVE_EXPIRED_TOKENS': 10.0 * 6 * 10,
+}

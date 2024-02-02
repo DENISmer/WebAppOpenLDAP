@@ -6,8 +6,8 @@ class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
         self.__username = kwargs.get('username')
         self.dn = kwargs.get('dn')
-        self.cn = kwargs.get('cn') or []
-        self.objectClass = kwargs.get('objectClass') or []
+        self.cn = kwargs.get('cn') #or []
+        self.objectClass = kwargs.get('objectClass') #or []
 
         self.gidNumber = kwargs.get('gidNumber')
         if self.gidNumber and type(self.gidNumber) == list:
@@ -21,11 +21,13 @@ class UserCnAbstract(ABC):
             for key, value in user_fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
-               and getattr(self, key)
+               and getattr(self, key) is not None
         }
 
         if not operation == 'read' and res.get('dn'):
             del res['dn']
+
+        pprint.pprint(res)
 
         return res
 
@@ -48,22 +50,22 @@ class UserLdap(UserCnAbstract):
         if self.uidNumber and type(self.uidNumber) == list:
             self.uidNumber = self.uidNumber[0]
 
-        self.uid = kwargs.get('uid') or []
-        self.sshPublicKey = kwargs.get('sshPublicKey') or []
-        self.st = kwargs.get('st') or []
-        self.mail = kwargs.get('mail') or []
-        self.street = kwargs.get('street') or []
-        self.cn = kwargs.get('cn') or []
+        self.uid = kwargs.get('uid') #or []
+        self.sshPublicKey = kwargs.get('sshPublicKey') #or []
+        self.st = kwargs.get('st') #or []
+        self.mail = kwargs.get('mail') #or []
+        self.street = kwargs.get('street') #or []
+        self.cn = kwargs.get('cn') #or []
 
         self.displayName = kwargs.get('displayName')
         if self.displayName and type(self.displayName) == list:
             self.displayName = self.displayName[0]
 
-        self.givenName = kwargs.get('givenName') or []
-        self.sn = kwargs.get('sn') or []
+        self.givenName = kwargs.get('givenName') #or []
+        self.sn = kwargs.get('sn') #or []
         self.userPassword = kwargs.get('userPassword') or kwargs.get('password')
         self.objectClass = kwargs.get('objectClass') or []
-        self.postalCode = kwargs.get('postalCode') or []
+        self.postalCode = kwargs.get('postalCode') # or []
 
         self.homeDirectory = kwargs.get('homeDirectory')
         if self.homeDirectory and type(self.homeDirectory) == list:

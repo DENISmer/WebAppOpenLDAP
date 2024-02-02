@@ -85,6 +85,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
 
+        print(res)
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
             abort(400, message=res['message'])

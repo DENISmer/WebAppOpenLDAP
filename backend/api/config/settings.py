@@ -11,9 +11,9 @@ DEBUG = True
 
 ALGORITHMS = 'HS256'
 
-NOT_AUTH = False
+NOT_AUTH = True
 
-ITEMS_PER_PAGE = 2
+ITEMS_PER_PAGE = 20
 
 
 FILE_DB_NAME = 'proj.db'

@@ -53,7 +53,7 @@ class AuthOpenLDAP(Resource):
 
         token = TokenManagerDB(user=user).create_token()
         if not token:
-            abort(400, message='try again now or later', status=400)
+            abort(400, message='Try again now or later', status=400)
 
         serialized_data = self.serializer.serialize_data(
             TokenSchemaLdap.__name__, {'token': token, 'uid': user.uid, 'role': user.role.value}

@@ -15,7 +15,8 @@ class GetFreeId:
         if not ids:
             return 10000
 
-        sorted_ids = sorted(ids)
+        sorted_ids = sorted(filter(lambda x: x >= 10000, ids))
+
         j = 1
         for i in range(len(sorted_ids)-1):
             count_free_spaces = sorted_ids[i+1] - sorted_ids[i] - 1

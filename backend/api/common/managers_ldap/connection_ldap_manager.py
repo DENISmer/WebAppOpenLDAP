@@ -36,7 +36,7 @@ class ConnectionManagerLDAP:
     def connect(self):
         self.connection = self._connections.get(self.user.dn)
         if not self.connection:
-            abort(403, message='Insufficient access rights.')
+            abort(403, message='Unauthorized Access')#'Insufficient access rights.')
 
         self.connection.open()
         if config['LDAP_USE_SSL']:
@@ -81,4 +81,4 @@ class ConnectionManagerLDAP:
         del self._connections[self.user.dn]
 
     def __repr__(self):
-        return f'<Connection(user={self._connection.user}; password={self._connection.password})>'
+        return f'<Connection(user={self.connection.user}; password={self.connection.password})>'
