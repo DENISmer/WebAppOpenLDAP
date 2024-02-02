@@ -33,14 +33,16 @@ connection.bind()
 # pprint.pprint(connection.__dict__)
 connection_search = connection.search(
     'dc=local,dc=net',
-    '(objectClass=person)',
-    attributes=['gidNumber']
+    '(uid=serbinovichgs)',
+    attributes=['sshPublicKey']
 )
-
+ssh_key = orjson.loads(connection.entries[0].entry_to_json())
+print(ssh_key['attributes']['sshPublicKey'][0])
+# print(type(ssh_key), bytearray(ssh_key).decode())
 
 # True - not empty, False - empty
 print('connection', connection_search)
-
+exit(0)
 # output data
 list_gid_number = []
 if connection_search:

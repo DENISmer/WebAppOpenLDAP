@@ -148,8 +148,8 @@ def error_operation_ldap(func):
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-        operation = kwargs['operation']
-        object_item = kwargs['item']
+        operation = kwargs.get('operation') or func.__name__
+        object_item = kwargs.get('item')
 
         try:
             res = func(*args, **kwargs)
@@ -157,52 +157,44 @@ def error_operation_ldap(func):
             print('##LDAPInsufficientAccessRightsResult##')
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(403, message='Insufficient access rights')
+            abort(403, message='Insufficient access rights', status=403)
         except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
             print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
             print(e)
             logging.log(logging.ERROR, e)
             fields = {
-                'fields': {
-                    'dn': f'Invalid field, {e}',
-                }
+                'dn': f'Invalid field, {e}',
             }
-            abort(400, message=fields)
+            abort(400, message='Invalid attributes', fields=fields, status=400)
         except LDAPObjectClassError as e:
             print('##LDAPObjectClassError##')
             print(str(e))
             print(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
-                'fields': {
-                    'objectClass': str(e),
-                }
+                'objectClass': str(e),
             }
-            abort(400, message=fields)
+            abort(400, message='Invalid attributes', fields=fields, status=400)
         except LDAPAttributeError as e:
             print('##LDAPATTRERROR##')
             pprint.pprint(e.__dict__)
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
             fields = {
-                'fields': {
-                    item: str(e)
-                    for item in get_attribute_error_fields(
-                        list(object_item.fields.keys()), str(e)
-                    )
-                }
+                item: str(e)
+                for item in get_attribute_error_fields(
+                    list(object_item.fields.keys()), str(e)
+                )
             }
-            abort(400, message=fields)
+            abort(400, message='Invalid attributes', fields=fields, status=400)
         except LDAPEntryAlreadyExistsResult as e:
             print('##LDAPEntryAlreadyExistsResult##')
             pprint.pprint(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
-                'fields': {
-                    'dn': f'An element with such a dn already exists',
-                }
+                'dn': f'An element with such a dn already exists',
             }
-            abort(400, message=fields)
+            abort(400, message='Invalid attributes', fields=fields, status=400)
         except LDAPInvalidCredentialsResult as e:
             logging.log(logging.ERROR, e.__dict__)
             abort(400, message='Invalid credentials')
@@ -222,7 +214,7 @@ def error_operation_ldap(func):
             pprint.pprint(e.args)
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(400, message='Failed 500. Unhandled errors')
+            abort(400, message='Failed 500. Unhandled errors', status=400)
 
         return res
 

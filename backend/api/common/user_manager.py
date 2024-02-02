@@ -13,7 +13,7 @@ class UserCnAbstract(ABC):
         if self.gidNumber and type(self.gidNumber) == list:
             self.gidNumber = self.gidNumber[0]
 
-        self.fields = kwargs.get('fields')
+        self.fields = kwargs.get('fields') or []
 
     def serialize_data(self, user_fields, operation) -> dict:
         res = {
@@ -21,6 +21,7 @@ class UserCnAbstract(ABC):
             for key, value in user_fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
+               and key in self.input_field_keys \
                and getattr(self, key) is not None
         }
 
@@ -52,6 +53,9 @@ class UserLdap(UserCnAbstract):
 
         self.uid = kwargs.get('uid') #or []
         self.sshPublicKey = kwargs.get('sshPublicKey') #or []
+        # if self.sshPublicKey:
+        #     self.sshPublicKey = list(map(lambda x: x.encode(), self.sshPublicKey))
+
         self.st = kwargs.get('st') #or []
         self.mail = kwargs.get('mail') #or []
         self.street = kwargs.get('street') #or []
@@ -64,7 +68,7 @@ class UserLdap(UserCnAbstract):
         self.givenName = kwargs.get('givenName') #or []
         self.sn = kwargs.get('sn') #or []
         self.userPassword = kwargs.get('userPassword') or kwargs.get('password')
-        self.objectClass = kwargs.get('objectClass') or []
+        self.objectClass = kwargs.get('objectClass') # or []
         self.postalCode = kwargs.get('postalCode') # or []
 
         self.homeDirectory = kwargs.get('homeDirectory')
@@ -77,6 +81,8 @@ class UserLdap(UserCnAbstract):
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')
+
+        self.input_field_keys = kwargs.get('input_field_keys')
 
     def __repr__(self):
         return f'DN {self.dn}'

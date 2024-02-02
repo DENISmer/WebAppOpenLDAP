@@ -1,7 +1,8 @@
+import pprint
 from typing import Dict
 
 from flask_restful import abort
-from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE
+from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, MODIFY_DELETE
 
 from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.exceptions import ItemFieldsIsNone
@@ -23,12 +24,14 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
     def item(self, *args, **kwargs):
         raise NotImplementedError('Not Implemented method get_item.')
 
+    @error_operation_ldap
     def search(
         self,
         value,
         fields: Dict[str, str],
         attributes=ALL_ATTRIBUTES,
         required_fields: Dict[str, str] = None,
+        **kwargs,
     ) -> list:
 
         search_filter = ''
@@ -101,16 +104,41 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             operation=operation,
         )
 
+        modify_dict = dict()
+        for key, value in serialized_data_modify.items():
+
+            print(value)
+            print(type(value))
+            pprint.pprint(value)
+            if value is None or len(value) == 0 or len(str(value)) == 0:
+                tmp_modify = MODIFY_DELETE
+                tmp_value = None
+            else:
+                tmp_modify = MODIFY_REPLACE
+                tmp_value = value if type(value) == list else [value]
+
+            modify_dict.update({
+                key: [(
+                    tmp_modify,
+                    tmp_value
+                )]
+            })
+
+        pprint.pprint(modify_dict)
         self._connection.modify(
             item.dn,
-            {
-                key: [(
-                    MODIFY_REPLACE,
-                    value if type(value) == list else [value]
-                )]
-                for key, value in serialized_data_modify.items()
-            }
+            modify_dict
         )
+        # self._connection.modify(
+        #     item.dn,
+        #     {
+        #         key: [(
+        #             MODIFY_REPLACE,
+        #             value if type(value) == list else [value]
+        #         )]
+        #         for key, value in serialized_data_modify.items()
+        #     }
+        # )
         print('result modify:', self._connection.result)
 
         res = self._connection.result

@@ -2,6 +2,8 @@ from flask import Flask, jsonify, json
 from flask_restful import Api
 from flask_cors import CORS
 
+from werkzeug.exceptions import HTTPException
+
 from backend.api.celery.celery_app import celery_init_app
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
@@ -45,32 +47,17 @@ with app.app_context():
     db.create_all()
 
 
-@app.errorhandler(404)
-def not_found(e):
-    response = jsonify({
-        'message': 'The requested URL was not found on the server. '
-                   'If you entered the URL manually please check your spelling and try again.',
-        'error': 'Not found',
-        'status': 404,
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    response = e.get_response()
+    response.data = json.dumps({
+        "status": e.code,
+        "error": e.name,
+        "message": e.description,
     })
-    response.status = 404
+    response.content_type = "application/json"
     return response
-
-# from flask import json
-# from werkzeug.exceptions import HTTPException
-# @app.errorhandler(HTTPException)
-# def handle_exception(e):
-#     """Return JSON instead of HTML for HTTP errors."""
-#     # start with the correct headers and status code from the error
-#     response = e.get_response()
-#     # replace the body with JSON
-#     response.data = json.dumps({
-#         "code": e.code,
-#         "name": e.name,
-#         "description": e.description,
-#     })
-#     response.content_type = "application/json"
-#     return response
 
 
 celery_app = celery_init_app(app)

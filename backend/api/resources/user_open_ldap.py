@@ -1,3 +1,5 @@
+import pprint
+
 from flask_restful import Resource, request
 
 from backend.api.common.auth_http_token import auth
@@ -51,6 +53,7 @@ class UserOpenLDAPResource(Resource):
             dn=user.dn,
             username=username_uid,
             fields=user_fields['fields'],
+            input_field_keys=deserialized_data.keys(),
             **deserialized_data,
         )
 
@@ -199,9 +202,10 @@ class UserListOpenLDAPResource(Resource):
         if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
             deserialized_data['uidNumber'] = \
                 deserialized_data['gidNumber'] = user_obj.get_free_id_number()
-
+        pprint.pprint(deserialized_data)
         user = UserLdap(
             fields=user_fields['fields'],
+            input_field_keys=deserialized_data.keys(),
             **deserialized_data
         )
         group = CnGroupLdap(

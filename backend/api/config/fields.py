@@ -52,7 +52,7 @@ simple_user_fields = {
             'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['update', ],
-            'required': []
+            'required': ['create'] # create - to update for put, patch requests
         },
         'street': {
             'type': TYPE_LIST,
