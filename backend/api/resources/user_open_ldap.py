@@ -68,6 +68,7 @@ class UserOpenLDAPResource(Resource):
         user_obj.modify(
             item=updated_user,
             operation=operation,
+            not_modify_item=user
         )
 
         group = group_obj.get_group_info_posix_group(username_uid, abort_raise=False)

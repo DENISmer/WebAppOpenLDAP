@@ -42,22 +42,22 @@ class UserManagerLDAP(CommonManagerLDAP):
         except LDAPNoSuchObjectResult:
             if not abort_raise:
                 return None
-            abort(404, message='User not found.')
+            abort(404, message='User not found.', status=404)
 
         return UserLdap(username=uid, **data)
 
     def list(self, *args, **kwargs) -> List[UserLdap]:
         users = []
-        try:
-            users = self.search(
-                value=kwargs.get('value'),
-                fields=kwargs.get('fields'),
-                attributes=kwargs.get('attributes'),
-                required_fields=kwargs.get('required_fields')
-            )
-        except LDAPException as e:
-            print('e:', e)
-            abort(400, message=str(e))
+        # try:
+        users = self.search(
+            value=kwargs.get('value'),
+            fields=kwargs.get('fields'),
+            attributes=kwargs.get('attributes'),
+            required_fields=kwargs.get('required_fields')
+        )
+        # except LDAPException as e:
+        #     print('e:', e)
+        #     abort(400, message=str(e), status=400)
 
         if not users:
             return []
