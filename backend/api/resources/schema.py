@@ -41,6 +41,12 @@ class Meta(SchemaMeta):
                 # deep copy
                 value_copy = copy.deepcopy(cls._declared_fields[key])
                 cls._declared_fields[key] = value_copy
+                # if hasattr(cls._declared_fields[key], 'inner'):
+                #     print(id(cls._declared_fields[key].inner))
+                    # value_copy_inner = copy.deepcopy(cls._declared_fields[key].inner)
+                    # cls._declared_fields[key].inner = value_copy_inner
+
+
                 # end deep copy
 
                 if type_required_fields == 'list':
@@ -55,7 +61,7 @@ class Meta(SchemaMeta):
                         if hasattr(cls._declared_fields[key], 'inner'):
                             setattr(cls._declared_fields[key].inner, 'required', True)
 
-                    if 'create' not in value['required']:
+                    if 'create' not in value['required'] and type_required_fields == 'update':
                         # print(key, value['required'])
                         setattr(cls._declared_fields[key], 'allow_none', True)
                         if hasattr(cls._declared_fields[key], 'inner'):
@@ -64,6 +70,7 @@ class Meta(SchemaMeta):
                     if type_required_fields == 'update':
                         if type_required_fields not in value['operation']:
                             setattr(cls._declared_fields[key], 'dump_only', True)
+            # print('------')
 
 
 class BaseSchema(Schema):
@@ -104,10 +111,6 @@ class BaseSchema(Schema):
     def validate_password(self, value):
         if len(value) < 8:
             raise ValidationError('The userPassword must be longer than 8 characters.')
-
-    # @validates('objectClass')
-    # def validate_object_class(self, value):
-    #     print(value)
 
 
 class SimpleUserSchemaLdapModify(BaseSchema, metaclass=Meta):

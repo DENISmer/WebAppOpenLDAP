@@ -204,9 +204,8 @@ def error_operation_ldap(func):
             print(e.__dict__)
             abort(
                 400,
-                message=f'The operation {operation} has not '
-                        f'been completed (description={e.__dict__["description"]},'
-                        f' message={e.__dict__["message"]})')
+                message=e.__dict__["message"], error=e.__dict__["description"], type=e.__dict__["type"]
+            )
         except LDAPException as e:
             print('##LDAPException##')
             # pprint.pprint(self._connection.result)

@@ -97,7 +97,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         return item
 
     @error_operation_ldap
-    def modify(self,  item, operation):
+    def modify(self,  item, operation, not_modify_item=None):
 
         serialized_data_modify = item.serialize_data(
             user_fields=item.fields,
@@ -106,13 +106,9 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         modify_dict = dict()
         for key, value in serialized_data_modify.items():
-
-            print(value)
-            print(type(value))
-            pprint.pprint(value)
-            if value is None or len(value) == 0 or len(str(value)) == 0:
+            if (value is None or len(value) == 0 or len(str(value)) == 0) and getattr(not_modify_item, key):
                 tmp_modify = MODIFY_DELETE
-                tmp_value = None
+                tmp_value = []
             else:
                 tmp_modify = MODIFY_REPLACE
                 tmp_value = value if type(value) == list else [value]

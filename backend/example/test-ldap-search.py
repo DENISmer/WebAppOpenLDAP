@@ -3,7 +3,7 @@ import orjson
 from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES, SUBTREE
 import ssl
 import pprint
-from backend.tests.config import CERT_FILE, HOSTS, TEST_USERNAME, TEST_PASSWORD
+from backend.example.config import CERT_FILE, HOSTS, TEST_USERNAME, TEST_PASSWORD
 
 # LDAP connection test
 
