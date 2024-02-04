@@ -1,0 +1,4 @@
+dn: cn=webadmins,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: webadmins
+member: uid=bob,ou=People,dc=example,dc=com
