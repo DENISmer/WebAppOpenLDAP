@@ -15,11 +15,6 @@ class CommonSerializer:
             deserialized_data = getattr(
                 schema, user_schema
             )().load(json_data, partial=partial)
-            for key, value in getattr(schema, user_schema)()._declared_fields.items():
-                print(key, value)
-                if hasattr(value, 'inner'):
-                    print('INNER', value.inner)
-                print('--'*10)
         except ValidationError as e:
             abort(400, message='Invalid attributes', fields=e.messages)
 

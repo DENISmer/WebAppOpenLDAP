@@ -22,11 +22,6 @@ def get_user_roles(user):
     return Role(user['role'])
 
 
-@auth.error_handler
-def auth_error(status):
-    return {'message': 'Unauthorized Access', 'status': status}, status
-
-
 class UserOpenLDAPResource(Resource):
 
     def __init__(self, *args, **kwargs):
@@ -104,7 +99,7 @@ class UserOpenLDAPResource(Resource):
         user_fields = kwargs['user_fields']
 
         deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
-
+        print('deserialized_data', deserialized_data)
         user = self.__modify_user_group(
             username_uid=username_uid,
             deserialized_data=deserialized_data,
@@ -206,7 +201,6 @@ class UserListOpenLDAPResource(Resource):
         pprint.pprint(deserialized_data)
         user = UserLdap(
             fields=user_fields['fields'],
-            input_field_keys=deserialized_data.keys(),
             **deserialized_data
         )
         group = CnGroupLdap(
@@ -230,6 +224,7 @@ class UserListOpenLDAPResource(Resource):
             operation='create',
         )
         user_obj.free_id.del_from_reserved(user.gidNumber)
+
         serialized_users = self.serializer.serialize_data(user_schema, user)
         return serialized_users, 201
 

@@ -148,3 +148,22 @@
 # ]
 #
 # print(len(list_test))
+# from marshmallow import Schema, fields, post_load
+#
+#
+# class UserSchema(Schema):
+#     name = fields.Str()
+#     slug = fields.Str()
+#
+#     @post_load
+#     def slugify_name(self, in_data, **kwargs):
+#         print(in_data)
+#         # in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
+#         for key, value in in_data.items():
+#             in_data[key] = value if type(value) == list else [value]
+#         return in_data
+#
+#
+# schema = UserSchema()
+# result = schema.load({"name": "Steve", "slug": "Steve Loria "})
+# print(result)
