@@ -11,7 +11,7 @@ DEBUG = True
 
 ALGORITHMS = 'HS256'
 
-NOT_AUTH = True
+NOT_AUTH = False
 
 ITEMS_PER_PAGE = 20
 

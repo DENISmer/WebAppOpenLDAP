@@ -72,7 +72,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         return self._connection.entries
 
-    @error_operation_ldap
+    # @error_operation_ldap
     def create(self, item, operation):
 
         if item.fields is None:
@@ -81,7 +81,6 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         self._connection.add(
             item.dn,
             attributes=item.serialize_data(
-                user_fields=item.fields,
                 operation=operation
             )
         )
@@ -100,13 +99,14 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
     def modify(self,  item, operation, not_modify_item=None):
 
         serialized_data_modify = item.serialize_data(
-            user_fields=item.fields,
             operation=operation,
         )
 
         modify_dict = dict()
         for key, value in serialized_data_modify.items():
-            if (value is None or len(value) == 0 or len(str(value)) == 0) and getattr(not_modify_item, key):
+            if (value is None or len(value) == 0 or len(str(value)) == 0) \
+                    and getattr(not_modify_item, key) \
+                    and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE
                 tmp_value = []
             else:

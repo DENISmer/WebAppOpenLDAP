@@ -66,10 +66,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-# receive dn
-# performs rebind
-# make the best schema with pool connection
 '''
-If token is expired database clean
+If token is expired database will cleaned
 database orm flask_sqlachemy
 '''

@@ -6,24 +6,23 @@ class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
         self.__username = kwargs.get('username')
         self.dn = kwargs.get('dn')
-        self.cn = kwargs.get('cn') or []
-        self.objectClass = kwargs.get('objectClass') or []
+        self.cn = kwargs.get('cn') #or []
+        self.objectClass = kwargs.get('objectClass') #or []
 
         self.gidNumber = kwargs.get('gidNumber')
         if self.gidNumber and type(self.gidNumber) == list:
             self.gidNumber = self.gidNumber[0]
 
-        self.fields = kwargs.get('fields') or []
-        self.input_field_keys = kwargs.get('input_field_keys')
+        self.fields = kwargs.get('fields') #or []
 
-    def serialize_data(self, user_fields, operation) -> dict:
+    def serialize_data(self, operation) -> dict:
+
         res = {
             key: getattr(self, key)
-            for key, value in user_fields.items()
+            for key, value in self.fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
-               and key in self.input_field_keys \
-               # and getattr(self, key) is not None
+               and getattr(self, key) is not None
         }
 
         if not operation == 'read' and res.get('dn'):
@@ -54,24 +53,24 @@ class UserLdap(UserCnAbstract):
             self.uidNumber = self.uidNumber[0]
 
         self.uid = kwargs.get('uid') #or []
-        self.sshPublicKey = kwargs.get('sshPublicKey') or []
+        self.sshPublicKey = kwargs.get('sshPublicKey') #or []
         # if self.sshPublicKey:
         #     self.sshPublicKey = list(map(lambda x: x.encode(), self.sshPublicKey))
 
-        self.st = kwargs.get('st') or []
-        self.mail = kwargs.get('mail') or []
-        self.street = kwargs.get('street') or []
-        self.cn = kwargs.get('cn') or []
+        self.st = kwargs.get('st') #or []
+        self.mail = kwargs.get('mail') #or []
+        self.street = kwargs.get('street') #or []
+        self.cn = kwargs.get('cn') #or []
 
         self.displayName = kwargs.get('displayName')
         if self.displayName and type(self.displayName) == list:
             self.displayName = self.displayName[0]
 
-        self.givenName = kwargs.get('givenName') or []
-        self.sn = kwargs.get('sn') or []
+        self.givenName = kwargs.get('givenName') #or []
+        self.sn = kwargs.get('sn') #or []
         self.userPassword = kwargs.get('userPassword') or kwargs.get('password')
-        self.objectClass = kwargs.get('objectClass') or []
-        self.postalCode = kwargs.get('postalCode') or []
+        self.objectClass = kwargs.get('objectClass') #or []
+        self.postalCode = kwargs.get('postalCode') #or []
 
         self.homeDirectory = kwargs.get('homeDirectory')
         if self.homeDirectory and type(self.homeDirectory) == list:
