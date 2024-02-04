@@ -1,5 +1,6 @@
-import axios from 'axios'
+
 import {APIS} from "@/scripts/constants";
+import axios from "axios";
 export interface AuthParams {
     userName: string
     password: string
