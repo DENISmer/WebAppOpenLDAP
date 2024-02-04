@@ -1,6 +1,6 @@
-
 import {APIS} from "@/scripts/constants";
 import axios from "axios";
+
 export interface AuthParams {
     userName: string
     password: string
@@ -8,7 +8,8 @@ export interface AuthParams {
 export interface UserAuth {
     userName: string,
     token: string,
-    role: string
+    role: string,
+    status: number
 }
 async function setAuthToken(params: AuthParams): Promise<UserAuth> {
     if (params.userName && params.password) {
@@ -21,14 +22,16 @@ async function setAuthToken(params: AuthParams): Promise<UserAuth> {
                 return {
                     userName: response.data.uid,
                     token: response.data.token,
-                    role: response.data.role
+                    role: response.data.role,
+                    status: response.status
                 };
             } else {
                 throw new Error('Auth failed with status: ' + response.status);
             }
         } catch (err) {
+            return err.response.data
             // It's better to throw an error rather than console.log it so that it can be caught by the caller.
-            throw new Error('Auth request failed: ' + err.message);
+            //throw new Error('Auth request failed: ' + err.message);
         }
     } else {
         // If parameters are not provided, throw an error rather than returning a result with placeholders.
