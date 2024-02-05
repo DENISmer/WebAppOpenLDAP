@@ -35,3 +35,11 @@ def validate_required_fields(data, errors, declared_field):
                     if not item:
                         errors[key] = ['Missing data for required field.']
                         break
+
+
+def validate_uid_dn(data, errors):
+
+    uid, dn = data.get('uid'), data.get('dn')
+    print('uid, dn', uid, dn)
+    if uid and dn and (data['uid'] not in data['dn']):
+        errors['uid'] = ['The uid does not match the one specified in the dn field']

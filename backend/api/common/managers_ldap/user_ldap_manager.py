@@ -86,9 +86,13 @@ class UserManagerLDAP(CommonManagerLDAP):
         return self.free_id.get_free_spaces(unique_ids)
 
     def get_user_info_by_dn(self, dn: str, attributes=ALL_ATTRIBUTES):
-        return self.ldap_manager.get_object(
-            dn=dn,
-            filter='(objectClass=person)',
-            attributes=attributes,
-            _connection=self._connection,
-        )
+        try:
+            user = self.ldap_manager.get_object(
+                dn=dn,
+                filter='(objectClass=person)',
+                attributes=attributes,
+                _connection=self._connection,
+            )
+        except LDAPNoSuchObjectResult:
+            return None
+        return user

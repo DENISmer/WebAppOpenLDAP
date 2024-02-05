@@ -124,7 +124,7 @@ class GroupListOpenLDAPResource(Resource):
     def get(self, type_group, *args, **kwargs):
         group_schema = kwargs['group_schema']
         search = request.args.get('search', type=str)
-        page = request.args.get('page', type=int, default=1)
+        page = request.args.get('page', type=int, default=1) or 1
 
         out_fields = getattr(schema, group_schema)().fetch_fields()
         groups = GroupManagerLDAP(connection=self.connection).list(

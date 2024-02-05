@@ -164,7 +164,7 @@ class UserListOpenLDAPResource(Resource):
     def get(self, *args, **kwargs):
         user_schema = kwargs['user_schema']
         search = request.args.get('search', type=str)
-        page = request.args.get('page', type=int, default=1)
+        page = request.args.get('page', type=int, default=1) or 1
 
         if search and len(search) < 2:
             return {
@@ -229,6 +229,7 @@ class UserListOpenLDAPResource(Resource):
         )
 
         found_user = user_obj.get_user_info_by_dn(user.dn, [])
+        print(found_user)
         if found_user:
             abort(400, fields={'dn': 'The user already exists'}, status=400)
 
@@ -238,8 +239,8 @@ class UserListOpenLDAPResource(Resource):
             operation='create',
         )
 
-        found_group = group_obj.get_group_info_posix_group(user.cn, [])
-        if found_group:
+        found_group = group_obj.get_group_info_posix_group(user.cn, [], abort_raise=False)
+        if not found_group:
             group_obj.create(
                 item=group,
                 operation='create',

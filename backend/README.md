@@ -107,7 +107,7 @@ Run celery (example):
         {
             "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
             "gidNumber": 10000,
-            "cn": ["testuser"],
+            "cn": "testuser",
             "objectClass": ["posixGroup"],
             "memberUid": ["testuser"]
         }
@@ -122,7 +122,7 @@ Run celery (example):
 {
     "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
     "gidNumber": 10000,
-    "cn": ["testuser"],
+    "cn": "testuser",
     "objectClass": ["posixGroup"],
     "memberUid": ["testuser"]
 }
@@ -134,7 +134,7 @@ Run celery (example):
 {
     "dn": required,
     "gidNumber": required,
-    "cn": [required, required],
+    "cn": required,
     "objectClass": [required],
     "memberUid": [required]
 }
@@ -145,7 +145,7 @@ Run celery (example):
 ```json
 {
     "gidNumber": nonrequired,
-    "cn": [nonrequired, nonrequired],
+    "cn": nonrequired,
     "objectClass": [nonrequired],
     "memberUid": [nonrequired]
 }
@@ -157,7 +157,7 @@ Run celery (example):
   ```json
   {
       "gidNumber": required,
-      "cn": [required, required],
+      "cn": required,
       "objectClass": [required],
       "memberUid": [required]
   }
@@ -185,16 +185,16 @@ Run celery (example):
         "gidNumber": 10000, 
         "uid": "testuser", 
         "sshPublicKey": [], 
-        "st": ["Moskow city"], 
+        "st": "Moskow city", 
         "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-        "street": ["green street 12"], 
-        "cn": ["Test User"], 
+        "street": "green street 12", 
+        "cn": "Test User", 
         "displayName": "Test User", 
-        "givenName": ["testuser"], 
-        "sn": ["Test User"], 
-        "postalCode": [100123, 123414],
+        "givenName": "testuser", 
+        "sn": "Test User", 
+        "postalCode": 123414,
         "homeDirectory": "/home/testuser", 
-        "loginShell": "/bin/bash", 
+        "loginShell": ["/bin/bash"], 
         "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
       }
   ] 
@@ -208,16 +208,16 @@ Run celery (example):
     "gidNumber": 10000, 
     "uid": "testuser", 
     "sshPublicKey": [], 
-    "st": ["Moskow city"], 
+    "st": "Moskow city", 
     "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-    "street": ["green street 12"], 
-    "cn": ["Test User"], 
+    "street": "green street 12", 
+    "cn": "Test User", 
     "displayName": "Test User", 
-    "givenName": ["testuser"], 
-    "sn": ["Test User"], 
-    "postalCode": [100123, 123414],
+    "givenName": "testuser", 
+    "sn": "Test User", 
+    "postalCode": 100128,
     "homeDirectory": "/home/testuser", 
-    "loginShell": "/bin/bash", 
+    "loginShell": ["/bin/bash"], 
     "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
 }
 ```
@@ -234,16 +234,16 @@ Run celery (example):
     "gidNumber": 10000, 
     "uid": "testuser", 
     "sshPublicKey": [], 
-    "st": ["Moskow city"], 
+    "st": "Moskow city", 
     "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-    "street": ["green street 12"], 
-    "cn": ["testuser"], 
+    "street": "green street 12", 
+    "cn": "testuser", 
     "displayName": "Test User", 
-    "givenName": ["testuser"], 
-    "sn": ["Test User"], 
-    "postalCode": [100123, 123414],
+    "givenName": "testuser", 
+    "sn": "Test User", 
+    "postalCode": 100123,
     "homeDirectory": "/home/testuser", 
-    "loginShell": "/bin/bash", 
+    "loginShell": ["/bin/bash"], 
     "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
 }
 ```
@@ -259,14 +259,14 @@ Run celery (example):
     "gidNumber": nonrequired, 
     "uid": required, 
     "sshPublicKey": [nonrequired], 
-    "st": [nonrequired], 
+    "st": nonrequired, 
     "mail": [nonrequired], 
-    "street": [nonrequired], 
-    "cn": [required], 
+    "street": nonrequired, 
+    "cn": required, 
     "displayName": nonrequired, 
-    "givenName": [nonrequired], 
-    "sn": [required], 
-    "postalCode": [nonrequired],
+    "givenName": nonrequired, 
+    "sn": required, 
+    "postalCode": nonrequired,
     "homeDirectory": required, 
     "loginShell": [nonrequired], 
     "objectClass": [required],
@@ -283,14 +283,14 @@ Run celery (example):
         "gidNumber": required, 
         "uid": required, 
         "sshPublicKey": [required], 
-        "st": [required], 
+        "st": required, 
         "mail": [required], 
-        "street": [required], 
-        "cn": [required], 
+        "street": required, 
+        "cn": required, 
         "displayName": required, 
-        "givenName": [required], 
-        "sn": [required], 
-        "postalCode": [required],
+        "givenName": required, 
+        "sn": required, 
+        "postalCode": required,
         "homeDirectory": required, 
         "loginShell": [required], 
         "objectClass": [required],
@@ -316,14 +316,14 @@ Run celery (example):
         "gidNumber": nonrequired, 
         "uid": nonrequired, 
         "sshPublicKey": [nonrequired], 
-        "st": [nonrequired], 
+        "st": nonrequired, 
         "mail": [nonrequired], 
-        "street": [nonrequired], 
-        "cn": [nonrequired], 
+        "street": nonrequired, 
+        "cn": nonrequired, 
         "displayName": nonrequired, 
-        "givenName": [nonrequired], 
-        "sn": [nonrequired], 
-        "postalCode": [nonrequired],
+        "givenName": nonrequired, 
+        "sn": nonrequired, 
+        "postalCode": nonrequired,
         "homeDirectory": nonrequired, 
         "loginShell": [nonrequired], 
         "objectClass": [nonrequired],

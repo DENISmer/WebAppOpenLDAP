@@ -5,7 +5,7 @@ from marshmallow import Schema, fields, ValidationError, validates, validates_sc
 from marshmallow.schema import SchemaMeta
 from flask_restful import abort
 
-from backend.api.common.validators import validate_uid_gid_number, validate_required_fields
+from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn
 from backend.api.config import fields as conf_fields
 
 
@@ -131,10 +131,7 @@ class BaseSchema(Schema,
 
         validate_uid_gid_number(data, errors)
         validate_required_fields(data, errors, self._declared_fields)
-
-        uid, dn = data.get('uid'), data.get('dn')
-        if uid and dn and (data['uid'] not in data['dn']):
-            errors['uid'] = ['The uid does not match the one specified in the dn field']
+        validate_uid_dn(data, errors)
 
         if errors:
             raise ValidationError(errors)
@@ -192,7 +189,7 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
             for key, value in data.items()
             if not value or value == ''
         })
-        
+        validate_uid_dn(data, errors)
         validate_uid_gid_number(data, errors)
 
         if errors:
