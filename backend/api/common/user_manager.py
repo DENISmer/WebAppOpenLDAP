@@ -39,11 +39,6 @@ class UserCnAbstract(ABC):
 class UserLdap(UserCnAbstract):
     def __init__(self, username=None, is_webadmin=False, **kwargs):
         super().__init__(
-            # dn=kwargs.get('dn'),
-            # cn=kwargs.get('cn'),
-            # objectClass=kwargs.get('objectClass'),
-            # gidNumber=kwargs.get('gidNumber'),
-            # fields=kwargs.get('fields'),
             **kwargs,
             username=username,
         )

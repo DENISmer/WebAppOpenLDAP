@@ -24,26 +24,26 @@ class MissingFieldsValidation:
 
 
 class PreDumpToList:
-
     @pre_dump(pass_many=True)
     def to_value_list(self, out_data, many, **kwargs):
-
+        print('#########################')
         for key, _ in self._declared_fields.items():
-            print(key)
             value = getattr(out_data, key)
             if not value:
                 value = []
             elif not isinstance(value, list):
                 value = [value]
 
-            out_data[key] = value
-
+            print(key, value)
+            setattr(out_data, key, value)
+        print('#########################')
         return out_data
 
 
 class PreDumpFromList:
     @pre_dump
     def from_list(self, out_value, many):
+        # # print(1)
         for key, value in self._declared_fields.items():
             if not isinstance(value, fields.List) \
                     and isinstance(getattr(out_value, key), list) \
@@ -106,8 +106,7 @@ class Meta(SchemaMeta):
 
 
 class BaseSchema(Schema,
-                 MissingFieldsValidation,
-                 PreDumpToList):
+                 MissingFieldsValidation):
     dn = fields.Str()
     cn = fields.Str()
     uidNumber = fields.Integer()
@@ -191,6 +190,9 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
         })
         
         validate_uid_gid_number(data, errors)
+
+        if data['uid'] not in data['dn']:
+            errors['uid'] = ['The uid does not match the one specified in the dn field']
 
         if errors:
             raise ValidationError(errors)
@@ -290,3 +292,28 @@ class CnGroupOutSchema(CnGroupSchemaList,
                        PreDumpToList):
     def __repr__(self):
         return f'<{CnGroupOutSchema.__name__} {id(self)}>'
+
+
+class MetaToList(SchemaMeta):
+    def __init__(cls, *args, **kwargs):
+        super(SchemaMeta, cls).__init__(*args, **kwargs)
+
+        for key, value in cls._declared_fields.items():
+            # deep copy
+            value_copy = copy.deepcopy(value)
+            if not isinstance(value_copy, fields.List):
+                new_field = fields.List(value_copy, dump_only=True)
+                new_field.inner = value_copy
+            else:
+                new_field = value_copy
+            cls._declared_fields[key] = new_field
+
+
+class BaseOutSchemaToList(BaseSchema,
+                          PreDumpToList):
+    pass
+
+
+class UserOutSchemaToList(BaseOutSchemaToList,
+                          metaclass=MetaToList):
+    pass

@@ -37,7 +37,7 @@ connection_search = connection.search(
     attributes=['sshPublicKey']
 )
 ssh_key = orjson.loads(connection.entries[0].entry_to_json())
-print(ssh_key['attributes']['sshPublicKey'][0])
+print(ssh_key['attributes'])
 # print(type(ssh_key), bytearray(ssh_key).decode())
 
 # True - not empty, False - empty

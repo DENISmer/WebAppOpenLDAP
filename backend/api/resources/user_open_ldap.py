@@ -15,6 +15,7 @@ from backend.api.config.fields import (search_fields,
 
 from backend.api.common.roles import Role
 from backend.api.resources import schema
+from backend.api.resources.schema import UserOutSchemaToList
 
 
 @auth.get_user_roles  # roles
@@ -88,6 +89,7 @@ class UserOpenLDAPResource(Resource):
     def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         user_schema = kwargs['user_schema']
+
         serialized_user = self.serializer.serialize_data(user_schema, user)
         return serialized_user, 200
 
@@ -163,6 +165,14 @@ class UserListOpenLDAPResource(Resource):
         user_schema = kwargs['user_schema']
         search = request.args.get('search', type=str)
         page = request.args.get('page', type=int, default=1)
+
+        if search and len(search) < 2:
+            return {
+                'items': [],
+                'num_pages': 1,
+                'num_items': 0,
+                'page': page,
+            }, 200
 
         out_fields = getattr(schema, user_schema)().fetch_fields()
         users = UserManagerLDAP(connection=self.connection).list(
