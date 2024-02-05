@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-import pprint
-
-import orjson
-
 from flask_restful import abort
 from ldap3 import ALL_ATTRIBUTES
 from ldap3.core.exceptions import (LDAPException,
@@ -27,11 +23,8 @@ class GroupManagerLDAP(CommonManagerLDAP):
             return []
 
         return [
-            {
-                'dn': json_data['dn'],
-                **json_data['attributes']
-            }
-            for group in groups if (json_data := orjson.loads(group.entry_to_json()))
+            CnGroupLdap(dn=group['dn'], **group['attributes'])
+            for group in groups
         ]
 
     def item(
@@ -63,8 +56,6 @@ class GroupManagerLDAP(CommonManagerLDAP):
                 return None
             abort(404, message='Group not found.')
 
-        pprint.pprint(data)
-        print(type(data))
         group = CnGroupLdap(
             username=uid,
             **data,
@@ -79,9 +70,12 @@ class GroupManagerLDAP(CommonManagerLDAP):
             required_fields={'objectClass': 'groupOfNames'}
         )
 
-        return [orjson.loads(group.entry_to_json()) for group in groups]
+        return [
+            CnGroupLdap(dn=group['dn'], **group['attributes'])
+            for group in groups
+        ]
 
-    def get_group_info_posix_group(self, username_cn, attributes=ALL_ATTRIBUTES, abort_raise=True):
+    def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES, abort_raise: bool = True):
         return self.item(
             username_cn, ['posixGroup'],
             webadmins_cn_posixgroup_fields,

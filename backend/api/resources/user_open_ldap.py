@@ -182,13 +182,14 @@ class UserListOpenLDAPResource(Resource):
             required_fields={'objectClass': 'person'},
         )
 
-        serialized_data = self.serializer.serialize_data(user_schema, users, many=True)
         items, num_users, num_pages = Pagintion(
-            serialized_data, page, items_per_page=settings.ITEMS_PER_PAGE
+            users, page, items_per_page=settings.ITEMS_PER_PAGE
         ).get_items()
 
+        serialized_data = self.serializer.serialize_data(user_schema, items, many=True)
+
         return {
-            'items': items,
+            'items': serialized_data,
             'num_pages': num_pages,
             'num_items': num_users,
             'page': page,
