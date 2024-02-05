@@ -13,7 +13,7 @@ simple_user_fields = {
             'required': [],
         },
         'uid': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read'],
             'required': [],
@@ -31,7 +31,7 @@ simple_user_fields = {
             'required': [],
         },
         'st': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read',],
             'required': [],
@@ -55,13 +55,13 @@ simple_user_fields = {
             'required': ['create'] # create - to update for put, patch requests
         },
         'street': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read',],
             'required': [],
         },
         'cn': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read',],
             'required': [],
@@ -73,13 +73,13 @@ simple_user_fields = {
             'required': [],
         },
         'givenName': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read',],
             'required': [],
         },
         'sn': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read',],
             'required': [],
@@ -121,7 +121,7 @@ webadmins_fields = {
             'required': ['create'],
         },
         'uid': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['create', 'update'],
@@ -139,7 +139,7 @@ webadmins_fields = {
             'required': ['update'],
         },
         'st': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['update'],
@@ -157,13 +157,13 @@ webadmins_fields = {
             'required': ['update'],
         },
         'street': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['update'],
         },
         'cn': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['create', 'update'],
@@ -175,13 +175,13 @@ webadmins_fields = {
             'required': ['update'],
         },
         'givenName': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['update'],
         },
         'sn': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['create', 'update'],
@@ -211,7 +211,7 @@ webadmins_fields = {
             'required': ['create'],
         },
         'postalCode': {
-            'type': TYPE_LIST,
+            'type': TYPE_INT,
             'element_type': TYPE_INT,
             'operation': ['read', 'update',],
             'required': ['update'],
@@ -240,7 +240,7 @@ webadmins_cn_posixgroup_fields = {
             'required': ['create', 'update'],
         },
         'cn': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['create', 'update'],

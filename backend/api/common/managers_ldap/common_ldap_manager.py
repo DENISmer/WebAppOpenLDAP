@@ -6,13 +6,14 @@ from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, MODIFY_DELETE
 
 from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.exceptions import ItemFieldsIsNone
+from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
 from backend.api.config.ldap import config
 
 
 class IniCommonManagerLDAP:
     def __init__(self, *args, **kwargs):
         connection = kwargs.get('connection')
-        self.ldap_manager = connection.ldap_manager
+        self.ldap_manager: ManagerLDAP = connection.ldap_manager
         self._connection = connection.connection
 
 

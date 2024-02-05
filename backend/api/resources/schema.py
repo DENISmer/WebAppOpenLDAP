@@ -1,7 +1,7 @@
 import copy
 import pprint
 
-from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load
+from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load, pre_dump
 from marshmallow.schema import SchemaMeta
 from flask_restful import abort
 
@@ -21,6 +21,35 @@ class MissingFieldsValidation:
         if not in_data:
             abort(400, fields_error='Fields are missing', status=400)
         return in_data
+
+
+class PreDumpToList:
+
+    @pre_dump(pass_many=True)
+    def to_value_list(self, out_data, many, **kwargs):
+
+        for key, _ in self._declared_fields.items():
+            print(key)
+            value = getattr(out_data, key)
+            if not value:
+                value = []
+            elif not isinstance(value, list):
+                value = [value]
+
+            out_data[key] = value
+
+        return out_data
+
+
+class PreDumpFromList:
+    @pre_dump
+    def from_list(self, out_value, many):
+        for key, value in self._declared_fields.items():
+            if not isinstance(value, fields.List) \
+                    and isinstance(getattr(out_value, key), list) \
+                    and len(getattr(out_value, key)) > 0:
+                setattr(out_value, key, getattr(out_value, key)[0])
+        return out_value
 
 
 class Meta(SchemaMeta):
@@ -77,24 +106,25 @@ class Meta(SchemaMeta):
 
 
 class BaseSchema(Schema,
-                 MissingFieldsValidation):
+                 MissingFieldsValidation,
+                 PreDumpToList):
     dn = fields.Str()
-    cn = fields.List(fields.Str())
+    cn = fields.Str()
     uidNumber = fields.Integer()
     gidNumber = fields.Integer()
     objectClass = fields.List(fields.Str())
-    uid = fields.List(fields.Str())
+    uid = fields.Str()
     sshPublicKey = fields.List(fields.Str())
-    st = fields.List(fields.Str())
+    st = fields.Str()
     mail = fields.List(fields.Email())
-    street = fields.List(fields.Str())
+    street = fields.Str()
     displayName = fields.Str()
-    givenName = fields.List(fields.Str())
-    sn = fields.List(fields.Str())
+    givenName = fields.Str()
+    sn = fields.Str()
     userPassword = fields.Str(load_only=True)
-    postalCode = fields.List(fields.Int())
+    postalCode = fields.Int()
     homeDirectory = fields.Str()
-    loginShell = fields.Str()
+    loginShell = fields.List(fields.Str())
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -112,25 +142,7 @@ class BaseSchema(Schema,
             raise ValidationError('The userPassword must be longer than 8 characters.')
 
 
-class BaseOutSchema:
-
-    @post_dump(pass_many=True)
-    def to_list(self, out_data, **kwargs):
-        pprint.pprint(out_data)
-        for key, value in out_data.items():
-
-            if not value:
-                value = []
-            elif not isinstance(value, list):
-                value = [value]
-
-            out_data[key] = value
-
-        return out_data
-
-
 class SimpleUserSchemaLdapModify(BaseSchema,
-                                 BaseOutSchema,
                                  metaclass=Meta):
     class Meta:
         user_fields = 'simple_user_fields'
@@ -141,7 +153,6 @@ class SimpleUserSchemaLdapModify(BaseSchema,
 
 
 class WebAdminsSchemaLdapModify(BaseSchema,
-                                BaseOutSchema,
                                 metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_fields'
@@ -152,7 +163,6 @@ class WebAdminsSchemaLdapModify(BaseSchema,
 
 
 class WebAdminsSchemaLdapCreate(BaseSchema,
-                                BaseOutSchema,
                                 metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_fields'
@@ -187,11 +197,12 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
 
 
 class WebAdminsSchemaLdapList(Schema,
-                              OuterFields):
+                              OuterFields,
+                              PreDumpFromList):
     dn = fields.Str(dump_only=True)
-    uid = fields.List(fields.Str(dump_only=True), dump_only=True)
-    cn = fields.List(fields.Str(dump_only=True), dump_only=True)
-    sn = fields.List(fields.Str(dump_only=True), dump_only=True)
+    uid = fields.Str(dump_only=True)
+    cn = fields.Str(dump_only=True)
+    sn = fields.Str(dump_only=True)
     gidNumber = fields.Int(dump_only=True)
     uidNumber = fields.Int(dump_only=True)
 
@@ -220,11 +231,12 @@ class TokenSchemaLdap(Schema):
 
 
 class GroupBaseSchema(Schema,
-                      MissingFieldsValidation):
+                      MissingFieldsValidation,
+                      PreDumpToList):
     dn = fields.Str()
     gidNumber = fields.Int()
     objectClass = fields.List(fields.Str())
-    cn = fields.List(fields.Str())
+    cn = fields.Str()
     memberUid = fields.List(fields.Str())
 
     @validates('gidNumber')
@@ -242,7 +254,6 @@ class GroupBaseSchema(Schema,
 
 
 class CnGroupSchemaModify(GroupBaseSchema,
-                          BaseOutSchema,
                           metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_cn_posixgroup_fields'
@@ -253,7 +264,6 @@ class CnGroupSchemaModify(GroupBaseSchema,
 
 
 class CnGroupSchemaCreate(GroupBaseSchema,
-                          BaseOutSchema,
                           metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_cn_posixgroup_fields'
@@ -263,12 +273,13 @@ class CnGroupSchemaCreate(GroupBaseSchema,
         return f'<{CnGroupSchemaCreate.__name__} {id(self)}>'
 
 
-class CnGroupSchemaList(GroupBaseSchema,
-                        OuterFields):
+class CnGroupSchemaList(Schema,
+                        OuterFields,
+                        PreDumpFromList):
     dn = fields.Str(dump_only=True)
     gidNumber = fields.Int(dump_only=True)
     objectClass = fields.List(fields.Str(dump_only=True), dump_only=True)
-    cn = fields.List(fields.Str(dump_only=True), dump_only=True)
+    cn = fields.Str(dump_only=True)
     memberUid = fields.List(fields.Str(dump_only=True), dump_only=True)
 
     def __repr__(self):
@@ -276,6 +287,6 @@ class CnGroupSchemaList(GroupBaseSchema,
 
 
 class CnGroupOutSchema(CnGroupSchemaList,
-                       BaseOutSchema):
+                       PreDumpToList):
     def __repr__(self):
         return f'<{CnGroupOutSchema.__name__} {id(self)}>'

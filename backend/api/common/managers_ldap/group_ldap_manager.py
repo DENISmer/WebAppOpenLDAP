@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pprint
+
 import orjson
 
 from flask_restful import abort
@@ -54,13 +56,15 @@ class GroupManagerLDAP(CommonManagerLDAP):
                 dn=dn,
                 filter=filter_group, #'(objectClass=posixGroup)',
                 attributes=attributes,
-                _connection=None,
+                _connection=self._connection,
             )
         except LDAPNoSuchObjectResult:
             if not abort_raise:
                 return None
             abort(404, message='Group not found.')
 
+        pprint.pprint(data)
+        print(type(data))
         group = CnGroupLdap(
             username=uid,
             **data,
@@ -84,3 +88,5 @@ class GroupManagerLDAP(CommonManagerLDAP):
             attributes=attributes,
             abort_raise=abort_raise
         )
+
+

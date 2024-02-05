@@ -237,5 +237,29 @@ def error_auth_ldap(func):
     return wraps
 
 
-def define_schema():
-    pass # must be done
+def define_schema(func):
+
+    @functools.wraps(func)
+    def wraps(*args, **kwargs):
+
+        print('#####FUNC#####')
+        print(func)
+        if hasattr(func, '__dict__'):
+            print()
+            print(dir(func))
+        print(func.__name__)
+        print('#####ARGS#####')
+        print(args)
+        if hasattr(args[0], '__dict__'):
+            print(args[0].__dict__)
+        print('#####KWARGS#####')
+        del kwargs['user_fields']
+        print(kwargs)
+
+        res = func(*args, **kwargs)
+
+        return res
+
+    return wraps
+
+

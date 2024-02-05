@@ -37,7 +37,7 @@ class UserManagerLDAP(CommonManagerLDAP):
                 dn=dn,
                 filter='(objectClass=person)',
                 attributes=attributes,
-                _connection=None,
+                _connection=self._connection,
             )
         except LDAPNoSuchObjectResult:
             if not abort_raise:
@@ -47,17 +47,13 @@ class UserManagerLDAP(CommonManagerLDAP):
         return UserLdap(username=uid, **data)
 
     def list(self, *args, **kwargs) -> List[UserLdap]:
-        users = []
-        # try:
+
         users = self.search(
             value=kwargs.get('value'),
             fields=kwargs.get('fields'),
             attributes=kwargs.get('attributes'),
             required_fields=kwargs.get('required_fields')
         )
-        # except LDAPException as e:
-        #     print('e:', e)
-        #     abort(400, message=str(e), status=400)
 
         if not users:
             return []
@@ -93,3 +89,11 @@ class UserManagerLDAP(CommonManagerLDAP):
 
         unique_ids = set(ids)
         return self.free_id.get_free_spaces(unique_ids)
+
+    def get_user_info_by_dn(self, dn, attributes=ALL_ATTRIBUTES):
+        return self.ldap_manager.get_object(
+            dn=dn,
+            filter='(objectClass=person)',
+            attributes=attributes,
+            _connection=self._connection,
+        )
