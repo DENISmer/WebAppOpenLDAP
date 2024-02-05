@@ -249,7 +249,7 @@ webadmins_cn_posixgroup_fields = {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
-            'required': ['create', 'update'],
+            'required': [],
         },
     }
 }

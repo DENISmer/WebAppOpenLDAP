@@ -72,7 +72,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             return []
         return self._connection.response
 
-    # @error_operation_ldap
+    @error_operation_ldap
     def create(self, item, operation):
 
         if item.fields is None:
