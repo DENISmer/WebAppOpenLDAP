@@ -88,7 +88,7 @@ class CnGroupLdap(UserCnAbstract):
             username=username,
             **kwargs,
         )
-        self.memberUid = kwargs.get('memberUid')
+        self.member = kwargs.get('member')
 
     def __repr__(self):
         return f'DN {self.dn}'

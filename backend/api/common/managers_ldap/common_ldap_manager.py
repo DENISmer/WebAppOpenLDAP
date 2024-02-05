@@ -70,8 +70,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         )
         if not status_search:
             return []
-
-        return self._connection.entries
+        return self._connection.response
 
     # @error_operation_ldap
     def create(self, item, operation):

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Dict, List
-import orjson
 
 from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE
 from ldap3.core.exceptions import (LDAPException,
@@ -9,14 +8,9 @@ from ldap3.core.exceptions import (LDAPException,
 from flask_restful import abort
 
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
-from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
-from backend.api.common.decorators import error_operation_ldap
-from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.groups import Group
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_fields
-from backend.api.config.ldap import config
 
 
 class UserManagerLDAP(CommonManagerLDAP):
@@ -25,7 +19,7 @@ class UserManagerLDAP(CommonManagerLDAP):
         super().__init__(*args, **kwargs)
         self.free_id = GetFreeId()
 
-    def item(self, uid, attributes=ALL_ATTRIBUTES, abort_raise=True) -> UserLdap | None:
+    def item(self, uid, attributes=ALL_ATTRIBUTES, abort_raise: bool = True) -> UserLdap | None:
 
         dn = 'uid={0},{1}'.format(
             uid,
@@ -60,16 +54,17 @@ class UserManagerLDAP(CommonManagerLDAP):
 
         return [
             UserLdap(
-                dn=user_json['dn'], **user_json['attributes']
+                dn=user['dn'], **user['attributes']
             )
-            for user in users if (user_json := orjson.loads(user.entry_to_json()))
+            for user in users
         ]
 
-    def is_webadmin(self, dn, groups) -> bool:
+    def is_webadmin(self, dn: str, groups: List[CnGroupLdap]) -> bool:
 
         if not groups:
             return False
-        member = groups[0]['attributes']['member']
+        member = groups[0].member
+
         if dn not in member:
             return False
 
@@ -90,7 +85,7 @@ class UserManagerLDAP(CommonManagerLDAP):
         unique_ids = set(ids)
         return self.free_id.get_free_spaces(unique_ids)
 
-    def get_user_info_by_dn(self, dn, attributes=ALL_ATTRIBUTES):
+    def get_user_info_by_dn(self, dn: str, attributes=ALL_ATTRIBUTES):
         return self.ldap_manager.get_object(
             dn=dn,
             filter='(objectClass=person)',

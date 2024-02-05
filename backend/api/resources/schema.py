@@ -26,7 +26,7 @@ class MissingFieldsValidation:
 class PreDumpToList:
     @pre_dump(pass_many=True)
     def to_value_list(self, out_data, many, **kwargs):
-        print('#########################')
+
         for key, _ in self._declared_fields.items():
             value = getattr(out_data, key)
             if not value:
@@ -34,21 +34,20 @@ class PreDumpToList:
             elif not isinstance(value, list):
                 value = [value]
 
-            print(key, value)
             setattr(out_data, key, value)
-        print('#########################')
         return out_data
 
 
 class PreDumpFromList:
     @pre_dump
     def from_list(self, out_value, many):
-        # # print(1)
+
         for key, value in self._declared_fields.items():
             if not isinstance(value, fields.List) \
                     and isinstance(getattr(out_value, key), list) \
                     and len(getattr(out_value, key)) > 0:
                 setattr(out_value, key, getattr(out_value, key)[0])
+
         return out_value
 
 
@@ -106,7 +105,8 @@ class Meta(SchemaMeta):
 
 
 class BaseSchema(Schema,
-                 MissingFieldsValidation):
+                 MissingFieldsValidation,
+                 PreDumpFromList):
     dn = fields.Str()
     cn = fields.Str()
     uidNumber = fields.Integer()
@@ -131,6 +131,10 @@ class BaseSchema(Schema,
 
         validate_uid_gid_number(data, errors)
         validate_required_fields(data, errors, self._declared_fields)
+
+        uid, dn = data.get('uid'), data.get('dn')
+        if uid and dn and (data['uid'] not in data['dn']):
+            errors['uid'] = ['The uid does not match the one specified in the dn field']
 
         if errors:
             raise ValidationError(errors)
@@ -191,9 +195,6 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
         
         validate_uid_gid_number(data, errors)
 
-        if data['uid'] not in data['dn']:
-            errors['uid'] = ['The uid does not match the one specified in the dn field']
-
         if errors:
             raise ValidationError(errors)
 
@@ -234,7 +235,7 @@ class TokenSchemaLdap(Schema):
 
 class GroupBaseSchema(Schema,
                       MissingFieldsValidation,
-                      PreDumpToList):
+                      PreDumpFromList):
     dn = fields.Str()
     gidNumber = fields.Int()
     objectClass = fields.List(fields.Str())
@@ -309,11 +310,21 @@ class MetaToList(SchemaMeta):
             cls._declared_fields[key] = new_field
 
 
-class BaseOutSchemaToList(BaseSchema,
-                          PreDumpToList):
+class BaseUserOutSchemaToList(BaseSchema,
+                              PreDumpToList):
     pass
 
 
-class UserOutSchemaToList(BaseOutSchemaToList,
+class UserOutSchemaToList(BaseUserOutSchemaToList,
                           metaclass=MetaToList):
+    pass
+
+
+class BaseCnGroupOutSchemaToList(GroupBaseSchema,
+                                 PreDumpToList):
+    pass
+
+
+class CnGroupOutSchemaToList(BaseCnGroupOutSchemaToList,
+                             metaclass=MetaToList):
     pass
