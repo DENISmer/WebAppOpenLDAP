@@ -4,12 +4,36 @@ import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
-import {getUsersList} from "@/scripts/requests/adminUserProvider";
+import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
 
+export interface userDataForEdit {
+    dn: string,
+    uidNumber: number,
+    gidNumber: number,
+    uid: string,
+    sshPublicKey: [],
+    st: string[],
+    mail: string[],
+    street: string[],
+    cn: string[],
+    displayName: string,
+    givenName: string[],
+    sn: string[],
+    postalCode: number[],
+    homeDirectory: string,
+    loginShell: string,
+    objectClass: string[]
+}
 interface CurrentEditor {
     token: string,
     role: string,
     uid: string,
+}
+interface CurrentSearchResponse {
+    items: [],
+    num_items: number,
+    num_pages: number,
+    page: number
 }
 
 export interface ListOfUsers {
@@ -25,6 +49,11 @@ export interface Params {
     pageNumber: number,
     token: string
 }
+
+export interface IeEditing {
+    isEditing: boolean,
+    uid: string
+}
 const WorkRoom: React.FC = () => {
 
     const [subject,setSubject] = useState();
@@ -36,31 +65,39 @@ const WorkRoom: React.FC = () => {
     const [currentEditor, setCurrentEditor] = useState<CurrentEditor>()
     const [searchValue, setSearchValue] = useState<string>('')
     let optionRef = useRef<any>(null)
-    const [isEditing, setIsEditing] = useState(false)
-    const [currentListPage, setCurrentListPage] = useState(0)
+    const [isEditing, setIsEditing] = useState<IeEditing>({isEditing: false, uid: undefined})
+    const [currentListPage, setCurrentListPage] = useState(1)
+    const [pagesCount, setPagesCount] = useState<number>()
+    const [userForEditAdmin, setUserForEditAdmin] = useState<userDataForEdit>(null)
+    const [editedUser, setEditedUser] = useState<userDataForEdit>(null)
     // const [currentUser, setCurrentUser] = useState({})
     const fillUsersList = async (props: Params) => {
         return await getUsersList(props)
     }
 
+    const getUserData = async (uid: string) => {
+        return await getUserDataByUid_Admin(uid)
+    }
+
     const pageSwitch = (next: boolean) => {
-        next ? setCurrentListPage(currentListPage + 1) :
+        next ? currentListPage < pagesCount && setCurrentListPage(currentListPage + 1) :
             currentListPage > 1 && setCurrentListPage(currentListPage - 1)
     }
 
     useEffect(() => {
         try{
             fillUsersList({value : searchValue,pageNumber: currentListPage,token : userAuthCookies['userAuth'].token})
-                .then((response: any)=> {
-                    if (response.status === 200) {
+                .then((response) => {
+                    if (response && response.status && response.status === 200) {
                         response.data.items && setSearchResult1(response.data.items)
                         response.data.page && setCurrentListPage(response.data.page)
+                        response.data.num_pages && setPagesCount(response.data.num_pages)
                     }
                     else {
                         console.log(response)
                     }
                 })
-        } catch { (e) => {
+        } catch { (e: any) => {
             console.log(e)
         } }
     }, [searchValue,currentListPage])
@@ -79,44 +116,82 @@ const WorkRoom: React.FC = () => {
         console.log(userAuthCookies['userAuth'])
     }, []);
 
+    useEffect(() => {
+        if(isEditing.isEditing && isEditing.uid){
+            getUserData(isEditing.uid)
+                .then((response) => {
+                    console.log(response)
+                    setUserForEditAdmin(response)
+                    setEditedUser(response)
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        }
+    }, [isEditing]);
+
+
+    // events for event Changes!
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setEditedUser({ ...editedUser, [name]: value });
+    };
+
+    const isFieldChanged = (fieldName: keyof userDataForEdit) => {
+        console.log(editedUser[fieldName], userForEditAdmin[fieldName])
+        return editedUser[fieldName] !== userForEditAdmin[fieldName];
+    };
+
     const testMethod = () => {
         searchResult ? setViewFields(settingFieldsToChange(searchResult[0]).publicMethod()) : null
     }
 
     return (<>
         <div className={WR_S.Page}>
-            <div className={WR_S.Admin_Panel}>
-                <div className={WR_S.menu}>
-                    <div className={WR_S.logout} onClick={() => {
-                        removeCookie('userAuth')
-                        navigate('/login')
-                    }}>выйти</div>
-                    <div className={WR_S.Admin_Profile}>профиль</div>
+            <div className={WR_S.menu}>
+                <div className={WR_S.logout} onClick={() => {
+                    removeCookie('userAuth')
+                    navigate('/login')
+                }}>выйти
                 </div>
-                {currentEditor && currentEditor.role === 'webadmins' && <div>
-                    <input list={"browsers"} type={"text"} className={WR_S.select}
-                           placeholder={'Введите имя'}
-                           value={searchValue}
-                           onChange={(e) => {
-                               setSearchValue(e.target.value)
-                           }}
-                    />
-                    <div className={WR_S.pageSelect}>
-                        page <div onClick={() => pageSwitch(false)}>{`<`}</div>
-                        {currentListPage}
-                        <div onClick={() => pageSwitch(true)}>{`>`}</div>
-                    </div>
-                    <div className={WR_S.SearchList}>
-                        {searchResult1 && searchResult1.map((element, index) => (
-                            <div className={WR_S.UsersListItem} key={index} ref={optionRef}>
-                                {element.cn + " | " + element.sn + " | " + element.uid
-                                    + " | " + element.gidNumber}
+                <div className={WR_S.Admin_Profile}>профиль</div>
+            </div>
 
-                            </div>)
-                        )}
-                    </div>
+            {currentEditor && currentEditor.role === 'webadmins' &&
+                isEditing && !isEditing.isEditing && <div className={WR_S.Admin_Panel}>
+                {/*menu*/}
 
-                </div>}
+                {/*seacrh and list of users*/}
+                <div>
+                        <input list={"browsers"} type={"text"} className={WR_S.select}
+                               placeholder={'Введите имя'}
+                               value={searchValue}
+                               onChange={(e) => {
+                                   setSearchValue(e.target.value)
+                               }}
+                        />
+
+                        <div className={WR_S.pageSelect}>
+                            page <div onClick={() => pageSwitch(false)}>{`<`}</div>
+                            {currentListPage}
+                            <div onClick={() => pageSwitch(true)}>{`>`}</div>
+                        </div>
+
+                        <div className={WR_S.SearchList}>
+                            {searchResult1 && searchResult1.map((element, index) => (
+                                <div className={WR_S.UsersListItem}
+                                     key={index}
+                                     ref={optionRef}
+                                >
+                                    {element.cn + " | " + element.sn + " | " + element.uid
+                                        + " | " + element.gidNumber}
+                                    <button onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
+                                    </button>
+                                </div>)
+                            )}
+                        </div>
+
+                    </div>
                 {/*showing current user information*/}
                 {subject && searchResult[0] ? <div className={WR_S.AdminCurrentUser}>
                     {/*takes current user object*/}
@@ -138,31 +213,40 @@ const WorkRoom: React.FC = () => {
                     ))}
                     <button onClick={() => testMethod()}>подтвердить выбор</button>
                 </div> : null}
-            </div>
+            </div>}
 
-            {isEditing && <div className={WR_S.Admin_UseProfile}>
-                {viewFields && Object.keys(viewFields).map((obj, indexOfAll) => (
-                    <div> {[obj]}
-                        {typeof viewFields[obj] === "object" && viewFields[obj].length > 0 ?
-                            viewFields[obj].map((field, index) => (
-                                field.length > 20 ?
-                                    <div className={WR_S.field}>{indexOfAll + '.' + (index + 1)}
-                                        <textarea value={field} key={index} cols={10} rows={2}></textarea>
-                                    </div>
-                                    :
-                                    <div className={WR_S.field}>{indexOfAll + '.' + (index + 1)}
-                                        <input value={field} key={index}/>
-                                    </div>
-                            ))
-                            :
-                            <div className={WR_S.field}>{indexOfAll + 1}
-                                <input value={viewFields[obj]} key={indexOfAll}/>
-                            </div>}
+            {isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+                {Object.keys(editedUser).map((obj, indexOfAll) => (
+                    <div style={{maxWidth: "24%"}}>
+                        {/*NO DAVE*/}
+                        {editedUser[obj] && typeof editedUser[obj] !== "object" &&
+                        <div className={WR_S.field}>
+                            <div>{[obj]}</div>
+                            <input type={typeof editedUser[obj] === "number" ? "number" : "text"}
+                                   name={obj}
+                                   value={(editedUser as any)[obj]}
+                                   onChange={handleInputChange}
+                                   className={isFieldChanged(obj as keyof userDataForEdit) ? WR_S.input_changed : null}
+                            />
+                            {/*{isFieldChanged(obj as keyof userDataForEdit) ? <span>Изменено</span> : null}*/}
+                        </div>}
+
+                        {/* for object*/}
+                        {typeof userForEditAdmin[obj] === 'object' && userForEditAdmin[obj] !== null && userForEditAdmin[obj].length > 1 &&
+                            userForEditAdmin[obj].map((item, index) =>(
+                                <div className={WR_S.field}>
+                                    {[index]}
+                                    <input type="text" value={item}/>
+                                </div>)
+                            )
+                        }
                     </div>
                 ))}
-                <button className={WR_S.submitButton} onClick={() => console.log(currentEditor)}>сохранить изменения
+                <button className={WR_S.submitButton} onClick={() => console.log(editedUser)}>сохранить изменения
                 </button>
-                <button className={WR_S.cancelChanges}>отменить изменения</button>
+                <button className={WR_S.cancelChanges}
+                        onClick={() => setIsEditing({isEditing: false, uid: null})}>отменить изменения
+                </button>
             </div>}
         </div>
     </>)
