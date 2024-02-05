@@ -60,6 +60,7 @@ class GroupOpenLDAPResource(Resource):
         group_schema = kwargs['group_schema']
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_cn)
+        print(group.cn)
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)
         return serialized_data, 200
 
