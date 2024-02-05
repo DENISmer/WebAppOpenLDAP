@@ -61,7 +61,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             search_filter,
             required_filter
         )
-        print(common_filter)
+        # print(common_filter)
         # exception connection is open!!!!!
         status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
@@ -121,21 +121,11 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
                 )]
             })
 
-        pprint.pprint(modify_dict)
         self._connection.modify(
             item.dn,
             modify_dict
         )
-        # self._connection.modify(
-        #     item.dn,
-        #     {
-        #         key: [(
-        #             MODIFY_REPLACE,
-        #             value if type(value) == list else [value]
-        #         )]
-        #         for key, value in serialized_data_modify.items()
-        #     }
-        # )
+
         print('result modify:', self._connection.result)
 
         res = self._connection.result

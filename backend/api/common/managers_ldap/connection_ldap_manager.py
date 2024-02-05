@@ -17,7 +17,7 @@ class ConnectionManagerLDAP:
         self.user = user
         self.ldap_manager = ManagerLDAP()
 
-    # @error_operation_ldap
+    @error_operation_ldap
     def make_connection(self):
         self.connection = self.ldap_manager.make_connection(
             bind_user=self.user.dn,

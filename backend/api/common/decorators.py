@@ -47,19 +47,19 @@ def connection_ldap(func):
 
             print('current_user', current_user)
             connection = ConnectionManagerLDAP(
-                UserLdap(
-                    dn=current_user['dn'],
-                )
                 # UserLdap(
-                #     dn='uid=bob,ou=People,dc=example,dc=com',
-                #     username='bob',
-                #     userPassword='bob',
+                #     dn=current_user['dn'],
                 # )
+                UserLdap( # REMOVE
+                    dn='uid=bob,ou=People,dc=example,dc=com',
+                    username='bob',
+                    userPassword='bob',
+                )
             )
-
+            # print(1)
             setattr(args[0], 'connection', connection)
         # connection.show_connections()
-        # connection.create_connection()
+        connection.create_connection() # REMOVE
         connection.connect()
 
         res = func(*args, **kwargs)
