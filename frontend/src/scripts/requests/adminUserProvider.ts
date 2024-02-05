@@ -4,18 +4,16 @@ import {APIS} from "@/scripts/constants";
 
 export async function getUsersList(props: Params) {
     console.log(props.token)
-    const request = axios.get(APIS.USERS,{
+    const request = axios.get(`${APIS.USERS}?search=${props.value}&page=${props.pageNumber}`,{
         headers: {
             Authorization: `Bearer ${props.token}`
-        }
-    })
-        .then((response) => {
-           console.log(response)
+        },
+    }
+    ).then((response) => {
+           return response
         })
         .catch((e) => {
-            console.log(e.message)
+            e.response
         })
-
-    console.log(request)
-
+    return request
 }

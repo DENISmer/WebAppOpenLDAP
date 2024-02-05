@@ -1,6 +1,7 @@
 declare module '*.jpg';
 declare module '*.png';
 declare module "*.css";
+declare module "*.gif"
 // declare module "*.scss";
 // declare module "*.module.scss";
 declare let XDomainRequest;

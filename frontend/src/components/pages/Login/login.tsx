@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import {useNavigate} from "react-router";
 import setAuthToken, {AuthParams, UserAuth} from "@/scripts/requests/auth";
 import {useCookies} from "react-cookie";
+import loadingGif from "@/assets/icons/h6viz.gif";
 const Login = () => {
 
     const [showPass,setShowPass] = useState(true)
@@ -14,6 +15,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [authError, setAuthError] = useState(false)
     const [attemptCounter, setAttemptCounter] = useState(7)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         //setUserAuthCookie('userAuth', undefined)
@@ -44,25 +46,30 @@ const Login = () => {
 
     const setCurrentUserCookie = async (e) => {
         e.preventDefault()
-        setAttemptCounter(attemptCounter - 1)
         if(attemptCounter > 0){
             if(password && username && (password.length >= 3 && username.length >= 2)){
                 try {
+                    setLoading(true)
                     const userData: UserAuth | undefined = await sendParams(username, password)
                     if(userData.status === 200){
                         setUserAuthCookie('userAuth', userData, {maxAge: 1330})
                         setAuthError(false)
+                        setLoading(false)
                         navigate("/")
                     }
                     else {
+                        setAttemptCounter(attemptCounter - 1)
                         setAuthError(true)
+                        setLoading(false)
                     }
                 } catch (e){
                     setAuthError(true)
+                    setLoading(false)
                     console.log(e.message,'Auth failed')
                 }
             } else {
                 setAuthError(true)
+                setLoading(false)
             }
         } else {
             setUserAuthCookie('userAttempt', false, {maxAge: 10})
@@ -114,9 +121,10 @@ const Login = () => {
                         id={"submit"}
                         value={"Login"}
                         type={"submit"}
-                />
+                />{loading && <img src={loadingGif}/>}
                 {userAuthCookies['userAttempt'] !== undefined && !userAuthCookies['userAttempt'] && <p style={{color: 'red', marginBottom: '10px'}}>Слишком много попыток. Перезайгрузите страницу и попробуйте позже</p>}
-            </form>
+                </form>
+
         </div>
     </div>
     </>)

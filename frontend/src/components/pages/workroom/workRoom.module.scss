@@ -4,15 +4,24 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
+  display: flex;
+  flex-direction: column;
   font-family: "Roboto Thin", sans-serif;
-  .Admin_listOfUsers{
+  .Admin_Panel{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin: 1rem 1rem 0 1rem;
     width: 100%;
-    height: 200px;
+    height: 80%;
     font-size: 15px;
+    //overflow: auto;
+    padding-top: 80px;
     .select{
+      top: 45px;
+      position: absolute;
+      border: none;
+      border-bottom: 1px slategrey solid;
       margin: 1rem 0 0 1rem;
       width: 300px;
       max-width: 300px;
@@ -20,7 +29,21 @@
       height: 30px;
       font-size: 15px;
     }
+    .pageSelect {
+      position: absolute;
+      top: 100px;
+      display: flex;
+      flex-direction: row;
+      div{
+        margin: 0 7px 0 7px;
+        background-color: #a0bbd9;
+        width: 15px;
+        cursor: pointer;
+      }
+    }
     .menu {
+      top: 10px;
+      position: absolute;
       width: 150px;
       height: 30px;
       background-color: #1e2e4b;
@@ -28,7 +51,6 @@
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      padding: 0.3rem;
       border-radius: 6px;
       .logout{
         position: relative;
@@ -60,26 +82,25 @@
         }
       }
     }
-    .AdminCurrentUser {
-      width: 300px;
-      max-width: 300px;
-      min-width: 150px;
+    .SearchList {
       display: flex;
       flex-direction: column;
-      padding: 5px;
-      margin: 3rem 0 0 1rem;
-      position: relative;
-      height: max-content;
-      border-radius: 10px;
+      align-items: center;
+      margin-top: 60px;
+      width: 70vw;
+      height: 900px;
+      max-height: 80%;
+      overflow: auto;
+    }
+    .UsersListItem{
+      padding: 10px;
+      width: 94%;
+      height: auto;
+      min-height: 20px;
+      max-height: max-content;
       background-color: #a0bbd9;
-      .CurrentUserName {
-        font-weight: bold;
-        margin: 1rem;
-      }
-      .CurrentUserUid {
-        font-weight: normal;
-        margin: 0.5rem;
-      }
+      border-radius: 10px;
+      margin-top: 10px;
     }
   }
   .Admin_UseProfile {
