@@ -28,8 +28,6 @@ class UserCnAbstract(ABC):
         if not operation == 'read' and res.get('dn'):
             del res['dn']
 
-        pprint.pprint(res)
-
         return res
 
     def get_username(self):

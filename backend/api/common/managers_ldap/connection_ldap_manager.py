@@ -73,7 +73,6 @@ class ConnectionManagerLDAP:
         :return: None
         """
         self.connection.unbind()
-        # del self._connections[self.user.dn]
 
     def clear(self):
         """

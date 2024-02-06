@@ -1,3 +1,6 @@
+import logging
+import time
+
 from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
@@ -114,7 +117,7 @@ class UserOpenLDAPResource(Resource):
         user_fields = kwargs['user_fields']
 
         deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
-        print('deserialized_data', deserialized_data)
+
         user = self.__modify_user_group(
             username_uid=username_uid,
             deserialized_data=deserialized_data,
@@ -241,7 +244,7 @@ class UserListOpenLDAPResource(Resource):
         )
 
         found_user = user_obj.get_user_info_by_dn(user.dn, [])
-        print(found_user)
+
         if found_user:
             abort(400, fields={'dn': 'The user already exists'}, status=400)
 

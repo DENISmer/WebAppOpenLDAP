@@ -51,7 +51,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
         except LDAPNoSuchObjectResult:
             if not abort_raise:
                 return None
-            abort(404, message='Group not found.')
+            abort(404, message='Group not found.', status=404)
 
         group = CnGroupLdap(
             username=uid,
