@@ -47,7 +47,8 @@ class PreDumpFromList:
                     and isinstance(getattr(out_value, key), list) \
                     and len(getattr(out_value, key)) > 0:
                 setattr(out_value, key, getattr(out_value, key)[0])
-
+            elif isinstance(value, fields.List) and not getattr(out_value, key):
+                setattr(out_value, key, [])
         return out_value
 
 
@@ -237,7 +238,7 @@ class GroupBaseSchema(Schema,
     gidNumber = fields.Int()
     objectClass = fields.List(fields.Str())
     cn = fields.Str()
-    memberUid = fields.List(fields.Str())
+    memberUid = fields.Str()
 
     @validates('gidNumber')
     def validate_gid_number(self, value):
@@ -280,7 +281,7 @@ class CnGroupSchemaList(Schema,
     gidNumber = fields.Int(dump_only=True)
     objectClass = fields.List(fields.Str(dump_only=True), dump_only=True)
     cn = fields.Str(dump_only=True)
-    memberUid = fields.List(fields.Str(dump_only=True), dump_only=True)
+    memberUid = fields.Str(dump_only=True)
 
     def __repr__(self):
         return f'<{CnGroupSchemaList.__name__} {id(self)}>'

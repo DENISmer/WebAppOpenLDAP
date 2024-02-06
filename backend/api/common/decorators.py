@@ -58,10 +58,12 @@ def connection_ldap(func):
                 )
             )
             # print(1)
+
             setattr(args[0], 'connection', connection)
         # connection.show_connections()
         connection.create_connection() # REMOVE
         connection.connect()
+        # print(connection)
         # connection.show_connections()
         res = func(*args, **kwargs)
         connection.close()
@@ -155,8 +157,8 @@ def error_operation_ldap(func):
         object_item = kwargs.get('item')
 
         try:
-            from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
-            ConnectionManagerLDAP().show_connections()
+            # from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
+            # ConnectionManagerLDAP().show_connections()
             res = func(*args, **kwargs)
 
         except LDAPInsufficientAccessRightsResult as e:
@@ -254,19 +256,19 @@ def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
-        print('#####FUNC#####')
-        print(func)
-        if hasattr(func, '__dict__'):
-            print()
-            print(dir(func))
-        print(func.__name__)
-        print('#####ARGS#####')
-        print(args)
-        if hasattr(args[0], '__dict__'):
-            print(args[0].__dict__)
-        print('#####KWARGS#####')
-        del kwargs['user_fields']
-        print(kwargs)
+        # print('#####FUNC#####')
+        # print(func)
+        # if hasattr(func, '__dict__'):
+        #     print()
+        #     print(dir(func))
+        # print(func.__name__)
+        # print('#####ARGS#####')
+        # print(args)
+        # if hasattr(args[0], '__dict__'):
+        #     print(args[0].__dict__)
+        # print('#####KWARGS#####')
+        # del kwargs['user_fields']
+        # print(kwargs)
 
         res = func(*args, **kwargs)
 

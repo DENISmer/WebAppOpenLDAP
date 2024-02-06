@@ -92,3 +92,12 @@ class CnGroupLdap(UserCnAbstract):
 
     def __repr__(self):
         return f'DN {self.dn}'
+
+
+class GroupWebAdmins:
+    def __init__(self, *args, **kwargs):
+        self.dn = kwargs.get('dn')
+        self.objectClass = kwargs.get('objectClass')
+        self.sn = kwargs.get('sn')
+        self.member = kwargs.get('member') or []
+        self.type = kwargs.get('type')

@@ -1,5 +1,3 @@
-import pprint
-
 from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
@@ -15,7 +13,6 @@ from backend.api.config.fields import (search_fields,
 
 from backend.api.common.roles import Role
 from backend.api.resources import schema
-from backend.api.resources.schema import UserOutSchemaToList
 
 
 @auth.get_user_roles  # roles
@@ -53,21 +50,20 @@ class UserOpenLDAPResource(Resource):
             **deserialized_data,
         )
 
-        # if updated_user.uid is not None and username_uid not in updated_user.uid:
-        #     updated_user.uid.append(username_uid)
-
         if updated_user.uidNumber:
-            updated_user.gidNumber = updated_user.uidNumber
+            deserialized_data['gidNumber'] = \
+                updated_user.gidNumber = updated_user.uidNumber
         if updated_user.gidNumber:
-            updated_user.uidNumber = updated_user.gidNumber
+            deserialized_data['uidNumber'] = \
+                updated_user.uidNumber = updated_user.gidNumber
 
         user_obj.modify(
             item=updated_user,
             operation=operation,
             not_modify_item=user
         )
-
-        group = group_obj.get_group_info_posix_group(username_uid, abort_raise=False)
+        # self.connection.connection.bind()
+        group = group_obj.get_group_info_posix_group(username_uid, attributes=[], abort_raise=False)
 
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
@@ -77,6 +73,22 @@ class UserOpenLDAPResource(Resource):
                 item=group,
                 operation=operation,
             )  # must be test
+        elif not group:
+            new_group = CnGroupLdap(
+                cn=username_uid,
+                memberUid=username_uid,
+                objectClass=['posixGroup'],
+                gidNumber=updated_user.gidNumber,
+                fields=webadmins_cn_posixgroup_fields['fields'],
+            )
+            new_group.dn = 'cn={0},{1}'.format(
+                username_uid,
+                str(group_obj.ldap_manager.full_group_search_dn)
+            )
+            group_obj.create(
+                item=new_group,
+                operation='create',
+            )
 
         # update info user
         user.__dict__.update(deserialized_data)
@@ -217,14 +229,14 @@ class UserListOpenLDAPResource(Resource):
             **deserialized_data
         )
         group = CnGroupLdap(
-            cn=user.cn,
-            member=user.uid,
+            cn=user.uid,
+            memberUid=user.uid,
             objectClass=['posixGroup'],
             gidNumber=user.gidNumber,
             fields=webadmins_cn_posixgroup_fields['fields'],
         )
         group.dn = 'cn={0},{1}'.format(
-            user.cn,
+            user.uid,
             str(group_obj.ldap_manager.full_group_search_dn)
         )
 
@@ -240,13 +252,14 @@ class UserListOpenLDAPResource(Resource):
         )
 
         found_group = group_obj.get_group_info_posix_group(user.cn, [], abort_raise=False)
-        if not found_group:
-            group_obj.create(
-                item=group,
-                operation='create',
-            )
+        if found_group:
+            group_obj.delete(found_group)
 
-        # if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
+        group_obj.create(
+            item=group,
+            operation='create',
+        )
+
         user_obj.free_id.del_from_reserved(user.gidNumber)
 
         serialized_users = self.serializer.serialize_data(user_schema, user)

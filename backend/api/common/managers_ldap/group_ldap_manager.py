@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import List
+
 from flask_restful import abort
 from ldap3 import ALL_ATTRIBUTES
 from ldap3.core.exceptions import (LDAPException,
@@ -7,7 +9,7 @@ from ldap3.core.exceptions import (LDAPException,
 
 from backend.api.common.groups import Group
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
-from backend.api.common.user_manager import CnGroupLdap
+from backend.api.common.user_manager import CnGroupLdap, GroupWebAdmins
 from backend.api.config.fields import webadmins_cn_posixgroup_fields
 
 
@@ -45,12 +47,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
             ['(objectClass=%s)' % group for group in type_group])
         )
         try:
-            data = self.ldap_manager.get_object(
-                dn=dn,
-                filter=filter_group, #'(objectClass=posixGroup)',
-                attributes=attributes,
-                _connection=self._connection,
-            )
+            data = self.search_by_dn(dn=dn, filters=filter_group, attributes=attributes)
         except LDAPNoSuchObjectResult:
             if not abort_raise:
                 return None
@@ -58,12 +55,13 @@ class GroupManagerLDAP(CommonManagerLDAP):
 
         group = CnGroupLdap(
             username=uid,
-            **data,
+            dn=data['dn'],
+            **data['attributes'],
             fields=fields['fields']
         )
         return group
 
-    def get_webadmins_groups(self) -> list:
+    def get_webadmins_groups(self) -> List[GroupWebAdmins]:
         groups = self.search(
             value=Group.WEBADMINS.value,
             fields={'cn': '%s'},
@@ -71,7 +69,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
         )
 
         return [
-            CnGroupLdap(dn=group['dn'], **group['attributes'])
+            GroupWebAdmins(dn=group['dn'], **group['attributes'])
             for group in groups
         ]
 
@@ -82,5 +80,3 @@ class GroupManagerLDAP(CommonManagerLDAP):
             attributes=attributes,
             abort_raise=abort_raise
         )
-
-

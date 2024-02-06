@@ -109,7 +109,7 @@ Run celery (example):
             "gidNumber": 10000,
             "cn": "testuser",
             "objectClass": ["posixGroup"],
-            "memberUid": ["testuser"]
+            "memberUid": "testuser"
         }
     ]
 }
@@ -124,7 +124,7 @@ Run celery (example):
     "gidNumber": 10000,
     "cn": "testuser",
     "objectClass": ["posixGroup"],
-    "memberUid": ["testuser"]
+    "memberUid": "testuser"
 }
 ```
 **status code**: 200
@@ -136,7 +136,7 @@ Run celery (example):
     "gidNumber": required,
     "cn": required,
     "objectClass": [required],
-    "memberUid": [required]
+    "memberUid": required
 }
 ```
 **status code**: 201
@@ -147,7 +147,7 @@ Run celery (example):
     "gidNumber": nonrequired,
     "cn": nonrequired,
     "objectClass": [nonrequired],
-    "memberUid": [nonrequired]
+    "memberUid": nonrequired
 }
 ```
 **status code**: 200
@@ -159,7 +159,7 @@ Run celery (example):
       "gidNumber": required,
       "cn": required,
       "objectClass": [required],
-      "memberUid": [required]
+      "memberUid": required
   }
   ```
 **status code**: 200
