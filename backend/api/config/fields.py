@@ -246,7 +246,7 @@ webadmins_cn_posixgroup_fields = {
             'required': ['create', 'update'],
         },
         'memberUid': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': [],

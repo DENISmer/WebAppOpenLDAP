@@ -86,6 +86,6 @@ class ConnectionManagerLDAP:
         return (f'<Connection('
                 f'user={self.connection.user}; '
                 f'password={self.connection.password}; '
-                f'closed={self.connection.closed}'
+                f'closed={self.connection.closed} '
                 f'listening={self.connection.listening}'
                 f')>')

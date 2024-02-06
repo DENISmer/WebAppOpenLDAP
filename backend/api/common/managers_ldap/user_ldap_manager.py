@@ -9,7 +9,7 @@ from flask_restful import abort
 
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.user_manager import UserLdap, CnGroupLdap
+from backend.api.common.user_manager import UserLdap, CnGroupLdap, GroupWebAdmins
 from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_fields
 
 
@@ -27,18 +27,13 @@ class UserManagerLDAP(CommonManagerLDAP):
         )
         data = {}
         try:
-            data = self.ldap_manager.get_object(
-                dn=dn,
-                filter='(objectClass=person)',
-                attributes=attributes,
-                _connection=self._connection,
-            )
+            data = self.search_by_dn(dn=dn, filters='(objectClass=person)', attributes=attributes)
         except LDAPNoSuchObjectResult:
             if not abort_raise:
                 return None
             abort(404, message='User not found.', status=404)
 
-        return UserLdap(username=uid, **data)
+        return UserLdap(username=uid, dn=data['dn'], **data['attributes'])
 
     def list(self, *args, **kwargs) -> List[UserLdap]:
 
@@ -59,12 +54,11 @@ class UserManagerLDAP(CommonManagerLDAP):
             for user in users
         ]
 
-    def is_webadmin(self, dn: str, groups: List[CnGroupLdap]) -> bool:
+    def is_webadmin(self, dn: str, groups: List[GroupWebAdmins]) -> bool:
 
         if not groups:
             return False
-        member = groups[0].member
-
+        member = groups[0].member or []
         if dn not in member:
             return False
 

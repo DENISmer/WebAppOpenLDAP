@@ -15,6 +15,7 @@ class IniCommonManagerLDAP:
         connection = kwargs.get('connection')
         self.ldap_manager: ManagerLDAP = connection.ldap_manager
         self._connection = connection.connection
+        self.connection_con = connection.connection
 
 
 class CommonManagerLDAP(IniCommonManagerLDAP):
@@ -74,10 +75,9 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
     @error_operation_ldap
     def create(self, item, operation):
-        from ldap3.core.exceptions import LDAPException
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
-        raise LDAPException(item)
+
         self._connection.add(
             item.dn,
             attributes=item.serialize_data(
@@ -95,7 +95,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         return item
 
-    @error_operation_ldap
+    # @error_operation_ldap
     def modify(self,  item, operation, not_modify_item=None):
 
         serialized_data_modify = item.serialize_data(
@@ -103,10 +103,9 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         )
 
         modify_dict = dict()
-        print(serialized_data_modify)
+
         for key, value in serialized_data_modify.items():
-            if not str(value).isdigit() \
-                    and (value is None or len(value) == 0 or len(str(value)) == 0) \
+            if (value is None or ((isinstance(value, list) or isinstance(value, str)) and (len(value) == 0 or len(str(value)) == 0))) \
                     and getattr(not_modify_item, key) \
                     and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE
@@ -121,7 +120,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
                     tmp_value
                 )]
             })
-        pprint.pprint(modify_dict)
+
         self._connection.modify(
             item.dn,
             modify_dict
@@ -145,3 +144,14 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         res = self._connection.result
         if 'success' not in res['description']:
             abort(400, message=f'Error deletion {item.dn}')
+
+    def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):
+        status_search = self._connection.search(
+            search_base=dn,
+            search_filter=filters,
+            attributes=attributes,
+        )
+        if not status_search:
+            return None
+        print(self._connection.response)
+        return self._connection.response[0]
