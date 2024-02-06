@@ -1,10 +1,10 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {test} from "@/assets/users_from_ldap";
 import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
 import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
+import loadingGif from "@/assets/icons/h6viz.gif"
 
 export interface userDataForEdit {
     dn: string,
@@ -70,6 +70,7 @@ const WorkRoom: React.FC = () => {
     const [pagesCount, setPagesCount] = useState<number>()
     const [userForEditAdmin, setUserForEditAdmin] = useState<userDataForEdit>(null)
     const [editedUser, setEditedUser] = useState<userDataForEdit>(null)
+    const [listLoading, setListLoading] = useState<boolean>(false)
     // const [currentUser, setCurrentUser] = useState({})
     const fillUsersList = async (props: Params) => {
         return await getUsersList(props)
@@ -85,6 +86,7 @@ const WorkRoom: React.FC = () => {
     }
 
     useEffect(() => {
+        setListLoading(true)
         try{
             fillUsersList({value : searchValue,pageNumber: currentListPage,token : userAuthCookies['userAuth'].token})
                 .then((response) => {
@@ -92,6 +94,7 @@ const WorkRoom: React.FC = () => {
                         response.data.items && setSearchResult1(response.data.items)
                         response.data.page && setCurrentListPage(response.data.page)
                         response.data.num_pages && setPagesCount(response.data.num_pages)
+                        setListLoading(false)
                     }
                     else {
                         console.log(response)
@@ -172,13 +175,18 @@ const WorkRoom: React.FC = () => {
                         />
 
                         <div className={WR_S.pageSelect}>
-                            page <div onClick={() => pageSwitch(false)}>{`<`}</div>
+                            page <button onClick={() => pageSwitch(false)}
+                                         disabled={listLoading || currentListPage === 1}>{`<`}</button>
+
                             {currentListPage}
-                            <div onClick={() => pageSwitch(true)}>{`>`}</div>
+
+                            <button onClick={() => pageSwitch(true)}
+                                    disabled={listLoading || currentListPage === pagesCount}>{`>`}</button>
                         </div>
+                        {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
 
                         <div className={WR_S.SearchList}>
-                            {searchResult1 && searchResult1.map((element, index) => (
+                            {!listLoading && searchResult1 && searchResult1.map((element, index) => (
                                 <div className={WR_S.UsersListItem}
                                      key={index}
                                      ref={optionRef}
