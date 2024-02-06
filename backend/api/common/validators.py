@@ -40,6 +40,5 @@ def validate_required_fields(data, errors, declared_field):
 def validate_uid_dn(data, errors):
 
     uid, dn = data.get('uid'), data.get('dn')
-    print('uid, dn', uid, dn)
     if uid and dn and (data['uid'] not in data['dn']):
         errors['uid'] = ['The uid does not match the one specified in the dn field']

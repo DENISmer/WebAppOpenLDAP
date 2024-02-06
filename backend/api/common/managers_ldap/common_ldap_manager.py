@@ -15,7 +15,7 @@ class IniCommonManagerLDAP:
         connection = kwargs.get('connection')
         self.ldap_manager: ManagerLDAP = connection.ldap_manager
         self._connection = connection.connection
-        self.connection_con = connection.connection
+        self.connection_upwrap = connection
 
 
 class CommonManagerLDAP(IniCommonManagerLDAP):
@@ -153,5 +153,5 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         )
         if not status_search:
             return None
-        print(self._connection.response)
+
         return self._connection.response[0]

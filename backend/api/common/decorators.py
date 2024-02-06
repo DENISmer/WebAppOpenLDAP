@@ -1,6 +1,7 @@
 import functools
 import pprint
 import logging
+import time
 
 from flask_restful import abort
 
@@ -38,7 +39,7 @@ def connection_ldap(func):
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-
+        print('##########  REQUEST ###########')
         # args[0] - self of the function
         connection = getattr(args[0], 'connection')
         if hasattr(args[0], 'connection') or not connection:
@@ -63,9 +64,14 @@ def connection_ldap(func):
         # connection.show_connections()
         connection.create_connection() # REMOVE
         connection.connect()
-        # print(connection)
+        print(connection)
         # connection.show_connections()
-        res = func(*args, **kwargs)
+
+        start = time.perf_counter()
+        res = func(*args, **kwargs) ####
+        end = time.perf_counter()
+        print(f'Time of work func {func.__name__} : {(end - start):.4f}s')
+
         connection.close()
         # connection.clear()
         return res
@@ -157,15 +163,18 @@ def error_operation_ldap(func):
         object_item = kwargs.get('item')
 
         try:
-            # from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
-            # ConnectionManagerLDAP().show_connections()
+            error = True
             res = func(*args, **kwargs)
-
+            error = False
         except LDAPInsufficientAccessRightsResult as e:
             print('##LDAPInsufficientAccessRightsResult##')
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(403, message='Insufficient access rights', status=403)
+            abort(
+                403,
+                message='Insufficient access rights',
+                status=403
+            )
         except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
             print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
             print(e)
@@ -173,7 +182,12 @@ def error_operation_ldap(func):
             fields = {
                 'dn': [f'Invalid field, {e}'],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPObjectClassError as e:
             print('##LDAPObjectClassError##')
             print(str(e))
@@ -182,7 +196,12 @@ def error_operation_ldap(func):
             fields = {
                 'objectClass': [str(e)],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPAttributeError as e:
             print('##LDAPATTRERROR##')
             pprint.pprint(e.__dict__)
@@ -194,7 +213,12 @@ def error_operation_ldap(func):
                     list(object_item.fields.keys()), str(e)
                 )
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPEntryAlreadyExistsResult as e:
             print('##LDAPEntryAlreadyExistsResult##')
             pprint.pprint(e.__dict__)
@@ -202,7 +226,12 @@ def error_operation_ldap(func):
             fields = {
                 'dn': [f'An element with such a dn already exists'],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPInvalidCredentialsResult as e:
             logging.log(logging.ERROR, e.__dict__)
             abort(400, message='Invalid credentials')
@@ -212,7 +241,9 @@ def error_operation_ldap(func):
             print(e.__dict__)
             abort(
                 400,
-                message=e.__dict__["message"], error=e.__dict__["description"], type=e.__dict__["type"]
+                message=e.__dict__["message"],
+                error=e.__dict__["description"],
+                type=e.__dict__["type"]
             )
         except LDAPException as e:
             print('##LDAPException##')
@@ -221,15 +252,18 @@ def error_operation_ldap(func):
             pprint.pprint(e.args)
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(400, message='Failed 500. Unhandled errors', status=400)
+            abort(
+                400,
+                message='Failed 500. Unhandled errors',
+                status=400
+            )
         finally:
             if object_item:
                 get_free_id = GetFreeId()
                 get_free_id.del_from_reserved(object_item.gidNumber)
 
-                if hasattr(args[0], '_connection'):
-                    print('con')
-                    args[0]._connection.unbind()
+                if hasattr(args[0], 'connection_upwrap') and error:
+                    args[0].connection_upwrap.close()
 
         return res
 
