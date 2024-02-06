@@ -9,7 +9,7 @@ config = dict()
 # All configuration directives can be found in the documentation.
 
 # Hostnames of your LDAP Servers
-config['LDAP_HOSTS'] = os.getenv('LDAP_HOSTS').split(',')
+config['LDAP_HOSTS'] =
 
 # Port of your LDAP Servers
 config['LDAP_PORT'] = int(os.getenv('LDAP_PORT'))
@@ -47,7 +47,7 @@ config['LDAP_BIND_USER_PASSWORD'] = None
 config['LDAP_USE_SSL'] = False
 
 # The path to certificate
-config['CERT_PATH'] = os.getenv('CERT_PATH')
+config['CERT_PATH'] =
 
 # Instruct Flask-LDAP3-Login to not automatically add the server
 config['LDAP_ADD_SERVER'] = False

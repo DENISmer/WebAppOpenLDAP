@@ -74,10 +74,10 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
     @error_operation_ldap
     def create(self, item, operation):
-
+        from ldap3.core.exceptions import LDAPException
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
-
+        raise LDAPException(item)
         self._connection.add(
             item.dn,
             attributes=item.serialize_data(
@@ -103,8 +103,10 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         )
 
         modify_dict = dict()
+        print(serialized_data_modify)
         for key, value in serialized_data_modify.items():
-            if (value is None or len(value) == 0 or len(str(value)) == 0) \
+            if not str(value).isdigit() \
+                    and (value is None or len(value) == 0 or len(str(value)) == 0) \
                     and getattr(not_modify_item, key) \
                     and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE
@@ -119,7 +121,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
                     tmp_value
                 )]
             })
-
+        pprint.pprint(modify_dict)
         self._connection.modify(
             item.dn,
             modify_dict

@@ -12,7 +12,7 @@ from backend.api.config.ldap import config
 class ConnectionManagerLDAP:
     _connections = {}
 
-    def __init__(self, user: UserLdap, *args, **kwargs):
+    def __init__(self, user: UserLdap = None, *args, **kwargs):
         self.connection = None
         self.user = user
         self.ldap_manager = ManagerLDAP()
@@ -83,4 +83,9 @@ class ConnectionManagerLDAP:
         del self._connections[self.user.dn]
 
     def __repr__(self):
-        return f'<Connection(user={self.connection.user}; password={self.connection.password})>'
+        return (f'<Connection('
+                f'user={self.connection.user}; '
+                f'password={self.connection.password}; '
+                f'closed={self.connection.closed}'
+                f'listening={self.connection.listening}'
+                f')>')

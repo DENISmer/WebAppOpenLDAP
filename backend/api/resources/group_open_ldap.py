@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pprint
+
 from flask_restful import Resource, request
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
@@ -41,8 +43,8 @@ class GroupOpenLDAPResource(Resource):
             fields=group_fields['fields']
         )
 
-        if username_cn not in updated_group.cn:
-            updated_group.cn.append(username_cn)
+        # if updated_group.cn is not None and username_cn not in updated_group.cn:
+        #     updated_group.cn.append(username_cn)
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
             user = user_obj.item(username_cn, [], abort_raise=False)
