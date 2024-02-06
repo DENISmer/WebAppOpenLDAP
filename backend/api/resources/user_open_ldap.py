@@ -53,8 +53,8 @@ class UserOpenLDAPResource(Resource):
             **deserialized_data,
         )
 
-        if updated_user.uid is not None and username_uid not in updated_user.uid:
-            updated_user.uid.append(username_uid)
+        # if updated_user.uid is not None and username_uid not in updated_user.uid:
+        #     updated_user.uid.append(username_uid)
 
         if updated_user.uidNumber:
             updated_user.gidNumber = updated_user.uidNumber
@@ -218,7 +218,7 @@ class UserListOpenLDAPResource(Resource):
         )
         group = CnGroupLdap(
             cn=user.cn,
-            memberUid=user.uid,
+            member=user.uid,
             objectClass=['posixGroup'],
             gidNumber=user.gidNumber,
             fields=webadmins_cn_posixgroup_fields['fields'],
@@ -246,8 +246,8 @@ class UserListOpenLDAPResource(Resource):
                 operation='create',
             )
 
-        if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
-            user_obj.free_id.del_from_reserved(user.gidNumber)
+        # if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
+        user_obj.free_id.del_from_reserved(user.gidNumber)
 
         serialized_users = self.serializer.serialize_data(user_schema, user)
         return serialized_users, 201

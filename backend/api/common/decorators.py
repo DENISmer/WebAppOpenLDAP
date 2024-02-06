@@ -6,6 +6,7 @@ from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.exceptions import get_attribute_error_fields
+from backend.api.common.getting_free_id import GetFreeId
 
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
@@ -61,7 +62,7 @@ def connection_ldap(func):
         # connection.show_connections()
         connection.create_connection() # REMOVE
         connection.connect()
-
+        # connection.show_connections()
         res = func(*args, **kwargs)
         connection.close()
         # connection.clear()
@@ -154,7 +155,10 @@ def error_operation_ldap(func):
         object_item = kwargs.get('item')
 
         try:
+            from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
+            ConnectionManagerLDAP().show_connections()
             res = func(*args, **kwargs)
+
         except LDAPInsufficientAccessRightsResult as e:
             print('##LDAPInsufficientAccessRightsResult##')
             pprint.pprint(e)
@@ -216,6 +220,14 @@ def error_operation_ldap(func):
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
             abort(400, message='Failed 500. Unhandled errors', status=400)
+        finally:
+            if object_item:
+                get_free_id = GetFreeId()
+                get_free_id.del_from_reserved(object_item.gidNumber)
+
+                if hasattr(args[0], '_connection'):
+                    print('con')
+                    args[0]._connection.unbind()
 
         return res
 
