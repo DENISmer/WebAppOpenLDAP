@@ -96,7 +96,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         return item
 
-    # @error_operation_ldap
+    @error_operation_ldap
     def modify(self,  item, operation, not_modify_item=None):
 
         serialized_data_modify = item.serialize_data(
@@ -106,7 +106,10 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         modify_dict = dict()
 
         for key, value in serialized_data_modify.items():
-            if (value is None or ((isinstance(value, list) or isinstance(value, str)) and (len(value) == 0 or len(str(value)) == 0))) \
+            if (value is None or ((isinstance(value, list)
+                                  or isinstance(value, str))
+                                  and (len(value) == 0
+                                  or len(str(value)) == 0))) \
                     and getattr(not_modify_item, key) \
                     and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE

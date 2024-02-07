@@ -41,7 +41,6 @@ class PreDumpToList:
 class PreDumpFromList:
     @pre_dump
     def from_list(self, out_value, many):
-
         for key, value in self._declared_fields.items():
             if not isinstance(value, fields.List) \
                     and isinstance(getattr(out_value, key), list) \
