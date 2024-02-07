@@ -1,0 +1,260 @@
+.Page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Roboto Thin", sans-serif;
+  .menu {
+    top: 10px;
+    position: absolute;
+    width: 150px;
+    height: 30px;
+    background-color: #1e2e4b;
+    margin: 1rem 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border-radius: 6px;
+    .logout{
+      position: relative;
+      cursor: pointer;
+      color: white;
+      background-color: #a0bbd9;
+      padding: 0.3rem;
+      width: max-content;
+      border-radius: 3px;
+      margin-right: 10%;
+      &:hover {
+        background: #8299b4;
+        scale: 1.05;
+        transition: 0.3s ease-in-out;
+      }
+    }
+    .Admin_Profile {
+      position: relative;
+      cursor: pointer;
+      border-radius: 3px;
+      background-color: #a0bbd9;
+      color: white;
+      width: max-content;
+      padding: 0.3rem;
+      &:hover {
+        background: #8299b4;
+        scale: 1.05;
+        transition: 0.3s ease-in-out;
+      }
+    }
+  }
+  .Admin_Panel{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem 1rem 0 1rem;
+    width: 100%;
+    height: 80%;
+    font-size: 15px;
+    //overflow: auto;
+    padding-top: 80px;
+    .select{
+      top: 45px;
+      position: absolute;
+      border: none;
+      border-bottom: 1px slategrey solid;
+      margin: 1rem 0 0 1rem;
+      width: 300px;
+      max-width: 300px;
+      min-width: 150px;
+      height: 30px;
+      font-size: 15px;
+    }
+    .pageSelect {
+      position: absolute;
+      top: 100px;
+      display: flex;
+      flex-direction: row;
+      div{
+        margin: 0 7px 0 7px;
+        background-color: #a0bbd9;
+        width: 15px;
+        cursor: pointer;
+      }
+    }
+    .SearchList {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 60px;
+      width: 70vw;
+      height: 900px;
+      max-height: 80%;
+      overflow: auto;
+    }
+    .UsersListItem{
+      padding: 10px;
+      width: 94%;
+      height: auto;
+      min-height: 20px;
+      max-height: max-content;
+      background-color: #a0bbd9;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+  }
+  .Admin_UseProfile {
+    position: absolute;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    column-gap: 1px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin: 2rem 2rem 2rem 2rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 90%;
+    height: 70%;
+    max-height: 90%;
+    background-color: rgba(30, 46, 75, 0.38);
+    border-radius: 20px;
+    padding: 10px;
+    .field{
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      word-wrap: anywhere;
+      position: relative;
+      margin-right: 1%;
+      max-width: 50%;
+      height: max-content;
+      margin-top: 1rem;
+      font-weight: bold;
+      input{
+        width: 60vw;
+        height: 30px;
+        border-radius: 10px;
+        border: none;
+        max-width: 80%;
+      }
+      .input_changed {
+        width: 60vw;
+        height: 30px;
+        border-radius: 10px;
+        border: 2px solid coral;
+        max-width: 80%;
+      }
+      textarea {
+        width: 50%;
+        height: max-content;
+        resize: vertical;      
+      }
+    }
+    .submitButton {
+      background-color: green;
+    }
+    .cancelChanges {
+      background-color: yellow;
+    }
+  }
+}
+@media screen and (width < 900px) {
+  .Page {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .Admin_listOfUsers{
+      margin: 0.5rem 0 0 2rem;
+      width: 100%;
+      height: max-content;
+      font-size: 15px;
+      .select{
+        margin: 1rem 0 0 1rem;
+        width: 70%;
+        height: 30px;
+        font-size: 15px;
+      }
+      .menu {
+        position: relative;
+        max-width: 150px;
+        width: auto;
+        min-width: 140px;
+        height: 30px;
+        background-color: #1e2e4b;
+        margin: 1rem 1rem 1rem 1rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0.3rem;
+        border-radius: 6px;
+        .logout{
+          position: relative;
+          cursor: pointer;
+          color: white;
+          background-color: #a0bbd9;
+          padding: 0.3rem;
+          width: max-content;
+          border-radius: 3px;
+          margin-right: 10%;
+          &:hover {
+            background: #8299b4;
+            scale: 1.05;
+            transition: 0.3s ease-in-out;
+          }
+        }
+        .Admin_Profile {
+          position: relative;
+          cursor: pointer;
+          border-radius: 3px;
+          background-color: #a0bbd9;
+          color: white;
+          width: max-content;
+          padding: 0.3rem;
+          &:hover {
+            background: #8299b4;
+            scale: 1.05;
+            transition: 0.3s ease-in-out;
+          }
+        }
+        .currentUser {
+          margin: 3rem 0 0 1rem;
+          position: relative;
+          width: 300px;
+          height: 150px;
+          background-color: #a0bbd9;
+        }
+      }
+      .AdminCurrentUser {
+        width: 70%;
+        max-width: 300px;
+        min-width: 150px;
+        margin: 1rem 0 0 1rem;
+        position: relative;
+        height: auto;
+        .CurrentUserName {
+        }
+        .CurrentUserUid {
+        }
+      }
+    }
+    .Admin_UseProfile {
+      position: relative;
+      margin: 1rem 1rem 1rem 2rem;
+      width: 90%;
+      height: 70%;
+      max-height: 50%;
+      background-color: rgba(30, 46, 75, 0.38);
+      border-radius: 20px;
+    }
+  }
+}

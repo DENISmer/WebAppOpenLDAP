@@ -1,0 +1,57 @@
+$loadingTime: 2s;
+.window {
+  overflow: hidden;
+  width: 100%;
+  height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.preloaderBlock {
+  align-self: center;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+.preloaderText {
+  color: black;
+  font-family: fantasy;
+  animation: forwards;
+  content: '100%';
+  &:before {
+    animation: counter $loadingTime;
+    content: "100%";
+  }
+}
+.sliderBlock {
+  border-radius: 4px;
+  border: 0.5px solid black;
+  width: 100%;
+}
+.slider{
+  border-radius: 4px;
+  margin: 1.1px;
+  position: relative;
+  background-color: black;
+  animation: forwards;
+  animation-name: slider;
+  animation-duration: $loadingTime;
+  height: 11px;
+}
+@keyframes counter {
+  @for $i from 0 to 100 {
+    $counter: $i + "%";
+    #{$counter} {
+      content: $counter;
+    }
+  }
+}
+
+@keyframes slider {
+  from {
+    width: 0;
+  }
+  to {
+    width: 99%;
+  }
+}
