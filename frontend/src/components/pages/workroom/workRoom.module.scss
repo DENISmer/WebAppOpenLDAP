@@ -1,3 +1,8 @@
+*{
+  margin: 0;
+  padding: 0;
+}
+
 .Page {
   position: absolute;
   top: 0;
@@ -7,17 +12,19 @@
   display: flex;
   flex-direction: column;
   font-family: "Roboto Thin", sans-serif;
+
   .menu {
     top: 10px;
     position: absolute;
     width: 150px;
     height: 30px;
     background-color: #1e2e4b;
-    margin: 1rem 1rem 1rem 1rem;
+    margin: 1rem;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    border-radius: 6px;
+    //border-radius: 6px;
+
     .logout{
       position: relative;
       cursor: pointer;
@@ -25,22 +32,25 @@
       background-color: #a0bbd9;
       padding: 0.3rem;
       width: max-content;
-      border-radius: 3px;
+      //border-radius: 3px;
       margin-right: 10%;
+
       &:hover {
         background: #8299b4;
         scale: 1.05;
         transition: 0.3s ease-in-out;
       }
     }
+
     .Admin_Profile {
       position: relative;
       cursor: pointer;
-      border-radius: 3px;
+      //border-radius: 3px;
       background-color: #a0bbd9;
       color: white;
       width: max-content;
       padding: 0.3rem;
+
       &:hover {
         background: #8299b4;
         scale: 1.05;
@@ -48,61 +58,210 @@
       }
     }
   }
+
   .Admin_Panel{
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 1rem 1rem 0 1rem;
+    margin: 90px 0 0 0;
     width: 100%;
-    height: 80%;
+    height: 100%;
     font-size: 15px;
     //overflow: auto;
-    padding-top: 80px;
-    .select{
-      top: 45px;
-      position: absolute;
-      border: none;
-      border-bottom: 1px slategrey solid;
-      margin: 1rem 0 0 1rem;
-      width: 300px;
-      max-width: 300px;
-      min-width: 150px;
-      height: 30px;
-      font-size: 15px;
-    }
-    .pageSelect {
-      position: absolute;
-      top: 100px;
+    //padding-top: 80px;
+
+    .Information_Window{
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      //width: 80%;
+      height: 90vh;
+    }
+
+    .Input{
+      font-size: 16px;
+      padding: 10px;
+      display: block;
+      width: 300px;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      &:focus{
+        outline: none
+      }
+
+    }
+
+    .Label{
+      color: #999;
+      font-size: 18px;
+      position: absolute;
+      pointer-events: none;
+      transition: .3s ease all;
+      -moz-transition: .3s ease all;
+      -webkit-transition: .3s ease all;
+    }
+
+    .Input:focus ~ .Label,
+    .Input:valid ~ .Label{
+      top: -15px;
+      font-size: 14px;
+      color: #5264AE;
+    }
+
+    .bar{
+      position: relative;
+      display: block;
+      width: 320px;
+      &:before,
+      &:after{
+        content: '';
+        height: 2px;
+        width: 0;
+        bottom: 0;
+        position: absolute;
+        background: #5264AE;
+        transition: 0.3s ease all;
+        -moz-transition: 0.3s ease all;
+        -webkit-transition: 0.3s ease all
+      }
+
+      &:before{
+        left: 50%
+      }
+      &:after{
+        right: 50%
+      }
+
+    }
+
+    input:focus ~ .bar:before,
+    input:focus ~ .bar:after {
+      width: 50%;
+    }
+
+    .pageSelect {
+      font-size: 23px;
+      margin-top: 50px;
+      position: absolute;
+      //top: 100px;
+      display: flex;
+      flex-wrap: wrap;
       flex-direction: row;
-      div{
-        margin: 0 7px 0 7px;
-        background-color: #a0bbd9;
+      align-items: center;
+
+      .Page_Button_Left{
+        margin: 0 5px 0 10px;
+        border: none;
+        background-color: white;
+        //display: inline-block;
         width: 15px;
-        cursor: pointer;
+        height: 15px;
+        border-top: 2px solid #000;
+        border-right: 2px solid #000;
+        transform: rotate(-135deg);
+        transition: ease-in-out .3s;
+
+        &:hover{
+          transform: rotate(-135deg) skew(-15deg, -15deg);
+          transition: ease-in-out .3s;
+          //color: red;
+          border-color: red;
+        }
+
+      }
+
+      .Page_Button_Right{
+        margin: 0 10px 0 5px;
+        border: none;
+        background-color: white;
+        //display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid #000;
+        border-right: 2px solid #000;
+        transform: rotate(45deg);
+        transition: ease-in-out .3s;
+
+        &:hover{
+          transform: rotate(45deg) skew(-15deg, -15deg);
+          transition: ease-in-out .3s;
+          //color: red;
+          border-color: red;
+        }
       }
     }
     .SearchList {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 60px;
+      margin-top: 80px;
       width: 70vw;
       height: 900px;
       max-height: 80%;
       overflow: auto;
     }
+
     .UsersListItem{
       padding: 10px;
       width: 94%;
-      height: auto;
+      height: 100%;
       min-height: 20px;
       max-height: max-content;
       background-color: #a0bbd9;
       border-radius: 10px;
       margin-top: 10px;
+      align-items: center;
+      justify-content: space-between;
+      //vertical-align: middle;
+      display: flex;
+      //position: relative;
+
+
+      .Edit_Button{
+        float: right;
+        background-color: #04AA6D;
+        border: none;
+        color: white;
+        text-decoration: none;
+        //display: inline-block;
+        font-size: 16px;
+        width: 60px;
+        height: 30px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+
+        &:hover{
+          background-color: white;
+          color: green;
+          border: 1px solid green;
+        }
+
+      }
+      .Delete_Button{
+        background-color: rgba(217, 0, 0, 0.78);
+        border: none;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        width: 60px;
+        height: 30px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        float: right;
+        margin-right: 10px;
+
+        &:hover{
+          background-color: rgba(255, 255, 255, 0.78);
+          color: rgba(217, 0, 0, 0.78);
+          border: 1px solid rgba(217, 0, 0, 0.78);
+        }
+      }
     }
   }
+
   .Admin_UseProfile {
     position: absolute;
     top: 100px;
@@ -121,6 +280,7 @@
     background-color: rgba(30, 46, 75, 0.38);
     border-radius: 20px;
     padding: 10px;
+
     .field{
       min-width: 200px;
       display: flex;
@@ -133,6 +293,7 @@
       height: max-content;
       margin-top: 1rem;
       font-weight: bold;
+
       input{
         width: 60vw;
         height: 30px;
@@ -140,6 +301,7 @@
         border: none;
         max-width: 80%;
       }
+
       .input_changed {
         width: 60vw;
         height: 30px;
@@ -147,15 +309,18 @@
         border: 2px solid coral;
         max-width: 80%;
       }
+
       textarea {
         width: 50%;
         height: max-content;
         resize: vertical;      
       }
     }
+
     .submitButton {
       background-color: green;
     }
+
     .cancelChanges {
       background-color: yellow;
     }

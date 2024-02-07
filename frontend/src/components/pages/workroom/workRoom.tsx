@@ -240,23 +240,25 @@ const WorkRoom: React.FC = () => {
                 {/*menu*/}
 
                 {/*seacrh and list of users*/}
-                <div>
-                        <input list={"browsers"} type={"text"} className={WR_S.select}
-                               placeholder={'Введите имя'}
+                <div className={WR_S.Information_Window}>
+                        <input list={"browsers"} type={"text"} className={WR_S.Input} required
+                               // placeholder={'Введите имя'}
                                value={searchValue}
                                onChange={(e) => {
                                    setSearchValue(e.target.value)
                                }}
                         />
+                        <span className={WR_S.bar}></span>
+                        <label className={WR_S.Label}>Введите имя</label>
 
                         <div className={WR_S.pageSelect}>
-                            page <button onClick={() => pageSwitch(false)}
-                                         disabled={listLoading || currentListPage === 1}>{`<`}</button>
+                            page <button className={WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
+                                         disabled={listLoading || currentListPage === 1}></button>
 
                             {currentListPage}
 
-                            <button onClick={() => pageSwitch(true)}
-                                    disabled={listLoading || currentListPage === pagesCount}>{`>`}</button>
+                            <button className={WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
+                                    disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
                         {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
 
@@ -268,8 +270,12 @@ const WorkRoom: React.FC = () => {
                                 >
                                     {element.cn + " | " + element.sn + " | " + element.uid
                                         + " | " + element.gidNumber}
-                                    <button onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
-                                    </button>
+                                    <div>
+                                        <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
+                                        </button>
+                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
+                                    </div>
+
                                 </div>)
                             )}
                         </div>
