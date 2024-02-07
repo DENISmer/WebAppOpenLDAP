@@ -1,5 +1,7 @@
 import re
 
+from flask_restful import abort
+
 
 def validate_str(value) -> bool:
     regex = '^\w+$'
@@ -25,8 +27,9 @@ def validate_uid_gid_number(data, errors):
 def validate_required_fields(data, errors, declared_field):
 
     for key, value in data.items():
+        required = getattr(declared_field[key], 'required')
         if not getattr(declared_field[key], 'allow_none') \
-                and getattr(declared_field[key], 'required'):
+                and required:
             if not value:
                 errors[key] = ['Missing data for required field.']
                 continue
@@ -42,3 +45,15 @@ def validate_uid_dn(data, errors):
     uid, dn = data.get('uid'), data.get('dn')
     if uid and dn and (data['uid'] not in data['dn']):
         errors['uid'] = ['The uid does not match the one specified in the dn field']
+
+
+def validate_uid_gid_number_to_unique(ids, uid_number=None, gid_number=None):
+    if uid_number in ids or gid_number in ids:
+        abort(
+            400,
+            fields={
+                'uidNumber': ['An element with such a uidNumber already exists'],
+                'gidNumber': ['An element with such a gidNumber already exists'],
+            },
+            status=400,
+        )

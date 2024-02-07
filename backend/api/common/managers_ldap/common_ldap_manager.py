@@ -8,6 +8,7 @@ from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.exceptions import ItemFieldsIsNone
 from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
 from backend.api.config.ldap import config
+from backend.api.config.fields import search_fields
 
 
 class IniCommonManagerLDAP:
@@ -155,3 +156,18 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             return None
 
         return self._connection.response[0]
+
+    def get_id_numbers(self):
+        data = self.list(
+            value=None,
+            fields=search_fields,
+            attributes=['gidNumber'],
+            required_fields={'objectClass': 'person'},
+        )
+
+        ids = []
+        for item in data:
+            ids.append(item.gidNumber)
+
+        unique_ids = set(ids)
+        return unique_ids
