@@ -30,8 +30,7 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidDNSyntaxResult,
                                    LDAPObjectClassError,
                                    LDAPInvalidCredentialsResult,
-                                   LDAPOperationResult,
-                                   )
+                                   LDAPOperationResult)
 
 
 def connection_ldap(func):

@@ -10,6 +10,7 @@ from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
+from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import (search_fields,
                                        webadmins_cn_posixgroup_fields)
@@ -52,6 +53,11 @@ class UserOpenLDAPResource(Resource):
             input_field_keys=deserialized_data.keys(),
             **deserialized_data,
         )
+
+        if updated_user.uidNumber or updated_user.gidNumber:
+            ids = user_obj.get_id_numbers()
+            ids.remove(user.uidNumber)
+            validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
         if updated_user.uidNumber:
             deserialized_data['gidNumber'] = \
@@ -223,7 +229,11 @@ class UserListOpenLDAPResource(Resource):
 
         deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
 
-        if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
+        uid_number, gid_number = deserialized_data.get('uidNumber'), deserialized_data.get('gidNumber')
+        if uid_number or gid_number:
+            ids = user_obj.get_id_numbers()
+            validate_uid_gid_number_to_unique(ids, uid_number, gid_number)
+        elif not uid_number and not gid_number:
             deserialized_data['uidNumber'] = \
                 deserialized_data['gidNumber'] = user_obj.get_free_id_number()
 
@@ -254,7 +264,7 @@ class UserListOpenLDAPResource(Resource):
             operation='create',
         )
 
-        found_group = group_obj.get_group_info_posix_group(user.cn, [], abort_raise=False)
+        found_group = group_obj.get_group_info_posix_group(user.uid, [], abort_raise=False)
         if found_group:
             group_obj.delete(found_group)
 

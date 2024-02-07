@@ -10,7 +10,6 @@ from flask_restful import abort
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.user_manager import UserLdap, CnGroupLdap, GroupWebAdmins
-from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_fields
 
 
 class UserManagerLDAP(CommonManagerLDAP):
@@ -65,28 +64,12 @@ class UserManagerLDAP(CommonManagerLDAP):
         return True
 
     def get_free_id_number(self):
-        users = self.list(
-            value=None,
-            fields=search_fields,
-            attributes=['uidNumber'],
-            required_fields={'objectClass': 'person'},
-        )
-
-        ids = []
-        for user in users:
-            ids.append(user.uidNumber)
-
-        unique_ids = set(ids)
+        unique_ids = self.get_id_numbers()
         return self.free_id.get_free_spaces(unique_ids)
 
     def get_user_info_by_dn(self, dn: str, attributes=ALL_ATTRIBUTES):
         try:
-            user = self.ldap_manager.get_object(
-                dn=dn,
-                filter='(objectClass=person)',
-                attributes=attributes,
-                _connection=self._connection,
-            )
+            user = self.search_by_dn(dn=dn, filters='(objectClass=person)', attributes=attributes)
         except LDAPNoSuchObjectResult:
             return None
         return user
