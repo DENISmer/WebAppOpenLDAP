@@ -34,18 +34,14 @@ export async function getUserDataByUid_Admin(props: string): Promise<userDataFor
     return request
 }
 
-async function sendChanges(data: userDataForEdit){
-    return axios.patch(`${APIS.USERS}`)
+export async function sendChanges(data: userDataForEdit){
+    console.log(axios.patch(`${APIS.USERS}/${data.uid}`,{
+        uidNumber: data.uidNumber,
+        gidNumber: data.gidNumber,
+        uid: data.uid,
+        sshPublicKey: data.sshPublicKey,
+        objectClass: data.objectClass
+    }))
+    //return axios.patch(`${APIS.USERS}`)
 }
 
-export function validateChanges(data: userDataForEdit){
-    for (let key in data){
-        if(key === 'uid' || 'gid'){
-            Number(data[key])
-        }
-        if(!data[key] || data[key].length < 1){
-            return 0
-        }
-        else return data
-    }
-}
