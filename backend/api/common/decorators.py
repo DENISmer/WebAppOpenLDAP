@@ -30,7 +30,9 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidDNSyntaxResult,
                                    LDAPObjectClassError,
                                    LDAPInvalidCredentialsResult,
-                                   LDAPOperationResult)
+                                   LDAPOperationResult,
+                                   LDAPObjectClassViolationResult,
+                                   LDAPSocketOpenError)
 
 
 def connection_ldap(func):
@@ -63,7 +65,6 @@ def connection_ldap(func):
         # connection.show_connections()
         connection.create_connection() # REMOVE
         connection.connect()
-        print(connection)
         # connection.show_connections()
 
         start = time.perf_counter()
@@ -174,6 +175,13 @@ def error_operation_ldap(func):
                 message='Insufficient access rights',
                 status=403
             )
+        except LDAPSocketOpenError as e:
+            logging.log(logging.ERROR, str(e))
+            abort(
+                400,  # - 499 Client Closed Request (клиент закрыл соединение);
+                message='Try again later',
+                status=400
+            )
         except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
             print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
             print(e)
@@ -229,11 +237,24 @@ def error_operation_ldap(func):
                 400,
                 message='Invalid attributes',
                 fields=fields,
-                status=400
+                status=400,
             )
         except LDAPInvalidCredentialsResult as e:
             logging.log(logging.ERROR, e.__dict__)
-            abort(400, message='Invalid credentials')
+            abort(
+                400,
+                message='Invalid credentials',
+                status=400,
+            )
+        except LDAPObjectClassViolationResult as e:
+            logging.log(logging.ERROR, e.__dict__)
+            abort(
+                400,
+                fields={
+                    'objectClass': 'No structural object class provided',
+                },
+                status=400,
+            )
         except LDAPOperationResult as e:
             print('##LDAPOperationResult##')
             logging.log(logging.ERROR, e)
