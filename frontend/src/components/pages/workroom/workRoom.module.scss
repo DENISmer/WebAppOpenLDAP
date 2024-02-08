@@ -14,6 +14,8 @@
   font-family: "Roboto Thin", sans-serif;
 
   .menu {
+    border-radius: 5px;
+    padding: 4px;
     top: 10px;
     position: absolute;
     width: 150px;
@@ -26,14 +28,16 @@
     //border-radius: 6px;
 
     .logout{
+      border-radius: 5px;
       position: relative;
       cursor: pointer;
-      color: white;
+      color: #1e2e4b;
       background-color: #a0bbd9;
       padding: 0.3rem;
       width: max-content;
       //border-radius: 3px;
       margin-right: 10%;
+      transition: .3s ease-in-out;
 
       &:hover {
         background: #8299b4;
@@ -43,13 +47,15 @@
     }
 
     .Admin_Profile {
+      border-radius: 5px;
       position: relative;
       cursor: pointer;
       //border-radius: 3px;
       background-color: #a0bbd9;
-      color: white;
+      color: #1e2e4b;
       width: max-content;
       padding: 0.3rem;
+      transition: .3s ease-in-out;
 
       &:hover {
         background: #8299b4;
@@ -166,9 +172,33 @@
           transform: rotate(-135deg) skew(-15deg, -15deg);
           transition: ease-in-out .3s;
           //color: red;
-          border-color: red;
+          border-color: #11a240;
         }
+      }
 
+      .Page_Button_disabled{
+        margin: 0 5px 0 10px;
+        border: none;
+        background-color: #ffffff;
+        //display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid rgba(217, 0, 0, 0.78);
+        border-right: 2px solid rgba(217, 0, 0, 0.78);
+        transform: rotate(-135deg);
+        transition: ease-in-out .3s;
+      }
+      .Page_Button_disabled_right{
+        margin: 0 5px 0 10px;
+        border: none;
+        background-color: #ffffff;
+        //display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid rgba(217, 0, 0, 0.78);
+        border-right: 2px solid rgba(217, 0, 0, 0.78);
+        transform: rotate(45deg);
+        transition: ease-in-out .3s;
       }
 
       .Page_Button_Right{
@@ -187,7 +217,7 @@
           transform: rotate(45deg) skew(-15deg, -15deg);
           transition: ease-in-out .3s;
           //color: red;
-          border-color: red;
+          border-color: #11a240;
         }
       }
     }
