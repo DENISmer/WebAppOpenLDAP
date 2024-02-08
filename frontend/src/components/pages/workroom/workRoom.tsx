@@ -1,5 +1,5 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
@@ -7,6 +7,8 @@ import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUse
 import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
+import Modal from "@/components/Modal_Window/modalWindow";
+import IntrinsicAttributes = React.JSX.IntrinsicAttributes;
 
 export interface userDataForEdit {
     dn: string,
@@ -224,8 +226,12 @@ const WorkRoom: React.FC = () => {
     };
 
 
+
     return (<>
         <div className={WR_S.Page}>
+
+            <Modal />
+
             <div className={WR_S.menu}>
                 <div className={WR_S.logout} onClick={() => {
                     removeCookie('userAuth')
@@ -240,23 +246,25 @@ const WorkRoom: React.FC = () => {
                 {/*menu*/}
 
                 {/*seacrh and list of users*/}
-                <div>
-                        <input list={"browsers"} type={"text"} className={WR_S.select}
-                               placeholder={'Введите имя'}
+                <div className={WR_S.Information_Window}>
+                        <input list={"browsers"} type={"text"} className={WR_S.Input} required
+                               // placeholder={'Введите имя'}
                                value={searchValue}
                                onChange={(e) => {
                                    setSearchValue(e.target.value)
                                }}
                         />
+                        <span className={WR_S.bar}></span>
+                        <label className={WR_S.Label}>Введите имя</label>
 
                         <div className={WR_S.pageSelect}>
-                            page <button onClick={() => pageSwitch(false)}
-                                         disabled={listLoading || currentListPage === 1}>{`<`}</button>
+                            page <button className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
+                                         disabled={listLoading || currentListPage === 1}></button>
 
                             {currentListPage}
 
-                            <button onClick={() => pageSwitch(true)}
-                                    disabled={listLoading || currentListPage === pagesCount}>{`>`}</button>
+                            <button className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
+                                    disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
                         {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
 
@@ -266,14 +274,24 @@ const WorkRoom: React.FC = () => {
                                      key={index}
                                      ref={optionRef}
                                 >
-                                    {element.cn + " | " + element.sn + " | " + element.uid
-                                        + " | " + element.gidNumber}
-                                    <button onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
-                                    </button>
+                                    <div className={WR_S.Div_User_List}>
+                                        <ol className={WR_S.User_List}>
+                                            <li data-list='Gid Number'> &nbsp;{element.gidNumber}</li>
+                                            <li data-list=' | Coomon Name'>&nbsp;{element.cn}</li>
+                                            <li data-list=' | Surname'> &nbsp;{element.sn}</li>
+                                            <li data-list='| User ID'> &nbsp;{element.uid}</li>
+                                        </ol>
+                                        {/*{element.cn + " | " + element.sn + " | " + element.uid*/}
+                                        {/*    + " | " + element.gidNumber}*/}
+                                    </div>
+                                    <div className={WR_S.Button_Group}>
+                                        <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
+                                        </button>
+                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
+                                    </div>
                                 </div>)
                             )}
                         </div>
-
                     </div>
             </div>}
 
