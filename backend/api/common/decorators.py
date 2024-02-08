@@ -32,7 +32,8 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidCredentialsResult,
                                    LDAPOperationResult,
                                    LDAPObjectClassViolationResult,
-                                   LDAPSocketOpenError)
+                                   LDAPSocketOpenError,
+                                   LDAPAttributeOrValueExistsResult)
 
 
 def connection_ldap(func):
@@ -226,6 +227,8 @@ def error_operation_ldap(func):
                 fields=fields,
                 status=400
             )
+        except LDAPAttributeOrValueExistsResult as e:
+            pass
         except LDAPEntryAlreadyExistsResult as e:
             print('##LDAPEntryAlreadyExistsResult##')
             pprint.pprint(e.__dict__)
@@ -248,11 +251,16 @@ def error_operation_ldap(func):
             )
         except LDAPObjectClassViolationResult as e:
             logging.log(logging.ERROR, e.__dict__)
+            message = e.__dict__['message']
+            fields = {
+                item: [message]
+                for item in get_attribute_error_fields(
+                    list(object_item.fields.keys()), message
+                )
+            }
             abort(
                 400,
-                fields={
-                    'objectClass': 'No structural object class provided',
-                },
+                fields=fields,
                 status=400,
             )
         except LDAPOperationResult as e:
@@ -310,19 +318,38 @@ def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
-        print('#####FUNC#####')
-        print(func)
-        if hasattr(func, '__dict__'):
-            print()
-            print(dir(func))
-        print(func.__name__)
-        print('#####ARGS#####')
-        print(args)
-        if hasattr(args[0], '__dict__'):
-            print(args[0].__dict__)
-        print('#####KWARGS#####')
-        del kwargs['user_fields']
-        print(kwargs)
+        username_uid = kwargs.get('username_id')
+        current_user = auth.current_user()
+        current_user_role = current_user['role']
+        func_name = func.__name__
+
+        schema = {
+            Role.SIMPLE_USER.value: {
+                'get': {
+
+                },
+                'patch': {
+
+                },
+                'put': {
+
+                },
+            },
+            Role.WEBADMIN.value: {
+                'get': {
+
+                },
+                'patch': {
+
+                },
+                'put': {
+
+                },
+                'post': {
+
+                },
+            },
+        }
 
         res = func(*args, **kwargs)
 

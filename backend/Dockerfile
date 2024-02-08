@@ -14,11 +14,11 @@ RUN mkdir backend
 COPY requirements.txt backend/.
 COPY .env backend/.
 COPY api/ backend/api
-COPY startapp.sh startapp.sh
+COPY startapp_server.sh startapp_server.sh
 
 RUN python -m venv backend/venv
 RUN python -m pip install -r backend/requirements.txt
 
-RUN chmod u+x startapp.sh
+RUN chmod u+x startapp_server.sh
 
-CMD ["sh", "./startapp.sh"]
+CMD ["sh", "./startapp_server.sh"]

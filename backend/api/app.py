@@ -12,7 +12,7 @@ from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
                                                   UserListOpenLDAPResource,
                                                   UserMeOpenLDAPResource)
 from backend.api.db.database import db
-
+from backend.api.config import settings
 
 app = Flask(__name__)
 app.url_map.converters['regex'] = RegexConverter
@@ -65,8 +65,8 @@ def handle_exception(e):
 
 celery_app = celery_init_app(app)
 
-if __name__ == '__main__':  # Comment when prod
-    app.run(debug=True)  # Comment when prod
+if settings.DEVELOPMENT and  __name__ == '__main__':  # Comment when prod
+    app.run(debug=settings.DEBUG)  # Comment when prod
 
 
 '''

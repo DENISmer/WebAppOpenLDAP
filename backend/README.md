@@ -375,3 +375,10 @@ Response:
 
 ## Docker run
 
+Docker build:
+
+    docker build -t web-app-ldap .
+
+Docker run
+
+    docker run --rm -d --name web-app-ldap -p 8000:8000 --network=host web-app-ldap
