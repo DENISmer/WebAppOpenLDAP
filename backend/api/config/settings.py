@@ -8,6 +8,7 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = bool(int(os.environ.get('DEBUG', 1)))
+DEVELOPMENT = bool(int(os.environ.get('DEVELOPMENT', 1)))
 
 ALGORITHMS = 'HS256'
 

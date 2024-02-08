@@ -2,3 +2,4 @@
 *.ldif
 *.md
 example
+**/tests

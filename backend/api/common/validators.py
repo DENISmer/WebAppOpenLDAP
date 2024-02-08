@@ -25,7 +25,6 @@ def validate_uid_gid_number(data, errors):
 
 
 def validate_required_fields(data, errors, declared_field):
-
     for key, value in data.items():
         required = getattr(declared_field[key], 'required')
         if not getattr(declared_field[key], 'allow_none') \
@@ -38,6 +37,15 @@ def validate_required_fields(data, errors, declared_field):
                     if not item:
                         errors[key] = ['Missing data for required field.']
                         break
+        else:
+            if isinstance(value, list) and value:
+                for index, item in enumerate(value):
+                    if not item:
+                        if not errors.get(key):
+                            errors[key] = {}
+                        errors[key].update(
+                         {f"{index}": ['Missing data for required field.']}
+                        )
 
 
 def validate_uid_dn(data, errors):
