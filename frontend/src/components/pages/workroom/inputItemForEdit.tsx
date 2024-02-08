@@ -1,74 +1,120 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {useEffect} from "react";
+import {ChangeEvent, useEffect} from "react";
 
-export const InputItemForEdit = (data: any) => {
-    console.log(data.field)
-    return (
-        <div key={data.key}>
-            {data.field && <div className={WR_S.field}>
-                {/*if element is empty object (array)*/}
-                {typeof data.field === 'object' && data.field.length === 0 &&
-                    <div>
-                        <input type="text"
-                               name={data.key}
-                               placeholder={'lenght 0'}
-                               value={data.field}
-                               onChange={data.handle}
-                        />
-                            <button>+</button>
-                    </div>}
-
-                {/*if element is nah empty object (array)*/}
-                {typeof data.field === "object" && data.field.length > 0 &&
-                    <div>
-                        {data.field.map((item, index) => (
-                            <input type="text"
-                                   key={index}
-                                   name={data.field + index}
-                                   value={data.field[index]}
-                                   placeholder={'lenght > 0'}
-                                   onChange={data.handle}
-                            />
-                        ))}
-                        <p>
-                            <button>+</button>
-                        </p>
-                    </div>
-                }
-
-                {/*if element is string */}
-                {typeof data.field === "string" && data.field.length > 0 &&
-                    <div>
-                        <input type="text"
-                               placeholder={'string'}
-                               value={data.field}
-                               onChange={data.handle}
-                        />
-                    </div>
-                }
-
-                {/*if element is number*/}
-                {typeof data.field === "number" &&
-                    <div>
-                        <input type="text"
-                               placeholder={'number'}
-                               value={data.field}
-                               onChange={data.handle}
-                        />
-                    </div>
-                }
-
-                {/*if element is null*/}
-                {typeof data.field === null &&
-                    <div>
-                        <input type="text"
-                               placeholder={'null'}
-                               value={data.field}
-                               onChange={data.handle}
-                        />
-                    </div>
-                }
-            </div>}
-        </div>
-    )
+export interface userDataForEdit {
+    dn: string,
+    uidNumber?: number,
+    gidNumber?: number,
+    uid: string,
+    sshPublicKey?: [],
+    st?: string[],
+    mail?: string[],
+    street?: string[],
+    cn: string[],
+    displayName?: string,
+    givenName?: string[],
+    sn: string[],
+    postalCode?: number,
+    homeDirectory: string,
+    loginShell?: string,
+    objectClass: string[]
 }
+interface Props {
+    userData: userDataForEdit;
+    onUserDataChange: (newData: userDataForEdit) => void;
+}
+
+export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange }) => {
+    const handleInputChange = (key: string, value: string, index?: number) => {
+        const newData = { ...userData };
+        let updatedValue: any = value;
+
+        // Проверяем, является ли оригинальное значение числом, и если да, преобразуем введенное значение обратно в число
+        if (typeof userData[key] === 'number') {
+            const parsed = parseFloat(value);
+            updatedValue = isNaN(parsed) ? '' : parsed;
+        } else if (typeof index === 'number' && Array.isArray(userData[key]) && typeof userData[key][0] === 'number') {
+            // Если это массив чисел, преобразуем каждый элемент
+            const parsed = parseFloat(value);
+            updatedValue = isNaN(parsed) ? '' : parsed;
+        }
+
+        if (typeof index === 'number' && Array.isArray(newData[key])) {
+            newData[key] = [...newData[key]];
+            newData[key][index] = updatedValue;
+        } else {
+            newData[key] = updatedValue;
+        }
+
+        onUserDataChange(newData);
+    };
+
+    const handleAddArrayItem = (key: string) => {
+        const newData = { ...userData };
+        if (Array.isArray(newData[key])) {
+            newData[key] = [...newData[key], ''];
+        } else {
+            newData[key] = [''];
+        }
+        onUserDataChange(newData);
+    };
+
+    const handleRemoveArrayItem = (key: string, index: number) => {
+        const newData = { ...userData };
+        if (!Array.isArray(newData[key])) {
+            return;
+        }
+        newData[key] = [
+            ...newData[key].slice(0, index),
+            ...newData[key].slice(index + 1),
+        ];
+        onUserDataChange(newData);
+    };
+
+    const renderInput = (key: string, value: any, index?: number) => {
+        const isValueArray = Array.isArray(value);
+        const inputName = isValueArray ? `${key}[${index}]` : key;
+        const inputValue = isValueArray && typeof index === 'number' ? value[index] : value;
+
+        return (
+            <div key={typeof index === 'number' ? `${key}-${index}` : key}>
+                <label htmlFor={inputName}>{index ? index : key}</label>
+                <input
+                    type="text"
+                    id={inputName}
+                    name={inputName}
+                    placeholder={`Enter ${key}`}
+                    value={inputValue || ''}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        handleInputChange(key, e.target.value, index)
+                    }
+                />
+                {isValueArray && typeof index === 'number' && value.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveArrayItem(key, index)}>
+                        Remove
+                    </button>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <form>
+            {Object.entries(userData).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                    const inputs = value.map((val, index) => renderInput(key, value, index));
+                    return (
+                        <div key={key}>
+                            {inputs}
+                            <button type="button" onClick={() => handleAddArrayItem(key)}>
+                                Add more {key}
+                            </button>
+                        </div>
+                    );
+                } else {
+                    return renderInput(key, value);
+                }
+            })}
+        </form>
+    );
+};
