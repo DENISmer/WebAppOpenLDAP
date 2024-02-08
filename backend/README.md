@@ -66,6 +66,13 @@ Add to the .env file:
 Run app:
 
     flask --app application run --reload
+
+## Gunicorn
+
+Run gunicorn (example):
+
+    gunicorn --workers 6 --bind 0.0.0.0:8080 backend.api.app:app
+
 ## Celery
 
 -----
@@ -365,3 +372,6 @@ Response:
 }
 ```
 **status code**: 200
+
+## Docker run
+

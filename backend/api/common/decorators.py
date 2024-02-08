@@ -274,7 +274,7 @@ def error_operation_ldap(func):
             logging.log(logging.ERROR, e)
             abort(
                 400,
-                message='Failed 500. Unhandled errors',
+                message='Try again later..',
                 status=400
             )
         finally:
@@ -310,19 +310,19 @@ def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
-        # print('#####FUNC#####')
-        # print(func)
-        # if hasattr(func, '__dict__'):
-        #     print()
-        #     print(dir(func))
-        # print(func.__name__)
-        # print('#####ARGS#####')
-        # print(args)
-        # if hasattr(args[0], '__dict__'):
-        #     print(args[0].__dict__)
-        # print('#####KWARGS#####')
-        # del kwargs['user_fields']
-        # print(kwargs)
+        print('#####FUNC#####')
+        print(func)
+        if hasattr(func, '__dict__'):
+            print()
+            print(dir(func))
+        print(func.__name__)
+        print('#####ARGS#####')
+        print(args)
+        if hasattr(args[0], '__dict__'):
+            print(args[0].__dict__)
+        print('#####KWARGS#####')
+        del kwargs['user_fields']
+        print(kwargs)
 
         res = func(*args, **kwargs)
 
