@@ -35,13 +35,31 @@ export async function getUserDataByUid_Admin(props: string): Promise<userDataFor
 }
 
 export async function sendChanges(data: userDataForEdit){
-    console.log(axios.patch(`${APIS.USERS}/${data.uid}`,{
+    //console.log(data)
+    const sendDataToChange = await axios.patch(`${APIS.USERS}/${data.uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
-        sshPublicKey: data.sshPublicKey,
+        //sshPublicKey: data.sshPublicKey,
+        st: data.st,
+        mail: data.mail,
+        street: data.street,
+        cn: data.cn,
+        displayName: data.displayName,
+        givenName: data.givenName,
+        sn: data.sn,
+        postalCode: data.postalCode,
+        homeDirectory: data.homeDirectory,
+        loginShell: data.loginShell,
         objectClass: data.objectClass
-    }))
-    //return axios.patch(`${APIS.USERS}`)
+    })
+        .then((response) => {
+            return response.data
+        })
+        .catch((e) => {
+            return e
+        })
+
+    return  sendDataToChange
 }
 
