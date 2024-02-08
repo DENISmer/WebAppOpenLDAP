@@ -128,7 +128,6 @@ class BaseSchema(Schema,
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
-        print('DATA', data)
         validate_uid_gid_number(data, errors)
         validate_required_fields(data, errors, self._declared_fields)
         validate_uid_dn(data, errors)

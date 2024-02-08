@@ -3,16 +3,22 @@ FROM python:3.8
 ENV PYDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+EXPOSE 8000
+
 RUN mkdir -p /usr/src/app/
 
 WORKDIR /usr/src/app/
 
-EXPOSE 8081
+RUN mkdir backend
 
-COPY venv/ venv
-COPY api/ api
+COPY requirements.txt backend/.
+COPY .env backend/.
+COPY api/ backend/api
+COPY startapp.sh startapp.sh
 
-#RUN #source venv/bin/activate
-#CMD ["ls", "/usr/src/app/venv/bin/", "-al"]
-#CMD ["/usr/src/app/venv/bin/gunicorn", "--workers", "6", "--bind", "0.0.0.0:8081", "api.app"]
-CMD /usr/src/app/venv/bin/gunicorn --workers 6 --bind 0.0.0.0:8081 api.app
+RUN python -m venv backend/venv
+RUN python -m pip install -r backend/requirements.txt
+
+RUN chmod u+x startapp.sh
+
+CMD ["sh", "./startapp.sh"]

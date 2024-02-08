@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  nginx:
+
+  web-client:
+
+  web-server:
+
+  celery:
+
+  redis:
+
+volumes:

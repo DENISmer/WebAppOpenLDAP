@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, json
+from flask import Flask, json
 from flask_restful import Api
 from flask_cors import CORS
 
@@ -65,8 +65,8 @@ def handle_exception(e):
 
 celery_app = celery_init_app(app)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == '__main__':  # Comment when prod
+    app.run(debug=True)  # Comment when prod
 
 
 '''
