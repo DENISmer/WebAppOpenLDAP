@@ -22,9 +22,10 @@ export interface userDataForEdit {
 interface Props {
     userData: userDataForEdit;
     onUserDataChange: (newData: userDataForEdit) => void;
+    fieldIsChange: (fieldName: string) => boolean;
 }
 
-export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange }) => {
+export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange }) => {
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
         let updatedValue: any = value;
@@ -44,6 +45,10 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange }) =>
             newData[key][index] = updatedValue;
         } else {
             newData[key] = updatedValue;
+            // если поле стало пустым, то ставиться null
+            if (newData[key] === ""){
+                newData[key] = null
+            }
         }
 
         onUserDataChange(newData);
@@ -54,7 +59,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange }) =>
         if (Array.isArray(newData[key])) {
             newData[key] = [...newData[key], ''];
         } else {
-            newData[key] = [''];
+            newData[key] = [];
         }
         onUserDataChange(newData);
     };
@@ -78,15 +83,22 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange }) =>
 
         return (
             <div key={typeof index === 'number' ? `${key}-${index}` : key}>
+                {/*отображение изменения*/}
+                {fieldIsChange(key) && !index ?
+                    <span>изменено{' '}</span> : null
+                }
+                {/*рендер каждого элемента*/}
                 <label htmlFor={inputName}>{index ? index : key}</label>
                 <input
-                    type="text"
+                    type={key === 'mail' ? "email" : "text"}
                     id={inputName}
                     name={inputName}
                     placeholder={`Enter ${key}`}
                     value={inputValue || ''}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    disabled={key === 'dn'}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         handleInputChange(key, e.target.value, index)
+                        }
                     }
                 />
                 {isValueArray && typeof index === 'number' && value.length > 1 && (

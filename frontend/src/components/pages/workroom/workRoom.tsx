@@ -70,6 +70,7 @@ const WorkRoom: React.FC = () => {
 
     let optionRef = useRef<any>(null)
     const [isEditing, setIsEditing] = useState<IeEditing>({isEditing: false, uid: undefined})
+    const [userIsChanged, setUserIsChanged] = useState(false)
 
     const [currentListPage, setCurrentListPage] = useState(1)
     const [pagesCount, setPagesCount] = useState<number>()
@@ -106,7 +107,7 @@ const WorkRoom: React.FC = () => {
                         console.log(response)
                     }
                 })
-        } catch { (e: any) => {
+        } catch { (e) => {
             console.log(e)
         } }
     }, [searchValue,currentListPage])
@@ -139,6 +140,48 @@ const WorkRoom: React.FC = () => {
         }
     }, [isEditing]);
 
+    useEffect(() => {
+        console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
+        setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
+    },[editedUser])
+
+    const discardChanges = () => {
+        if (userIsChanged){
+            const isConfirm = confirm("Уверены? Изменения не будут сохранены")
+            if (isConfirm && userIsChanged) {
+                setIsEditing({isEditing: false, uid: null})
+            }
+        }
+        else setIsEditing({isEditing: false, uid: null})
+    }
+
+    const saveChanges = async ()  => {
+        const request: any = await sendChanges(editedUser)
+            .then((response: any) => {
+                if (response.response.status === 200){
+                    setEditedUser(response.response.data)
+                    setUserForEditAdmin(response.response.data)
+                    alert("данные сохранены")
+                }
+                else if(response.response.status === 400) {
+                    alert(`ERROR 400 \n ${response.response.data.message} \n ${response.response.data.fields}`)
+                    // alert(`ERROR 400 \n ${response.response.data.message}`)
+                    console.log(response.response.data)
+                }
+                else if(response.response.status === 403) {
+                    alert(`ERROR 403 \n ${response.response.data.message}`)
+                }
+            })
+            .catch((response: any) => {
+                if (response.response.status){
+                    alert(`ERROR 403 \n ${response.response.data.message}`)
+                }
+                else if (response){
+                    console.log('Какая-то ошибка с доступом', response)
+                }
+            })
+    }
+
 
     // events for event Changes!
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,17 +194,35 @@ const WorkRoom: React.FC = () => {
         // Здесь вы можете также отправить изменения на сервер, если это необходимо.
     };
 
+    // const serDefaultUserData
+
     const isFieldChanged = (fieldName: keyof userDataForEdit) => {
-        return editedUser[fieldName] != userForEditAdmin[fieldName];
+        const editedUserData = editedUser[fieldName];
+        const defaultUserData = userForEditAdmin[fieldName];
+        let result;
+
+        let j = 0
+        if (Array.isArray(editedUserData) && Array.isArray(defaultUserData)){
+            while(j < editedUserData.length){
+                if(editedUserData.length !== defaultUserData.length){
+                    return true
+                }
+                result = editedUserData[j] !== defaultUserData[j]
+                if(result){
+                    return result
+                }
+                else
+                    j++
+            }
+            return false
+        }
+        else {
+            //setUserIsChanged(editedUser[fieldName] !== userForEditAdmin[fieldName])
+            return editedUser[fieldName] !== userForEditAdmin[fieldName];
+        }
+
     };
 
-    const saveChanges = () => {
-
-    }
-
-    // const testMethod = () => {
-    //     searchResult ? setViewFields(settingFieldsToChange(searchResult[0]).publicMethod()) : null
-    // }
 
     return (<>
         <div className={WR_S.Page}>
@@ -223,12 +284,15 @@ const WorkRoom: React.FC = () => {
             </div>}
 
             {isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
-                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} />
+                {userIsChanged && <div>Есть изменения</div>}
+                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged}/>
 
-                <button className={WR_S.submitButton} onClick={() => sendChanges(editedUser)}>сохранить изменения
+                <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
                 </button>
                 <button className={WR_S.cancelChanges}
-                        onClick={() => setIsEditing({isEditing: false, uid: null})}>отменить изменения
+                        onClick={() => {
+                            discardChanges()
+                        }}>выйти к списку
                 </button>
             </div>}
         </div>
