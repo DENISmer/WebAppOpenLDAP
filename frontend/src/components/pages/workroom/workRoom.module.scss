@@ -243,48 +243,51 @@
 
 
 
+      .Button_Group{
+        width: 140px;
 
-      .Edit_Button{
-        float: right;
-        background-color: #04AA6D;
-        border: none;
-        border-radius: 5px;
-        color: white;
-        text-decoration: none;
-        //display: inline-block;
-        font-size: 16px;
-        width: 60px;
-        height: 30px;
-        transition-duration: 0.4s;
-        cursor: pointer;
+        .Edit_Button{
+          float: right;
+          background-color: #04AA6D;
+          border: none;
+          border-radius: 5px;
+          color: white;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          width: 60px;
+          height: 30px;
+          transition-duration: 0.4s;
+          cursor: pointer;
 
-        &:hover{
-          background-color: white;
-          color: green;
-          border: 1px solid green;
+          &:hover{
+            background-color: white;
+            color: green;
+            border: 1px solid green;
+          }
+
         }
+        .Delete_Button{
+          background-color: rgba(217, 0, 0, 0.78);
+          border: none;
+          border-radius: 5px;
+          color: white;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          width: 60px;
+          height: 30px;
+          transition-duration: 0.4s;
+          cursor: pointer;
+          float: right;
+          margin-right: 10px;
 
-      }
-      .Delete_Button{
-        background-color: rgba(217, 0, 0, 0.78);
-        border: none;
-        border-radius: 5px;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        width: 60px;
-        height: 30px;
-        transition-duration: 0.4s;
-        cursor: pointer;
-        float: right;
-        margin-right: 10px;
-
-        &:hover{
-          background-color: rgba(255, 255, 255, 0.78);
-          color: rgba(217, 0, 0, 0.78);
-          border: 1px solid rgba(217, 0, 0, 0.78);
+          &:hover{
+            background-color: rgba(255, 255, 255, 0.78);
+            color: rgba(217, 0, 0, 0.78);
+            border: 1px solid rgba(217, 0, 0, 0.78);
+          }
         }
       }
     }
@@ -373,6 +376,12 @@
         //background-color: rgba(80, 79, 79, 0.23);
         min-height: 80px;
         max-height: max-content;
+
+        .Button_Group{
+          .Delete_Button{
+            margin-right: 0;
+          }
+        }
       }
     }
 
@@ -460,8 +469,25 @@
       background-color: rgba(30, 46, 75, 0.38);
       border-radius: 20px;
     }
-
-
-
   }
+}
+
+@media screen and (900px < width < 1500px) {
+
+  .Page{
+    .SearchList{
+      .UsersListItem{
+        //background-color: rgba(80, 79, 79, 0.23);
+        min-height: 60px;
+        max-height: max-content;
+
+        .Button_Group{
+          .Delete_Button{
+            margin-right: 0;
+          }
+        }
+      }
+    }
+  }
+
 }

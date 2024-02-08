@@ -1,5 +1,5 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
@@ -7,6 +7,8 @@ import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUse
 import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
+import Modal from "@/components/Modal_Window/modalWindow";
+import IntrinsicAttributes = React.JSX.IntrinsicAttributes;
 
 export interface userDataForEdit {
     dn: string,
@@ -224,8 +226,12 @@ const WorkRoom: React.FC = () => {
     };
 
 
+
     return (<>
         <div className={WR_S.Page}>
+
+            <Modal />
+
             <div className={WR_S.menu}>
                 <div className={WR_S.logout} onClick={() => {
                     removeCookie('userAuth')
@@ -278,7 +284,7 @@ const WorkRoom: React.FC = () => {
                                         {/*{element.cn + " | " + element.sn + " | " + element.uid*/}
                                         {/*    + " | " + element.gidNumber}*/}
                                     </div>
-                                    <div>
+                                    <div className={WR_S.Button_Group}>
                                         <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
                                         </button>
                                         <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
@@ -286,7 +292,6 @@ const WorkRoom: React.FC = () => {
                                 </div>)
                             )}
                         </div>
-
                     </div>
             </div>}
 
