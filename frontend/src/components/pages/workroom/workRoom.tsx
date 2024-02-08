@@ -201,14 +201,21 @@ const WorkRoom: React.FC = () => {
                                      key={index}
                                      ref={optionRef}
                                 >
-                                    {element.cn + " | " + element.sn + " | " + element.uid
-                                        + " | " + element.gidNumber}
+                                    <div className={WR_S.Div_User_List}>
+                                        <ol className={WR_S.User_List}>
+                                            <li data-list='Gid Number'> &nbsp;{element.gidNumber}</li>
+                                            <li data-list=' | Coomon Name'>&nbsp;{element.cn}</li>
+                                            <li data-list=' | Surname'> &nbsp;{element.sn}</li>
+                                            <li data-list='| User ID'> &nbsp;{element.uid}</li>
+                                        </ol>
+                                        {/*{element.cn + " | " + element.sn + " | " + element.uid*/}
+                                        {/*    + " | " + element.gidNumber}*/}
+                                    </div>
                                     <div>
                                         <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
                                         </button>
                                         <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
                                     </div>
-
                                 </div>)
                             )}
                         </div>
