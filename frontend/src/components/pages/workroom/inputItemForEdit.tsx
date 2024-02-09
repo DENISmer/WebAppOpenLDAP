@@ -89,18 +89,21 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                 }
                 {/*рендер каждого элемента*/}
                 <label htmlFor={inputName}>{index ? index : key}</label>
-                <input
-                    type={key === 'mail' ? "email" : "text"}
-                    id={inputName}
-                    name={inputName}
-                    placeholder={`Enter ${key}`}
-                    value={inputValue || ''}
-                    disabled={key === 'dn'}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                        handleInputChange(key, e.target.value, index)
+                {key === 'sshPublicKey' || key === 'loginShell' ? <textarea name="" id="" cols={30} rows={10}></textarea>
+                : <input
+                        type={key === 'mail' ? "email" : "text"}
+                        id={inputName}
+                        name={inputName}
+                        placeholder={`Enter ${key}`}
+                        value={inputValue || ''}
+                        disabled={key === 'dn'}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            handleInputChange(key, e.target.value, index)
                         }
-                    }
-                />
+                        }
+                    />
+                }
+
                 {isValueArray && typeof index === 'number' && value.length > 1 && (
                     <button type="button" onClick={() => handleRemoveArrayItem(key, index)}>
                         Remove

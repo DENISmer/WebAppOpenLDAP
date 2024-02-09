@@ -8,7 +8,6 @@ import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
 import Modal from "@/components/Modal_Window/modalWindow";
-import IntrinsicAttributes = React.JSX.IntrinsicAttributes;
 
 export interface userDataForEdit {
     dn: string,
