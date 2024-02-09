@@ -2,7 +2,15 @@ version: "3"
 
 services:
   nginx:
-
+    image: nginx
+    restart: always
+    depends_on:
+      - web-client
+      - web-server
+    ports:
+      - "8080:8000"
+    volumes:
+      - nginx/conf.d/nginx.conf:/etc/nginx/conf.d/default.conf
   web-client:
 
   web-server:
@@ -10,5 +18,10 @@ services:
   celery:
 
   redis:
+    image: redis
+    restart: always
+    command: redis-server
+    expose:
+      - "6379"
 
 volumes:
