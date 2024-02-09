@@ -26,5 +26,5 @@ def verify_token(token):
 
 @auth.error_handler
 def auth_error(status):
-    return {'message': 'Unauthorized Access', 'status': 403}, 403
+    return {'token': 'expired', 'status': status}, status
 

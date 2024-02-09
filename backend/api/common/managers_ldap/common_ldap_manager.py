@@ -147,7 +147,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
         if 'success' not in res['description']:
-            abort(400, message=f'Error deletion {item.dn}')
+            abort(400, message=f'Error deleting {item.dn}')
 
     def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):
         status_search = self._connection.search(

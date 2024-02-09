@@ -1,5 +1,4 @@
 import functools
-import pprint
 import logging
 import time
 
@@ -8,19 +7,10 @@ from flask_restful import abort
 from backend.api.common.auth_http_token import auth
 from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message
 from backend.api.common.getting_free_id import GetFreeId
-
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
-from backend.api.config.fields import (simple_user_fields,
-                                       webadmins_fields,
-                                       webadmins_cn_posixgroup_fields)
-from backend.api.resources.schema import (SimpleUserSchemaLdapModify,
-                                          WebAdminsSchemaLdapModify,
-                                          WebAdminsSchemaLdapCreate,
-                                          WebAdminsSchemaLdapList,
-                                          CnGroupSchemaModify,
-                                          CnGroupSchemaCreate,
-                                          CnGroupSchemaList, schema)
+from backend.api.config import settings
+from backend.api.resources.schema import schema
 
 from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPAttributeError,
@@ -41,32 +31,34 @@ def connection_ldap(func):
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-        # print('##########  REQUEST ###########')
+
         # args[0] - self of the function
         connection = getattr(args[0], 'connection')
         if hasattr(args[0], 'connection') or not connection:
             current_user = auth.current_user()
-            # if current_user:
-            #     user = UserLdap(dn=current_user['dn'],userPassword=)
 
             # print('current_user', current_user)
-            connection = ConnectionManagerLDAP(
-                # UserLdap(
-                #     dn=current_user['dn'],
-                # )
-                UserLdap( # REMOVE
+            if settings.NOT_AUTH:
+                user = UserLdap(
                     dn='uid=bob,ou=People,dc=example,dc=com',
                     username='bob',
                     userPassword='bob',
                 )
+            else:
+                user = UserLdap(
+                    dn=current_user['dn'],
+                )
+
+            connection = ConnectionManagerLDAP(
+                user=user
             )
-            # print(1)
 
             setattr(args[0], 'connection', connection)
-        # connection.show_connections()
-        connection.create_connection() # REMOVE
+
+        if settings.NOT_AUTH:
+            connection.create_connection() # REMOVE
+
         connection.connect()
-        # connection.show_connections()
 
         start = time.perf_counter()
         res = func(*args, **kwargs) ####
@@ -74,7 +66,7 @@ def connection_ldap(func):
         print(f'Time of work func {func.__name__} : {(end - start):.4f}s')
 
         connection.close()
-        # connection.clear()
+
         return res
 
     return wraps

@@ -5,6 +5,7 @@ TYPE_INT = int
 
 # Fields for simple user
 simple_user_fields = {
+    'name': 'simple_user_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,
@@ -85,7 +86,7 @@ simple_user_fields = {
             'required': [],
         },
         'loginShell': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read', ],
             'required': [],
@@ -113,6 +114,7 @@ simple_user_fields = {
 
 # Fields for admin
 webadmins_fields = {
+    'name': 'webadmins_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,
@@ -220,6 +222,7 @@ webadmins_fields = {
 }
 
 webadmins_cn_posixgroup_fields = {
+    'name': 'webadmins_cn_posixgroup_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,

@@ -59,7 +59,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
 
         if updated_user.uidNumber or updated_user.gidNumber:
             ids = user_obj.get_id_numbers()
-            ids.remove(user.uidNumber)
+            ids.remove(user.uidNumber)  # why?
             validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
         if updated_user.uidNumber:
