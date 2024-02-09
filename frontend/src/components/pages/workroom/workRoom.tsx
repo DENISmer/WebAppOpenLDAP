@@ -1,12 +1,14 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
-import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
-import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
+import {deleteUser, getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
 import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
+import Modal from "@/components/Modal_Window/modalWindow";
+import {SimpleUserEditor} from "@/components/pages/workroom/simpleUserEditor";
+
 
 export interface userDataForEdit {
     dn: string,
@@ -138,6 +140,9 @@ const WorkRoom: React.FC = () => {
                     console.log(e)
                 })
         }
+        else if (!isEditing.isEditing && isEditing.uid){
+            deleteUserFromList()
+        }
     }, [isEditing]);
 
     useEffect(() => {
@@ -156,30 +161,38 @@ const WorkRoom: React.FC = () => {
     }
 
     const saveChanges = async ()  => {
-        const request: any = await sendChanges(editedUser)
-            .then((response: any) => {
-                if (response.response.status === 200){
-                    setEditedUser(response.response.data)
-                    setUserForEditAdmin(response.response.data)
-                    alert("данные сохранены")
-                }
-                else if(response.response.status === 400) {
-                    alert(`ERROR 400 \n ${response.response.data.message} \n ${response.response.data.fields}`)
-                    // alert(`ERROR 400 \n ${response.response.data.message}`)
-                    console.log(response.response.data)
-                }
-                else if(response.response.status === 403) {
-                    alert(`ERROR 403 \n ${response.response.data.message}`)
-                }
-            })
-            .catch((response: any) => {
-                if (response.response.status){
-                    alert(`ERROR 403 \n ${response.response.data.message}`)
-                }
-                else if (response){
-                    console.log('Какая-то ошибка с доступом', response)
-                }
-            })
+        if(!userIsChanged) alert('нет данных для изменения')
+
+        else {
+            const request: any = await sendChanges(editedUser, currentEditor.token)
+                .then((response: any) => {
+                    console.log("RESPONSE FOR", response)
+                    if (response.status === 200){
+                        setEditedUser(response.userData)
+                        setUserForEditAdmin(response.userData)
+                        setUserIsChanged(false)
+                        alert("данные сохранены")
+                        console.log(response)
+                    }
+                    else if(response.status === 400) {
+                        console.log(400)
+                        alert(`ERROR 400 \n ${response.message} \n ${JSON.stringify(response.fields)}`)
+                        // alert(`ERROR 400 \n ${response.response.data.message}`)
+                        //console.log(response.response.data)
+                    }
+                    else if(response.status === 403) {
+                        alert(`ERROR 403 \n ${response.response.data.message}`)
+                    }
+                })
+                .catch((response) => {
+                    console.log("ТУТ ошибка",response)
+                    if (response.status === 400){
+                        alert(`ERROR 400 \n ${response.userData}`)
+                    }
+                    else if (response){
+                    }
+                })
+        }
     }
 
 
@@ -223,9 +236,36 @@ const WorkRoom: React.FC = () => {
 
     };
 
+    const deleteUserFromList = async ()  => {
+        const confirmForDelete = confirm(`Вы уверены? \nПользователь ${isEditing.uid} будет удален`)
+        if(confirmForDelete){
+            await deleteUser(isEditing.uid)
+                .then((response: any) => {
+                    console.log('delete_response',response)
+                    if(response.status === 204) {
+                        setCurrentListPage(currentListPage + 1)
+                        setCurrentListPage(currentListPage - 1)
+                        if(currentEditor.uid === isEditing.uid){
+                            removeCookie("userAuth")
+                            setCurrentEditor(null)
+                            navigate("/login")
+                        }
+                        alert(`Пользователь удален! \n`)
+                    }
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        }
+    }
+
+
 
     return (<>
         <div className={WR_S.Page}>
+
+            <Modal />
+
             <div className={WR_S.menu}>
                 <div className={WR_S.logout} onClick={() => {
                     removeCookie('userAuth')
@@ -252,12 +292,12 @@ const WorkRoom: React.FC = () => {
                         <label className={WR_S.Label}>Введите имя</label>
 
                         <div className={WR_S.pageSelect}>
-                            page <button className={WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
+                            page <button className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
                                          disabled={listLoading || currentListPage === 1}></button>
 
                             {currentListPage}
 
-                            <button className={WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
+                            <button className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
                                     disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
                         {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
@@ -268,18 +308,24 @@ const WorkRoom: React.FC = () => {
                                      key={index}
                                      ref={optionRef}
                                 >
-                                    {element.cn + " | " + element.sn + " | " + element.uid
-                                        + " | " + element.gidNumber}
-                                    <div>
+                                    <div className={WR_S.Div_User_List}>
+                                        <ol className={WR_S.User_List}>
+                                            <li data-list='Gid Number'> &nbsp;{element.gidNumber}</li>
+                                            <li data-list=' | Coomon Name'>&nbsp;{element.cn}</li>
+                                            <li data-list=' | Surname'> &nbsp;{element.sn}</li>
+                                            <li data-list='| User ID'> &nbsp;{element.uid}</li>
+                                        </ol>
+                                        {/*{element.cn + " | " + element.sn + " | " + element.uid*/}
+                                        {/*    + " | " + element.gidNumber}*/}
+                                    </div>
+                                    <div className={WR_S.Button_Group}>
                                         <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
                                         </button>
-                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
+                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: false, uid: element.uid})}>delete</button>
                                     </div>
-
                                 </div>)
                             )}
                         </div>
-
                     </div>
             </div>}
 
@@ -295,6 +341,13 @@ const WorkRoom: React.FC = () => {
                         }}>выйти к списку
                 </button>
             </div>}
+            {currentEditor && currentEditor.role !== 'webadmins' &&
+                <div className={WR_S.Admin_Panel}>
+                    <div className={WR_S.Admin_UseProfile}>
+                        <SimpleUserEditor />
+                    </div>
+                </div>
+            }
         </div>
     </>)
 }

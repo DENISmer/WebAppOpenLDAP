@@ -14,6 +14,8 @@
   font-family: "Roboto Thin", sans-serif;
 
   .menu {
+    border-radius: 5px;
+    padding: 4px;
     top: 10px;
     position: absolute;
     width: 150px;
@@ -26,14 +28,16 @@
     //border-radius: 6px;
 
     .logout{
+      border-radius: 5px;
       position: relative;
       cursor: pointer;
-      color: white;
+      color: #1e2e4b;
       background-color: #a0bbd9;
       padding: 0.3rem;
       width: max-content;
       //border-radius: 3px;
       margin-right: 10%;
+      transition: .3s ease-in-out;
 
       &:hover {
         background: #8299b4;
@@ -43,13 +47,15 @@
     }
 
     .Admin_Profile {
+      border-radius: 5px;
       position: relative;
       cursor: pointer;
       //border-radius: 3px;
       background-color: #a0bbd9;
-      color: white;
+      color: #1e2e4b;
       width: max-content;
       padding: 0.3rem;
+      transition: .3s ease-in-out;
 
       &:hover {
         background: #8299b4;
@@ -166,9 +172,33 @@
           transform: rotate(-135deg) skew(-15deg, -15deg);
           transition: ease-in-out .3s;
           //color: red;
-          border-color: red;
+          border-color: #11a240;
         }
+      }
 
+      .Page_Button_disabled{
+        margin: 0 5px 0 10px;
+        border: none;
+        background-color: #ffffff;
+        //display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid rgba(217, 0, 0, 0.78);
+        border-right: 2px solid rgba(217, 0, 0, 0.78);
+        transform: rotate(-135deg);
+        transition: ease-in-out .3s;
+      }
+      .Page_Button_disabled_right{
+        margin: 0 5px 0 10px;
+        border: none;
+        background-color: #ffffff;
+        //display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-top: 2px solid rgba(217, 0, 0, 0.78);
+        border-right: 2px solid rgba(217, 0, 0, 0.78);
+        transform: rotate(45deg);
+        transition: ease-in-out .3s;
       }
 
       .Page_Button_Right{
@@ -187,7 +217,7 @@
           transform: rotate(45deg) skew(-15deg, -15deg);
           transition: ease-in-out .3s;
           //color: red;
-          border-color: red;
+          border-color: #11a240;
         }
       }
     }
@@ -205,8 +235,7 @@
     .UsersListItem{
       padding: 10px;
       width: 94%;
-      height: 100%;
-      min-height: 20px;
+      min-height: 30px;
       max-height: max-content;
       background-color: #a0bbd9;
       border-radius: 10px;
@@ -217,46 +246,78 @@
       display: flex;
       //position: relative;
 
+      .Div_User_List{
 
-      .Edit_Button{
-        float: right;
-        background-color: #04AA6D;
-        border: none;
-        color: white;
-        text-decoration: none;
-        //display: inline-block;
-        font-size: 16px;
-        width: 60px;
-        height: 30px;
-        transition-duration: 0.4s;
-        cursor: pointer;
-
-        &:hover{
-          background-color: white;
-          color: green;
-          border: 1px solid green;
+        ol{
+          list-style: none;
         }
 
-      }
-      .Delete_Button{
-        background-color: rgba(217, 0, 0, 0.78);
-        border: none;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        width: 60px;
-        height: 30px;
-        transition-duration: 0.4s;
-        cursor: pointer;
-        float: right;
-        margin-right: 10px;
+        ol li{
+          font-size: 18px;
+          margin: 0 5px;
+          display: flex;
+          position: relative;
+          float: left;
+          justify-content: space-around;
+        }
 
-        &:hover{
-          background-color: rgba(255, 255, 255, 0.78);
-          color: rgba(217, 0, 0, 0.78);
-          border: 1px solid rgba(217, 0, 0, 0.78);
+        ol li::before{
+          font-weight: bold;
+          content: attr(data-list)':';
+          justify-content: space-around;
+          //position: absolute;
+          display: flex;
+          right: calc(100% + 1ch);
+        }
+      }
+
+
+
+      .Button_Group{
+        width: 140px;
+
+        .Edit_Button{
+          float: right;
+          background-color: #04AA6D;
+          border: none;
+          border-radius: 5px;
+          color: white;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          width: 60px;
+          height: 30px;
+          transition-duration: 0.4s;
+          cursor: pointer;
+
+          &:hover{
+            background-color: white;
+            color: green;
+            border: 1px solid green;
+          }
+
+        }
+        .Delete_Button{
+          background-color: rgba(217, 0, 0, 0.78);
+          border: none;
+          border-radius: 5px;
+          color: white;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          width: 60px;
+          height: 30px;
+          transition-duration: 0.4s;
+          cursor: pointer;
+          float: right;
+          margin-right: 10px;
+
+          &:hover{
+            background-color: rgba(255, 255, 255, 0.78);
+            color: rgba(217, 0, 0, 0.78);
+            border: 1px solid rgba(217, 0, 0, 0.78);
+          }
         }
       }
     }
@@ -338,6 +399,23 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
+
+    .SearchList{
+      .UsersListItem{
+        //background-color: rgba(80, 79, 79, 0.23);
+        min-height: 80px;
+        max-height: max-content;
+
+        .Button_Group{
+          .Delete_Button{
+            margin-right: 0;
+          }
+        }
+      }
+    }
+
+
     .Admin_listOfUsers{
       margin: 0.5rem 0 0 2rem;
       width: 100%;
@@ -422,4 +500,24 @@
       border-radius: 20px;
     }
   }
+}
+
+@media screen and (900px < width < 1500px) {
+
+  .Page{
+    .SearchList{
+      .UsersListItem{
+        //background-color: rgba(80, 79, 79, 0.23);
+        min-height: 60px;
+        max-height: max-content;
+
+        .Button_Group{
+          .Delete_Button{
+            margin-right: 0;
+          }
+        }
+      }
+    }
+  }
+
 }
