@@ -295,17 +295,25 @@ const WorkRoom: React.FC = () => {
             </div>}
 
             {isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
-                {userIsChanged && <div>Есть изменения</div>}
+
+                {/*{userIsChanged && <div>Есть изменения</div>}*/}
+
+
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged}/>
 
-                <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
+            </div>}
+
+            {isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
+                <button className={WR_S.submitButton} onClick={() => saveChanges()}>Сохранить изменения
                 </button>
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
                             discardChanges()
-                        }}>выйти к списку
+                        }}>Отменить изменения
                 </button>
             </div>}
+
+            {isEditing && isEditing.isEditing && editedUser && <button className={WR_S.button_back}>Вернуться к списку пользователей</button>}
         </div>
     </>)
 }
