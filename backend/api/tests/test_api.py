@@ -2,6 +2,7 @@ import pprint
 
 import orjson
 
+
 uid = 'testuser_100'
 john_user = {
     'cn': 'testuser_100',

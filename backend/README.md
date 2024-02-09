@@ -201,7 +201,7 @@ Run celery (example):
         "sn": "Test User", 
         "postalCode": 123414,
         "homeDirectory": "/home/testuser", 
-        "loginShell": ["/bin/bash"], 
+        "loginShell": "/bin/bash", 
         "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
       }
   ] 
@@ -224,7 +224,7 @@ Run celery (example):
     "sn": "Test User", 
     "postalCode": 100128,
     "homeDirectory": "/home/testuser", 
-    "loginShell": ["/bin/bash"], 
+    "loginShell": "/bin/bash", 
     "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
 }
 ```
@@ -250,7 +250,7 @@ Run celery (example):
     "sn": "Test User", 
     "postalCode": 100123,
     "homeDirectory": "/home/testuser", 
-    "loginShell": ["/bin/bash"], 
+    "loginShell": "/bin/bash", 
     "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
 }
 ```
@@ -275,7 +275,7 @@ Run celery (example):
     "sn": required, 
     "postalCode": nonrequired,
     "homeDirectory": required, 
-    "loginShell": [nonrequired], 
+    "loginShell": nonrequired, 
     "objectClass": [required],
     "userPassword": required
 }
@@ -299,7 +299,7 @@ Run celery (example):
         "sn": required, 
         "postalCode": required,
         "homeDirectory": required, 
-        "loginShell": [required], 
+        "loginShell": required, 
         "objectClass": [required],
         "userPassword": required
     }
@@ -332,7 +332,7 @@ Run celery (example):
         "sn": nonrequired, 
         "postalCode": nonrequired,
         "homeDirectory": nonrequired, 
-        "loginShell": [nonrequired], 
+        "loginShell": nonrequired, 
         "objectClass": [nonrequired],
         "userPassword": nonrequired
     }

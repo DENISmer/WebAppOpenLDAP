@@ -6,7 +6,7 @@ import time
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
-from backend.api.common.exceptions import get_attribute_error_fields
+from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message
 from backend.api.common.getting_free_id import GetFreeId
 
 from backend.api.common.roles import Role
@@ -20,7 +20,7 @@ from backend.api.resources.schema import (SimpleUserSchemaLdapModify,
                                           WebAdminsSchemaLdapList,
                                           CnGroupSchemaModify,
                                           CnGroupSchemaCreate,
-                                          CnGroupSchemaList)
+                                          CnGroupSchemaList, schema)
 
 from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPAttributeError,
@@ -41,7 +41,7 @@ def connection_ldap(func):
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-        print('##########  REQUEST ###########')
+        # print('##########  REQUEST ###########')
         # args[0] - self of the function
         connection = getattr(args[0], 'connection')
         if hasattr(args[0], 'connection') or not connection:
@@ -49,7 +49,7 @@ def connection_ldap(func):
             # if current_user:
             #     user = UserLdap(dn=current_user['dn'],userPassword=)
 
-            print('current_user', current_user)
+            # print('current_user', current_user)
             connection = ConnectionManagerLDAP(
                 # UserLdap(
                 #     dn=current_user['dn'],
@@ -91,25 +91,8 @@ def permission_user(miss=False):
             if not miss:
                 if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
                     abort(403, message='Insufficient access rights.', status=403)
-            else:
-                username_uid = current_user['uid']
-
-            role = current_user['role']
-
-            if func.__name__ in ('put', 'patch', 'get') and username_uid:
-                if role == Role.SIMPLE_USER.value:
-                    kwargs['user_schema'] = SimpleUserSchemaLdapModify.__name__
-                    kwargs['user_fields'] = simple_user_fields
-                elif role == Role.WEBADMIN.value:
-                    kwargs['user_schema'] = WebAdminsSchemaLdapModify.__name__
-                    kwargs['user_fields'] = webadmins_fields
-            elif func.__name__ in 'post':
-                if role == Role.WEBADMIN.value:
-                    kwargs['user_schema'] = WebAdminsSchemaLdapCreate.__name__
-                    kwargs['user_fields'] = webadmins_fields
-            elif func.__name__ in 'get':
-                if role == Role.WEBADMIN.value:
-                    kwargs['user_schema'] = WebAdminsSchemaLdapList.__name__
+            # else:
+            #     username_uid = current_user['uid']
 
             res = func(*args, **kwargs)
 
@@ -126,28 +109,9 @@ def permission_group(func):
     def wraps(*args, **kwargs):
         current_user = auth.current_user()
 
-        username_cn = kwargs.get('username_cn')
+        # username_cn = kwargs.get('username_cn')
         if not current_user['role'] == Role.WEBADMIN.value:
             abort(403, message='Insufficient access rights.')
-
-        role = current_user['role']
-        if kwargs.get('type_group') == 'posixgroup':
-            if func.__name__ in ('put', 'patch', 'get') and username_cn:
-                if role == Role.WEBADMIN.value:
-                    kwargs['group_schema'] = CnGroupSchemaModify.__name__
-                    kwargs['group_fields'] = webadmins_cn_posixgroup_fields
-                    kwargs['webadmins_user_fields'] = webadmins_fields
-            elif func.__name__ in 'post':
-                if role == Role.WEBADMIN.value:
-                    kwargs['group_schema'] = CnGroupSchemaCreate.__name__
-                    kwargs['group_fields'] = webadmins_cn_posixgroup_fields
-                    kwargs['webadmins_user_fields'] = webadmins_fields
-            elif func.__name__ in 'get':
-                if role == Role.WEBADMIN.value:
-                    kwargs['group_schema'] = CnGroupSchemaList.__name__
-                    kwargs['webadmins_user_fields'] = webadmins_fields
-        else:
-            abort(404, message='Type group not found.')
 
         res = func(*args, **kwargs)
 
@@ -168,8 +132,7 @@ def error_operation_ldap(func):
             res = func(*args, **kwargs)
             error = False
         except LDAPInsufficientAccessRightsResult as e:
-            print('##LDAPInsufficientAccessRightsResult##')
-            pprint.pprint(e)
+
             logging.log(logging.ERROR, e)
             abort(
                 403,
@@ -184,8 +147,6 @@ def error_operation_ldap(func):
                 status=400
             )
         except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
-            print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
-            print(e)
             logging.log(logging.ERROR, e)
             fields = {
                 'dn': [f'Invalid field, {e}'],
@@ -197,9 +158,6 @@ def error_operation_ldap(func):
                 status=400
             )
         except LDAPObjectClassError as e:
-            print('##LDAPObjectClassError##')
-            print(str(e))
-            print(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
                 'objectClass': [str(e)],
@@ -211,16 +169,8 @@ def error_operation_ldap(func):
                 status=400
             )
         except LDAPAttributeError as e:
-            print('##LDAPATTRERROR##')
-            pprint.pprint(e.__dict__)
-            pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            fields = {
-                item: [str(e)]
-                for item in get_attribute_error_fields(
-                    list(object_item.fields.keys()), str(e)
-                )
-            }
+            fields = form_dict_field_error(object_item, str(e))
             abort(
                 400,
                 message='Invalid attributes',
@@ -228,10 +178,19 @@ def error_operation_ldap(func):
                 status=400
             )
         except LDAPAttributeOrValueExistsResult as e:
-            pass
+            logging.log(logging.ERROR, e)
+            message = e.__dict__['message']
+            fields = {
+                key: ['Must not contain duplicate elements']
+                for key in get_attribute_error_message(object_item.fields.keys(), message)
+            }
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400,
+            )
         except LDAPEntryAlreadyExistsResult as e:
-            print('##LDAPEntryAlreadyExistsResult##')
-            pprint.pprint(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
                 'dn': [f'An element with such a dn already exists'],
@@ -252,21 +211,14 @@ def error_operation_ldap(func):
         except LDAPObjectClassViolationResult as e:
             logging.log(logging.ERROR, e.__dict__)
             message = e.__dict__['message']
-            fields = {
-                item: [message]
-                for item in get_attribute_error_fields(
-                    list(object_item.fields.keys()), message
-                )
-            }
+            fields = form_dict_field_error(object_item, message)
             abort(
                 400,
                 fields=fields,
                 status=400,
             )
         except LDAPOperationResult as e:
-            print('##LDAPOperationResult##')
             logging.log(logging.ERROR, e)
-            print(e.__dict__)
             abort(
                 400,
                 message=e.__dict__["message"],
@@ -274,11 +226,6 @@ def error_operation_ldap(func):
                 type=e.__dict__["type"]
             )
         except LDAPException as e:
-            print('##LDAPException##')
-            # pprint.pprint(self._connection.result)
-            pprint.pprint(e.__dict__)
-            pprint.pprint(e.args)
-            pprint.pprint(e)
             logging.log(logging.ERROR, e)
             abort(
                 400,
@@ -318,38 +265,19 @@ def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
-        username_uid = kwargs.get('username_id')
+        username_uid = kwargs.get('username_uid')
         current_user = auth.current_user()
-        current_user_role = current_user['role']
-        func_name = func.__name__
+        role = current_user['role']
 
-        schema = {
-            Role.SIMPLE_USER.value: {
-                'get': {
+        func_name = func.__name__ if username_uid or func.__name__ == 'post' else 'list'
 
-                },
-                'patch': {
+        type_group = kwargs.get('type_group')
+        if type_group:
+            kwargs['webadmins_fields'] = schema[role]['fields']
+            role = type_group
 
-                },
-                'put': {
-
-                },
-            },
-            Role.WEBADMIN.value: {
-                'get': {
-
-                },
-                'patch': {
-
-                },
-                'put': {
-
-                },
-                'post': {
-
-                },
-            },
-        }
+        kwargs['schema'] = schema[role][func_name]['schema']
+        kwargs['fields'] = schema[role]['fields']
 
         res = func(*args, **kwargs)
 

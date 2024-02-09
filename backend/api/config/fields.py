@@ -187,7 +187,7 @@ webadmins_fields = {
             'required': ['create', 'update'],
         },
         'loginShell': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['update'],

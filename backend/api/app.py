@@ -10,7 +10,7 @@ from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
 from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
                                                   UserListOpenLDAPResource,
-                                                  UserMeOpenLDAPResource)
+                                                  UserMeOpenLDAPResource, FreeIdsOpenLDAPResource)
 from backend.api.db.database import db
 from backend.api.config import settings
 
@@ -31,6 +31,8 @@ regex = 'regex("[a-zA-Z0-9_-]+")'
 api.add_resource(UserMeOpenLDAPResource,  f'{route}/users/me/')
 api.add_resource(UserOpenLDAPResource,  f'{route}/users/<{regex}:username_uid>')
 api.add_resource(UserListOpenLDAPResource, f'{route}/users')
+
+api.add_resource(FreeIdsOpenLDAPResource, f'{route}/free-ids')
 
 # Group resource
 api.add_resource(GroupOpenLDAPResource, f'{route}/groups/<{regex}:type_group>/<{regex}:username_cn>')

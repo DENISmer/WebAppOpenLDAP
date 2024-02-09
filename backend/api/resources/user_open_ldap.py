@@ -2,11 +2,14 @@ import logging
 import pprint
 import time
 
+import orjson
 from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
+from backend.api.common.getting_free_id import GetFreeId
+from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
@@ -25,12 +28,11 @@ def get_user_roles(user):
     return Role(user['role'])
 
 
-class UserOpenLDAPResource(Resource):
+class UserOpenLDAPResource(Resource, CommonSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
-        self.serializer = CommonSerializer()
 
     def __modify_user_group(
         self,
@@ -110,20 +112,21 @@ class UserOpenLDAPResource(Resource):
     @define_schema
     def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
-        user_schema = kwargs['user_schema']
+        user_schema = kwargs['schema']
 
-        serialized_user = self.serializer.serialize_data(user_schema, user)
+        serialized_user = self.serialize_data(user_schema, user)
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
+    @define_schema
     def put(self, username_uid, *args, **kwargs):
         json_data = request.get_json()
-        user_schema = kwargs['user_schema']
-        user_fields = kwargs['user_fields']
+        user_schema = kwargs['schema']
+        user_fields = kwargs['fields']
 
-        deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
+        deserialized_data = self.deserialize_data(user_schema, json_data, partial=False)
 
         user = self.__modify_user_group(
             username_uid=username_uid,
@@ -132,18 +135,19 @@ class UserOpenLDAPResource(Resource):
             operation='update'
         )
 
-        serialized_user = self.serializer.serialize_data(user_schema, item=user)
+        serialized_user = self.serialize_data(user_schema, item=user)
         return serialized_user, 200
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
+    @define_schema
     def patch(self, username_uid, *args, **kwargs):
         json_data = request.get_json()
-        user_schema = kwargs['user_schema']
-        user_fields = kwargs['user_fields']
+        user_schema = kwargs['schema']
+        user_fields = kwargs['fields']
 
-        deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=True)
+        deserialized_data = self.deserialize_data(user_schema, json_data, partial=True)
 
         user = self.__modify_user_group(
             username_uid=username_uid,
@@ -152,12 +156,13 @@ class UserOpenLDAPResource(Resource):
             operation='update'
         )
 
-        serialized_data = self.serializer.serialize_data(user_schema, user)
+        serialized_data = self.serialize_data(user_schema, user)
         return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user()
+    @define_schema
     def delete(self, username_uid):
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
@@ -173,18 +178,18 @@ class UserOpenLDAPResource(Resource):
         return None, 204
 
 
-class UserListOpenLDAPResource(Resource):
+class UserListOpenLDAPResource(Resource, CommonSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
-        self.serializer = CommonSerializer()
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user()
+    @define_schema
     def get(self, *args, **kwargs):
-        user_schema = kwargs['user_schema']
+        user_schema = kwargs['schema']
         search = request.args.get('search', type=str)
         page = request.args.get('page', type=int, default=1) or 1
 
@@ -208,7 +213,7 @@ class UserListOpenLDAPResource(Resource):
             users, page, items_per_page=settings.ITEMS_PER_PAGE
         ).get_items()
 
-        serialized_data = self.serializer.serialize_data(user_schema, items, many=True)
+        serialized_data = self.serialize_data(user_schema, items, many=True)
 
         return {
             'items': serialized_data,
@@ -220,15 +225,16 @@ class UserListOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user()
+    @define_schema
     def post(self, *args, **kwargs):
         json_data = request.get_json()
-        user_schema = kwargs['user_schema']
-        user_fields = kwargs['user_fields']
+        user_schema = kwargs['schema']
+        user_fields = kwargs['fields']
 
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
 
-        deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
+        deserialized_data = self.deserialize_data(user_schema, json_data, partial=False)
 
         uid_number, gid_number = deserialized_data.get('uidNumber'), deserialized_data.get('gidNumber')
         if uid_number or gid_number:
@@ -276,7 +282,7 @@ class UserListOpenLDAPResource(Resource):
 
         user_obj.free_id.del_from_reserved(user.gidNumber)
 
-        serialized_users = self.serializer.serialize_data(user_schema, user)
+        serialized_users = self.serialize_data(user_schema, user)
         return serialized_users, 201
 
 
@@ -284,16 +290,32 @@ class UserMeOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
-        self.serializer = CommonSerializer()
 
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user(miss=True)
+    @define_schema
     def get(self, *args, **kwargs):
         current_user = auth.current_user()
-        user_schema = kwargs['user_schema']
+        user_schema = kwargs['schema']
 
         user = UserManagerLDAP(connection=self.connection).item(current_user['uid'])
-        serialized_data = self.serializer.serialize_data(user_schema, user)
+        serialized_data = self.serialize_data(user_schema, user)
 
         return serialized_data, 200
+
+
+class FreeIdsOpenLDAPResource(Resource):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.connection = None
+
+    @connection_ldap
+    def get(self, *args, **kwargs):
+        conn_ldap = UserManagerLDAP(connection=self.connection)
+        ids = conn_ldap.get_id_numbers()
+        free_id = conn_ldap.get_free_id_number()
+        get_free_id = GetFreeId()
+        get_free_id.del_from_reserved(free_id)
+
+        return {'ids': list(ids), 'free_id': free_id}, 200

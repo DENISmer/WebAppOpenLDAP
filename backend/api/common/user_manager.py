@@ -70,8 +70,6 @@ class UserLdap(UserCnAbstract):
             self.homeDirectory = self.homeDirectory[0]
 
         self.loginShell = kwargs.get('loginShell')
-        if self.loginShell and type(self.loginShell):
-            self.loginShell = self.loginShell[0]
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')

@@ -5,7 +5,7 @@ import pprint
 from flask_restful import Resource, request
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
-from backend.api.common.decorators import connection_ldap, permission_group
+from backend.api.common.decorators import connection_ldap, permission_group, define_schema
 from backend.api.common.auth_http_token import auth
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.paginator import Pagintion
@@ -57,6 +57,7 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def get(self, username_cn, type_group, *args, **kwargs):
         group_schema = kwargs['group_schema']
         group = GroupManagerLDAP(connection=self.connection) \
@@ -67,10 +68,11 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def put(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
-        group_fields = kwargs['group_fields']
-        webadmins_user_fields = kwargs['webadmins_user_fields']
+        group_schema = kwargs['schema']
+        group_fields = kwargs['fields']
+        webadmins_user_fields = kwargs['webadmins_fields']
         json_data = request.get_json()
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=False)
@@ -85,10 +87,11 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def patch(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
-        group_fields = kwargs['group_fields']
-        webadmins_user_fields = kwargs['webadmins_user_fields']
+        group_schema = kwargs['schema']
+        group_fields = kwargs['fields']
+        webadmins_user_fields = kwargs['webadmins_fields']
         json_data = request.get_json()
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=True)
@@ -104,6 +107,7 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def delete(self, username_cn, type_group, *args, **kwargs):
         group_obj = GroupManagerLDAP(connection=self.connection)
         group = group_obj.get_group_info_posix_group(username_cn)
@@ -121,8 +125,9 @@ class GroupListOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def get(self, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
+        group_schema = kwargs['schema']
         search = request.args.get('search', type=str)
         page = request.args.get('page', type=int, default=1) or 1
 
@@ -150,10 +155,11 @@ class GroupListOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def post(self, *args, **kwargs):
         json_data = request.get_json()
-        group_schema = kwargs['group_schema']
-        group_field = kwargs['group_fields']
+        group_schema = kwargs['schema']
+        group_field = kwargs['fields']
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data)
 
         group = CnGroupLdap(

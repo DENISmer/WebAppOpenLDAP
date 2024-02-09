@@ -5,6 +5,8 @@ from marshmallow import Schema, fields, ValidationError, validates, validates_sc
 from marshmallow.schema import SchemaMeta
 from flask_restful import abort
 
+from backend.api.common.groups import Group
+from backend.api.common.roles import Role
 from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn
 from backend.api.config import fields as conf_fields
 
@@ -123,7 +125,7 @@ class BaseSchema(Schema,
     userPassword = fields.Str(load_only=True)
     postalCode = fields.Int()
     homeDirectory = fields.Str()
-    loginShell = fields.List(fields.Str())
+    loginShell = fields.Str()
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -324,3 +326,55 @@ class BaseCnGroupOutSchemaToList(GroupBaseSchema,
 class CnGroupOutSchemaToList(BaseCnGroupOutSchemaToList,
                              metaclass=MetaToList):
     pass
+
+
+schema = {
+    Role.SIMPLE_USER.value: {
+        'fields': conf_fields.simple_user_fields,
+        'get': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+        'patch': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+        'put': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+    },
+    Role.WEBADMIN.value: {
+        'fields': conf_fields.webadmins_fields,
+        'get': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'patch': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'put': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'post': {
+            'schema': WebAdminsSchemaLdapCreate.__name__,
+        },
+        'list': {
+            'schema': WebAdminsSchemaLdapList.__name__,
+        }
+    },
+    Group.POSIXGROUP.value.lower(): {
+        'fields': conf_fields.webadmins_cn_posixgroup_fields,
+        'get': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'patch': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'put': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'post': {
+            'schema': CnGroupSchemaCreate.__name__,
+        },
+        'list': {
+            'schema': CnGroupSchemaList.__name__,
+        }
+    }
+}
