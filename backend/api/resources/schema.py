@@ -243,7 +243,7 @@ class GroupBaseSchema(Schema,
     @validates('gidNumber')
     def validate_gid_number(self, value):
         if value < 10000:
-            raise ValidationError('gidNumber must be greater than or equal to 10000')
+            raise ValidationError('GidNumber must be greater than or equal to 10000')
 
     @validates_schema
     def validate_object(self, data, **kwargs):

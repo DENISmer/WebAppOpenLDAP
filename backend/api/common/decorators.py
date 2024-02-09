@@ -103,7 +103,7 @@ def permission_group(func):
 
         # username_cn = kwargs.get('username_cn')
         if not current_user['role'] == Role.WEBADMIN.value:
-            abort(403, message='Insufficient access rights.')
+            abort(403, message='Insufficient access rights.', status=403)
 
         res = func(*args, **kwargs)
 
@@ -215,13 +215,14 @@ def error_operation_ldap(func):
                 400,
                 message=e.__dict__["message"],
                 error=e.__dict__["description"],
-                type=e.__dict__["type"]
+                type=e.__dict__["type"],
+                status=400
             )
         except LDAPException as e:
             logging.log(logging.ERROR, e)
             abort(
                 400,
-                message='Try again later..',
+                message='Try again later1..',
                 status=400
             )
         finally:
