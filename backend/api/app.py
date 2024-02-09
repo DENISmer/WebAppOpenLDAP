@@ -23,6 +23,11 @@ api = Api(app)
 
 # Cross Origin Resource Sharing
 cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
+# cors = CORS(
+#     app,
+#     resources={r'/api/*': {"origins": "*"}},
+#     allow_header=['Content-Type', 'Authorization']
+# )
 
 route = '/api/v1'
 regex = 'regex("[a-zA-Z0-9_-]+")'

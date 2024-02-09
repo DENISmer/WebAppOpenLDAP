@@ -34,7 +34,7 @@ connection.bind()
 connection_search = connection.search(
     'dc=local,dc=net',
     '(uid=serbinovichgs)',
-    attributes=['sshPublicKey']
+    attributes=['userPassword']
 )
 ssh_key = orjson.loads(connection.entries[0].entry_to_json())
 print(ssh_key['attributes'])

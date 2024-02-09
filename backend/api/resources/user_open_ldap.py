@@ -20,6 +20,9 @@ from backend.api.config.fields import (search_fields,
                                        webadmins_cn_posixgroup_fields)
 
 from backend.api.common.roles import Role
+from backend.api.db.database import db
+from backend.api.db.database_queries import DbQueries
+from backend.api.db.models import TokenModel
 from backend.api.resources import schema
 
 
@@ -162,7 +165,6 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user()
-    @define_schema
     def delete(self, username_uid):
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
@@ -170,6 +172,9 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         group = group_obj.get_group_info_posix_group(
             username_uid, [], abort_raise=False
         )
+
+        db_queries = DbQueries(db.session)
+        db_queries.delete_instance_by_params(TokenModel, dn=user.dn)
 
         user_obj.delete(item=user, operation='delete')
         if group:

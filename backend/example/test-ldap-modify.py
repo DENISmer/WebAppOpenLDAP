@@ -3,7 +3,7 @@ import time
 
 import ldap3
 
-server = ldap3.Server('192.168.1.12', 389)
+server = ldap3.Server('0.0.0.0', 389)
 
 connection = ldap3.Connection(
     server,
@@ -20,6 +20,7 @@ print('Connection search:', connection_search)
 if connection_search:
     pprint.pprint(connection.response[0])
 
+exit(0)
 time.sleep(1)
 print('End sleep')
 

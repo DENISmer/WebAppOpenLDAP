@@ -35,10 +35,11 @@ class ConnectionManagerLDAP:
 
         # self._connections[self.user.dn] = self.connection
 
+    @error_operation_ldap
     def connect(self):
         self.connection = self._connections.get(self.user.dn)
         if not self.connection:
-            abort(403, message='Unauthorized Access', status=403)#'Insufficient access rights.')
+            abort(401, message='Unauthorized Access if not conn', status=401)#'Insufficient access rights.')
 
         self.connection.open()
         if config['LDAP_USE_SSL']:
