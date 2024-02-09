@@ -1,7 +1,17 @@
 import {Params, userDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
 import {APIS} from "@/scripts/constants";
+import {response} from "express";
 
+export interface ReturnThenPatch {
+    userData?: userDataForEdit,
+    status: number
+}
+
+export interface PatchParams {
+    userData: userDataForEdit,
+    currentToken: string
+}
 
 export async function getUsersList(props: Params) {
     console.log(props.token)
@@ -34,13 +44,13 @@ export async function getUserDataByUid_Admin(props: string): Promise<userDataFor
     return request
 }
 
-export async function sendChanges(data: userDataForEdit){
+export async function sendChanges(data: PatchParams['userData'], token: PatchParams['currentToken']): Promise<ReturnThenPatch> {
     //console.log(data)
     const sendDataToChange = await axios.patch(`${APIS.USERS}/${data.uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
-        //sshPublicKey: data.sshPublicKey,
+        sshPublicKey: data.sshPublicKey,
         st: data.st,
         mail: data.mail,
         street: data.street,
@@ -52,14 +62,39 @@ export async function sendChanges(data: userDataForEdit){
         homeDirectory: data.homeDirectory,
         loginShell: data.loginShell,
         objectClass: data.objectClass
+    }, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     })
         .then((response) => {
-            return response.data
+            console.log('FterReq',response)
+            if(response.request.status === 200){
+                return {userData :response.data, status: response.request.status }
+            }
         })
         .catch((e) => {
-            return e
+            console.log("E", e.response.data)
+            return e.response.data
         })
 
     return  sendDataToChange
+}
+
+export async function deleteUser(uid: string) {
+    if(uid){
+        return await axios.delete(`${APIS.USERS}/${uid}`,{
+            headers: {
+                Authorization: `Bearer ${uid}`
+            }
+        })
+            .then((response) => {
+                return response
+            })
+            .catch((e) => {
+                alert(`smth went wrong ${e}`)
+            })
+    }
+
 }
 

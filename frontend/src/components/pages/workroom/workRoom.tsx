@@ -1,14 +1,14 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
-import settingFieldsToChange from "@/scripts/workroom/settingFieldsToChange";
 import {useCookies} from "react-cookie";
-import { getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
+import {deleteUser, getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
 import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
 import Modal from "@/components/Modal_Window/modalWindow";
-import IntrinsicAttributes = React.JSX.IntrinsicAttributes;
+import {SimpleUserEditor} from "@/components/pages/workroom/simpleUserEditor";
+
 
 export interface userDataForEdit {
     dn: string,
@@ -140,6 +140,9 @@ const WorkRoom: React.FC = () => {
                     console.log(e)
                 })
         }
+        else if (!isEditing.isEditing && isEditing.uid){
+            deleteUserFromList()
+        }
     }, [isEditing]);
 
     useEffect(() => {
@@ -158,30 +161,38 @@ const WorkRoom: React.FC = () => {
     }
 
     const saveChanges = async ()  => {
-        const request: any = await sendChanges(editedUser)
-            .then((response: any) => {
-                if (response.response.status === 200){
-                    setEditedUser(response.response.data)
-                    setUserForEditAdmin(response.response.data)
-                    alert("данные сохранены")
-                }
-                else if(response.response.status === 400) {
-                    alert(`ERROR 400 \n ${response.response.data.message} \n ${response.response.data.fields}`)
-                    // alert(`ERROR 400 \n ${response.response.data.message}`)
-                    console.log(response.response.data)
-                }
-                else if(response.response.status === 403) {
-                    alert(`ERROR 403 \n ${response.response.data.message}`)
-                }
-            })
-            .catch((response: any) => {
-                if (response.response.status){
-                    alert(`ERROR 403 \n ${response.response.data.message}`)
-                }
-                else if (response){
-                    console.log('Какая-то ошибка с доступом', response)
-                }
-            })
+        if(!userIsChanged) alert('нет данных для изменения')
+
+        else {
+            const request: any = await sendChanges(editedUser, currentEditor.token)
+                .then((response: any) => {
+                    console.log("RESPONSE FOR", response)
+                    if (response.status === 200){
+                        setEditedUser(response.userData)
+                        setUserForEditAdmin(response.userData)
+                        setUserIsChanged(false)
+                        alert("данные сохранены")
+                        console.log(response)
+                    }
+                    else if(response.status === 400) {
+                        console.log(400)
+                        alert(`ERROR 400 \n ${response.message} \n ${JSON.stringify(response.fields)}`)
+                        // alert(`ERROR 400 \n ${response.response.data.message}`)
+                        //console.log(response.response.data)
+                    }
+                    else if(response.status === 403) {
+                        alert(`ERROR 403 \n ${response.response.data.message}`)
+                    }
+                })
+                .catch((response) => {
+                    console.log("ТУТ ошибка",response)
+                    if (response.status === 400){
+                        alert(`ERROR 400 \n ${response.userData}`)
+                    }
+                    else if (response){
+                    }
+                })
+        }
     }
 
 
@@ -224,6 +235,29 @@ const WorkRoom: React.FC = () => {
         }
 
     };
+
+    const deleteUserFromList = async ()  => {
+        const confirmForDelete = confirm(`Вы уверены? \nПользователь ${isEditing.uid} будет удален`)
+        if(confirmForDelete){
+            await deleteUser(isEditing.uid)
+                .then((response: any) => {
+                    console.log('delete_response',response)
+                    if(response.status === 204) {
+                        setCurrentListPage(currentListPage + 1)
+                        setCurrentListPage(currentListPage - 1)
+                        if(currentEditor.uid === isEditing.uid){
+                            removeCookie("userAuth")
+                            setCurrentEditor(null)
+                            navigate("/login")
+                        }
+                        alert(`Пользователь удален! \n`)
+                    }
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        }
+    }
 
 
 
@@ -287,7 +321,7 @@ const WorkRoom: React.FC = () => {
                                     <div className={WR_S.Button_Group}>
                                         <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
                                         </button>
-                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>delete</button>
+                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: false, uid: element.uid})}>delete</button>
                                     </div>
                                 </div>)
                             )}
@@ -307,6 +341,13 @@ const WorkRoom: React.FC = () => {
                         }}>выйти к списку
                 </button>
             </div>}
+            {currentEditor && currentEditor.role !== 'webadmins' &&
+                <div className={WR_S.Admin_Panel}>
+                    <div className={WR_S.Admin_UseProfile}>
+                        <SimpleUserEditor />
+                    </div>
+                </div>
+            }
         </div>
     </>)
 }

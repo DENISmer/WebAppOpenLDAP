@@ -25,6 +25,7 @@ interface Props {
     fieldIsChange: (fieldName: string) => boolean;
 }
 
+
 export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange }) => {
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
