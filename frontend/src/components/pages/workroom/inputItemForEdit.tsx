@@ -2,28 +2,29 @@ import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 import {ChangeEvent, useEffect} from "react";
 
 export interface userDataForEdit {
-    dn: string,
+    dn?: string,
     uidNumber?: number,
     gidNumber?: number,
-    uid: string,
+    uid?: string,
     sshPublicKey?: [],
     st?: string[],
     mail?: string[],
     street?: string[],
-    cn: string[],
+    cn?: string[],
     displayName?: string,
     givenName?: string[],
-    sn: string[],
+    sn?: string[],
     postalCode?: number,
-    homeDirectory: string,
+    homeDirectory?: string,
     loginShell?: string,
-    objectClass: string[]
+    objectClass?: string[]
 }
 interface Props {
     userData: userDataForEdit;
     onUserDataChange: (newData: userDataForEdit) => void;
     fieldIsChange: (fieldName: string) => boolean;
 }
+
 
 export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange }) => {
     const handleInputChange = (key: string, value: string, index?: number) => {

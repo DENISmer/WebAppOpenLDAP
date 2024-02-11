@@ -1,4 +1,4 @@
-export const domain: string = 'http://192.168.0.156:8080/api/v1/'
+export const domain: string = 'http://172.16.1.63:8080/api/v1/'
 export const APIS = {
     API : `${domain}api/v1/`,
     GROUPS : `${domain}groups/`,
