@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'Roboto';
+}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
 *{
   margin: 0;
   padding: 0;
@@ -11,7 +16,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: "Roboto Thin", sans-serif;
+  font-family: "Roboto", sans-serif;
 
   .menu {
     border-radius: 5px;
@@ -188,6 +193,7 @@
         transform: rotate(-135deg);
         transition: ease-in-out .3s;
       }
+
       .Page_Button_disabled_right{
         margin: 0 5px 0 10px;
         border: none;
@@ -327,11 +333,6 @@
     position: absolute;
     top: 100px;
     display: flex;
-    flex-direction: column;
-    row-gap: 20px;
-    column-gap: 1px;
-    flex-wrap: wrap;
-    justify-content: space-between;
     margin: 2rem 2rem 2rem 2rem;
     overflow-x: hidden;
     overflow-y: auto;
@@ -341,49 +342,54 @@
     background-color: rgba(30, 46, 75, 0.38);
     border-radius: 20px;
     padding: 10px;
+  }
 
-    .field{
-      min-width: 200px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      word-wrap: anywhere;
-      position: relative;
-      margin-right: 1%;
-      max-width: 50%;
-      height: max-content;
-      margin-top: 1rem;
-      font-weight: bold;
+  .button_back{
+    font-size: 16px;
+    position: absolute;
+    width: max-content;
+    padding: 10px;
+    top: 5%;
+    left: 40%;
+  }
 
-      input{
-        width: 60vw;
-        height: 30px;
-        border-radius: 10px;
-        border: none;
-        max-width: 80%;
-      }
+  .button_group{
+    position: absolute;
+    width: max-content;
+    bottom: 8%;
+    left: 40%;
 
-      .input_changed {
-        width: 60vw;
-        height: 30px;
-        border-radius: 10px;
-        border: 2px solid coral;
-        max-width: 80%;
-      }
-
-      textarea {
-        width: 50%;
-        height: max-content;
-        resize: vertical;      
-      }
-    }
 
     .submitButton {
+      margin-right: 10px;
+      border-radius: 10px;
+      font-size: 18px;
+      padding: 5px;
       background-color: green;
+      color: white;
+      transition: .3s ease-in-out;
+
+      &:hover{
+        transition: .3s ease-in-out;
+        background-color: #FFF;
+        color: #008000;
+      }
     }
 
     .cancelChanges {
+      margin-right: 10px;
+      border-radius: 10px;
+      font-size: 18px;
+      padding: 5px;
       background-color: yellow;
+      color: #000000;
+      transition: .3s ease-in-out;
+
+      &:hover{
+        transition: .3s ease-in-out;
+        background-color: #FFF;
+        color: #000000;
+      }
     }
   }
 }

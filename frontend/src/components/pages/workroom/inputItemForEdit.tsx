@@ -1,5 +1,6 @@
 import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 import {ChangeEvent, useEffect} from "react";
+import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
 
 export interface userDataForEdit {
     dn?: string,
@@ -83,30 +84,42 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
         const inputValue = isValueArray && typeof index === 'number' ? value[index] : value;
 
         return (
-            <div key={typeof index === 'number' ? `${key}-${index}` : key}>
-                {/*отображение изменения*/}
-                {fieldIsChange(key) && !index ?
-                    <span>изменено{' '}</span> : null
-                }
+            <div className={FFE_S.div} key={typeof index === 'number' ? `${key}-${index}` : key}>
                 {/*рендер каждого элемента*/}
-                <label htmlFor={inputName}>{index ? index : key}</label>
-                <input
-                    type={key === 'mail' ? "email" : "text"}
-                    id={inputName}
-                    name={inputName}
-                    placeholder={`Enter ${key}`}
-                    value={inputValue || ''}
-                    disabled={key === 'dn'}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                        handleInputChange(key, e.target.value, index)
+                <div className={FFE_S.element}>
+                    <label htmlFor={inputName}>
+                        {index ? index : key}
+
+                        {/*отображение изменения*/}
+                        {fieldIsChange(key) && !index ?
+                            <span className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}>изменено{' '}</span> : null
                         }
+                    </label>
+                    {key === 'sshPublicKey' ? <textarea className={fieldIsChange(key) && !index ? FFE_S.isChanged : null} name="" id="" cols={30} rows={10}></textarea>
+                        : <input
+
+                            className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}
+                            type={key === 'mail' ? "email" : "text"}
+                            id={inputName}
+                            name={inputName}
+                            placeholder={`Enter ${key}`}
+                            value={inputValue || ''}
+                            disabled={key === 'dn'}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                handleInputChange(key, e.target.value, index)
+                            }
+                            }
+                        />
                     }
-                />
-                {isValueArray && typeof index === 'number' && value.length > 1 && (
-                    <button type="button" onClick={() => handleRemoveArrayItem(key, index)}>
-                        Remove
-                    </button>
-                )}
+
+
+
+                    {isValueArray && typeof index === 'number' && value.length > 1 && (
+                        <button className={FFE_S.Button_Remove} type="button" onClick={() => handleRemoveArrayItem(key, index)}>
+                            Remove
+                        </button>
+                    )}
+                </div>
             </div>
         );
     };
@@ -117,12 +130,15 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
                     return (
-                        <div key={key}>
-                            {inputs}
-                            <button type="button" onClick={() => handleAddArrayItem(key)}>
-                                Add more {key}
-                            </button>
+                        <div className={FFE_S.div}>
+                            <div className={FFE_S.element} key={key}>
+                                {inputs}
+                                <button className={FFE_S.Button_Add} type="button" onClick={() => handleAddArrayItem(key)}>
+                                    Add more {key}
+                                </button>
+                            </div>
                         </div>
+
                     );
                 } else {
                     return renderInput(key, value);
