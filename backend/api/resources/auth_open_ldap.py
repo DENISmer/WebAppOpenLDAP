@@ -39,10 +39,7 @@ class AuthOpenLDAP(Resource):
         user.uid = response.user_id
 
         connection = ConnectionManagerLDAP(user)
-        # connection.show_connections()
-        connection.create_connection()
         connection.connect()
-        # connection.show_connections()
 
         groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
 
@@ -52,7 +49,7 @@ class AuthOpenLDAP(Resource):
 
         connection.close()
 
-        user.userPassword = CryptPasswd(password=deserialized_data['userPassword']).crypt()
+        user.userPassword = CryptPasswd(password=deserialized_data['userPassword'].encode()).crypt()
         token = TokenManagerDB(user=user).create_token()
         if not token:
             abort(400, message='Try again now or later', status=400)

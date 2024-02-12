@@ -1,15 +1,16 @@
+from backend.api.redis.redis_storage import RedisStorage
+
 
 class GetFreeId:
-    reserved_identifiers = []
 
-    @classmethod
-    def reserve(cls, value):
-        cls.reserved_identifiers.append(value)
+    def __init__(self):
+        self.reserved_identifiers = RedisStorage()
 
-    @classmethod
-    def del_from_reserved(cls, value):
-        if value in cls.reserved_identifiers:
-            cls.reserved_identifiers.remove(value)
+    def reserve(self, value):
+        self.reserved_identifiers.add(name=value, value=f'{value}')
+
+    def delete_from_reserved(self, value):
+        self.reserved_identifiers.delete(value)
 
     def get_free_spaces(self, ids):  # redis storage
 
@@ -25,14 +26,15 @@ class GetFreeId:
         for i in range(len(sorted_ids)-1):
             count_free_spaces = sorted_ids[i+1] - sorted_ids[i] - 1
             if count_free_spaces > 0:
-                not_used_id = sorted_ids[i] + j
-                if not_used_id not in self.reserved_identifiers:
-                    self.reserve(not_used_id)
-                    return not_used_id
+                not_reserved_id = sorted_ids[i] + j
+
+                if not self.reserved_identifiers.get(not_reserved_id):
+                    self.reserve(not_reserved_id)
+                    return not_reserved_id
                 j += 1
 
         new_val = sorted_ids[-1] + 1
-        while new_val in self.reserved_identifiers:
+        while self.reserved_identifiers.get(new_val):
             new_val += 1
 
         self.reserve(new_val)

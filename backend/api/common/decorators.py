@@ -5,6 +5,7 @@ import time
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
+from backend.api.common.crypt_passwd import CryptPasswd
 from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message
 from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.roles import Role
@@ -37,7 +38,7 @@ def connection_ldap(func):
         if hasattr(args[0], 'connection') or not connection:
             current_user = auth.current_user()
 
-            print('current_user', current_user)
+            # print('current_user', current_user)
             if settings.NOT_AUTH:
                 user = UserLdap(
                     dn='uid=bob,ou=People,dc=example,dc=com',
@@ -47,6 +48,8 @@ def connection_ldap(func):
             else:
                 user = UserLdap(
                     dn=current_user['dn'],
+                    username=current_user['dn'],
+                    userPassword=CryptPasswd(current_user['userPassword']).decrypt()
                 )
 
             connection = ConnectionManagerLDAP(
@@ -54,9 +57,6 @@ def connection_ldap(func):
             )
 
             setattr(args[0], 'connection', connection)
-
-        if settings.NOT_AUTH:
-            connection.create_connection()  # REMOVE
 
         connection.connect()
 
@@ -228,7 +228,7 @@ def error_operation_ldap(func):
         finally:
             if object_item:
                 get_free_id = GetFreeId()
-                get_free_id.del_from_reserved(object_item.gidNumber)
+                get_free_id.delete_from_reserved(object_item.gidNumber)
 
                 if hasattr(args[0], 'connection_upwrap') and error:
                     args[0].connection_upwrap.close()

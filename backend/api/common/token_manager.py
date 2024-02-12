@@ -97,7 +97,7 @@ class TokenManagerDB(TokenManagerAbstract):
         '''
 
         instance = self.db_queries.get_instance(TokenModel, dn=self.user.dn)
-        # self.db_queries.bulk_delete(TokenModel)
+
         token = uuid.uuid4().hex
         if instance:
             res = self.db_queries.update_instance(

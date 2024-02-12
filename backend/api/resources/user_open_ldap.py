@@ -285,7 +285,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             operation='create',
         )
 
-        user_obj.free_id.del_from_reserved(user.gidNumber)
+        user_obj.free_id.delete_from_reserved(user.gidNumber)
 
         serialized_users = self.serialize_data(user_schema, user)
         return serialized_users, 201
@@ -315,12 +315,13 @@ class FreeIdsOpenLDAPResource(Resource):
         super().__init__(*args, **kwargs)
         self.connection = None
 
+    @auth.login_required(role=[Role.SIMPLE_USER])
     @connection_ldap
     def get(self, *args, **kwargs):
         conn_ldap = UserManagerLDAP(connection=self.connection)
         ids = conn_ldap.get_id_numbers()
         free_id = conn_ldap.get_free_id_number()
         get_free_id = GetFreeId()
-        get_free_id.del_from_reserved(free_id)
+        get_free_id.delete_from_reserved(free_id)
 
         return {'ids': list(ids), 'free_id': free_id}, 200

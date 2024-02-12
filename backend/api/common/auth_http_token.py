@@ -14,12 +14,12 @@ def verify_token(token):
         is_token = TokenManagerDB().check_token(token)
         if not is_token:
             return False
-        is_token.pop('userPassword')
     else:
         is_token = {
             'dn': 'uid=bob,ou=People,dc=example,dc=com',
             'uid': 'bob',
             'role': 'webadmins',
+            'userPassword': b'gAAAAABlyam-qUrcndMw05tw6sCpLvCVucmni3MKeZhEN7Be7Sqn7V2KlfWcIgj3gg5Apx7e9H1yIJfEJ4psvcsdnkrnxAhLEw==',
         }
 
     return is_token
