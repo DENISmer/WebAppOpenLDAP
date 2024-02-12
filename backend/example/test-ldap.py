@@ -2,7 +2,7 @@
 from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES
 import ssl
 import pprint
-from backend.tests.config import CERT_FILE, HOSTS, TEST_PASSWORD, TEST_USERNAME
+from backend.example.config import CERT_FILE, HOSTS, TEST_PASSWORD, TEST_USERNAME
 
 # LDAP connection test
 

@@ -1,14 +1,17 @@
+import logging
 import pprint
+import time
 
-from flask_restful import Resource, request
+from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
-from backend.api.common.decorators import connection_ldap, permission_user
+from backend.api.common.decorators import connection_ldap, permission_user, define_schema
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
+from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import (search_fields,
                                        webadmins_cn_posixgroup_fields)
@@ -20,11 +23,6 @@ from backend.api.resources import schema
 @auth.get_user_roles  # roles
 def get_user_roles(user):
     return Role(user['role'])
-
-
-@auth.error_handler
-def auth_error(status):
-    return {'message': 'Unauthorized Access', 'status': status}, status
 
 
 class UserOpenLDAPResource(Resource):
@@ -57,20 +55,25 @@ class UserOpenLDAPResource(Resource):
             **deserialized_data,
         )
 
-        if updated_user.uid is not None and username_uid not in updated_user.uid:
-            updated_user.uid.append(username_uid)
+        if updated_user.uidNumber or updated_user.gidNumber:
+            ids = user_obj.get_id_numbers()
+            ids.remove(user.uidNumber)
+            validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
         if updated_user.uidNumber:
-            updated_user.gidNumber = updated_user.uidNumber
+            deserialized_data['gidNumber'] = \
+                updated_user.gidNumber = updated_user.uidNumber
         if updated_user.gidNumber:
-            updated_user.uidNumber = updated_user.gidNumber
+            deserialized_data['uidNumber'] = \
+                updated_user.uidNumber = updated_user.gidNumber
 
         user_obj.modify(
             item=updated_user,
             operation=operation,
+            not_modify_item=user
         )
-
-        group = group_obj.get_group_info_posix_group(username_uid, abort_raise=False)
+        # self.connection.connection.bind()
+        group = group_obj.get_group_info_posix_group(username_uid, attributes=[], abort_raise=False)
 
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
@@ -80,6 +83,22 @@ class UserOpenLDAPResource(Resource):
                 item=group,
                 operation=operation,
             )  # must be test
+        elif not group:
+            new_group = CnGroupLdap(
+                cn=username_uid,
+                memberUid=username_uid,
+                objectClass=['posixGroup'],
+                gidNumber=updated_user.gidNumber,
+                fields=webadmins_cn_posixgroup_fields['fields'],
+            )
+            new_group.dn = 'cn={0},{1}'.format(
+                username_uid,
+                str(group_obj.ldap_manager.full_group_search_dn)
+            )
+            group_obj.create(
+                item=new_group,
+                operation='create',
+            )
 
         # update info user
         user.__dict__.update(deserialized_data)
@@ -88,9 +107,11 @@ class UserOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
+    @define_schema
     def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         user_schema = kwargs['user_schema']
+
         serialized_user = self.serializer.serialize_data(user_schema, user)
         return serialized_user, 200
 
@@ -165,7 +186,15 @@ class UserListOpenLDAPResource(Resource):
     def get(self, *args, **kwargs):
         user_schema = kwargs['user_schema']
         search = request.args.get('search', type=str)
-        page = request.args.get('page', type=int, default=1)
+        page = request.args.get('page', type=int, default=1) or 1
+
+        if search and len(search) < 2:
+            return {
+                'items': [],
+                'num_pages': 1,
+                'num_items': 0,
+                'page': page,
+            }, 200
 
         out_fields = getattr(schema, user_schema)().fetch_fields()
         users = UserManagerLDAP(connection=self.connection).list(
@@ -175,12 +204,14 @@ class UserListOpenLDAPResource(Resource):
             required_fields={'objectClass': 'person'},
         )
 
-        serialized_data = self.serializer.serialize_data(user_schema, users, many=True)
+        items, num_users, num_pages = Pagintion(
+            users, page, items_per_page=settings.ITEMS_PER_PAGE
+        ).get_items()
 
-        items, num_users, num_pages = Pagintion(serialized_data, page, items_per_page=settings.ITEMS_PER_PAGE).get_items()
+        serialized_data = self.serializer.serialize_data(user_schema, items, many=True)
 
         return {
-            'items': items,
+            'items': serialized_data,
             'num_pages': num_pages,
             'num_items': num_users,
             'page': page,
@@ -199,36 +230,52 @@ class UserListOpenLDAPResource(Resource):
 
         deserialized_data = self.serializer.deserialize_data(user_schema, json_data, partial=False)
 
-        if not deserialized_data.get('uidNumber') and not deserialized_data.get('gidNumber'):
+        uid_number, gid_number = deserialized_data.get('uidNumber'), deserialized_data.get('gidNumber')
+        if uid_number or gid_number:
+            ids = user_obj.get_id_numbers()
+            validate_uid_gid_number_to_unique(ids, uid_number, gid_number)
+        elif not uid_number and not gid_number:
             deserialized_data['uidNumber'] = \
                 deserialized_data['gidNumber'] = user_obj.get_free_id_number()
-        pprint.pprint(deserialized_data)
+
         user = UserLdap(
             fields=user_fields['fields'],
-            input_field_keys=deserialized_data.keys(),
             **deserialized_data
         )
         group = CnGroupLdap(
-            cn=user.cn,
-            memberUid=user.cn,
+            cn=user.uid,
+            memberUid=user.uid,
             objectClass=['posixGroup'],
             gidNumber=user.gidNumber,
             fields=webadmins_cn_posixgroup_fields['fields'],
         )
         group.dn = 'cn={0},{1}'.format(
-            user.cn[0],
+            user.uid,
             str(group_obj.ldap_manager.full_group_search_dn)
         )
 
+        found_user = user_obj.get_user_info_by_dn(user.dn, [])
+
+        if found_user:
+            abort(400, fields={'dn': 'The user already exists'}, status=400)
+
+        #create objects
         user_obj.create(
             item=user,
             operation='create',
         )
+
+        found_group = group_obj.get_group_info_posix_group(user.uid, [], abort_raise=False)
+        if found_group:
+            group_obj.delete(found_group)
+
         group_obj.create(
             item=group,
             operation='create',
         )
+
         user_obj.free_id.del_from_reserved(user.gidNumber)
+
         serialized_users = self.serializer.serialize_data(user_schema, user)
         return serialized_users, 201
 

@@ -13,22 +13,20 @@ class UserCnAbstract(ABC):
         if self.gidNumber and type(self.gidNumber) == list:
             self.gidNumber = self.gidNumber[0]
 
-        self.fields = kwargs.get('fields') or []
+        self.fields = kwargs.get('fields') #or []
 
-    def serialize_data(self, user_fields, operation) -> dict:
+    def serialize_data(self, operation) -> dict:
+
         res = {
             key: getattr(self, key)
-            for key, value in user_fields.items()
+            for key, value in self.fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
-               and key in self.input_field_keys \
                and getattr(self, key) is not None
         }
 
         if not operation == 'read' and res.get('dn'):
             del res['dn']
-
-        pprint.pprint(res)
 
         return res
 
@@ -39,11 +37,7 @@ class UserCnAbstract(ABC):
 class UserLdap(UserCnAbstract):
     def __init__(self, username=None, is_webadmin=False, **kwargs):
         super().__init__(
-            dn=kwargs.get('dn'),
-            cn=kwargs.get('cn'),
-            objectClass=kwargs.get('objectClass'),
-            gidNumber=kwargs.get('gidNumber'),
-            fields=kwargs.get('fields'),
+            **kwargs,
             username=username,
         )
 
@@ -68,8 +62,8 @@ class UserLdap(UserCnAbstract):
         self.givenName = kwargs.get('givenName') #or []
         self.sn = kwargs.get('sn') #or []
         self.userPassword = kwargs.get('userPassword') or kwargs.get('password')
-        self.objectClass = kwargs.get('objectClass') # or []
-        self.postalCode = kwargs.get('postalCode') # or []
+        self.objectClass = kwargs.get('objectClass') #or []
+        self.postalCode = kwargs.get('postalCode') #or []
 
         self.homeDirectory = kwargs.get('homeDirectory')
         if self.homeDirectory and type(self.homeDirectory) == list:
@@ -81,8 +75,6 @@ class UserLdap(UserCnAbstract):
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')
-
-        self.input_field_keys = kwargs.get('input_field_keys')
 
     def __repr__(self):
         return f'DN {self.dn}'
@@ -98,3 +90,12 @@ class CnGroupLdap(UserCnAbstract):
 
     def __repr__(self):
         return f'DN {self.dn}'
+
+
+class GroupWebAdmins:
+    def __init__(self, *args, **kwargs):
+        self.dn = kwargs.get('dn')
+        self.objectClass = kwargs.get('objectClass')
+        self.sn = kwargs.get('sn')
+        self.member = kwargs.get('member') or []
+        self.type = kwargs.get('type')

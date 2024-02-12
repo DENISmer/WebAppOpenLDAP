@@ -11,22 +11,27 @@ import {SimpleUserEditor} from "@/components/pages/workroom/simpleUserEditor";
 
 
 export interface userDataForEdit {
-    dn: string,
+    dn?: string,
     uidNumber?: number,
     gidNumber?: number,
-    uid: string,
+    uid?: string,
     sshPublicKey?: [],
     st?: string[],
     mail?: string[],
     street?: string[],
-    cn: string[],
+    cn?: string[],
     displayName?: string,
     givenName?: string[],
-    sn: string[],
+    sn?: string[],
     postalCode?: number,
-    homeDirectory: string,
+    homeDirectory?: string,
     loginShell?: string,
-    objectClass: string[]
+    objectClass?: string[],
+    password?: string
+}
+export interface SimpleUserDataForEdit {
+    sshPublicKey: string[],
+    mail: string
 }
 interface CurrentEditor {
     token: string,
@@ -114,6 +119,7 @@ const WorkRoom: React.FC = () => {
         } }
     }, [searchValue,currentListPage])
 
+    //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
             setCurrentEditor({
@@ -166,26 +172,20 @@ const WorkRoom: React.FC = () => {
         else {
             const request: any = await sendChanges(editedUser, currentEditor.token)
                 .then((response: any) => {
-                    console.log("RESPONSE FOR", response)
                     if (response.status === 200){
                         setEditedUser(response.userData)
                         setUserForEditAdmin(response.userData)
                         setUserIsChanged(false)
                         alert("данные сохранены")
-                        console.log(response)
                     }
                     else if(response.status === 400) {
-                        console.log(400)
                         alert(`ERROR 400 \n ${response.message} \n ${JSON.stringify(response.fields)}`)
-                        // alert(`ERROR 400 \n ${response.response.data.message}`)
-                        //console.log(response.response.data)
                     }
                     else if(response.status === 403) {
                         alert(`ERROR 403 \n ${response.response.data.message}`)
                     }
                 })
                 .catch((response) => {
-                    console.log("ТУТ ошибка",response)
                     if (response.status === 400){
                         alert(`ERROR 400 \n ${response.userData}`)
                     }
@@ -344,7 +344,8 @@ const WorkRoom: React.FC = () => {
             {currentEditor && currentEditor.role !== 'webadmins' &&
                 <div className={WR_S.Admin_Panel}>
                     <div className={WR_S.Admin_UseProfile}>
-                        <SimpleUserEditor />
+                        {JSON.stringify(editedUser)}
+                        {/*<UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} />*/}
                     </div>
                 </div>
             }

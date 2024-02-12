@@ -6,14 +6,17 @@ from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, MODIFY_DELETE
 
 from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.exceptions import ItemFieldsIsNone
+from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
 from backend.api.config.ldap import config
+from backend.api.config.fields import search_fields
 
 
 class IniCommonManagerLDAP:
     def __init__(self, *args, **kwargs):
         connection = kwargs.get('connection')
-        self.ldap_manager = connection.ldap_manager
+        self.ldap_manager: ManagerLDAP = connection.ldap_manager
         self._connection = connection.connection
+        self.connection_upwrap = connection
 
 
 class CommonManagerLDAP(IniCommonManagerLDAP):
@@ -60,7 +63,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             search_filter,
             required_filter
         )
-        print(common_filter)
+        # print(common_filter)
         # exception connection is open!!!!!
         status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
@@ -69,19 +72,16 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         )
         if not status_search:
             return []
-
-        return self._connection.entries
+        return self._connection.response
 
     @error_operation_ldap
     def create(self, item, operation):
-
         if item.fields is None:
             raise ItemFieldsIsNone('Item fields is none.')
 
         self._connection.add(
             item.dn,
             attributes=item.serialize_data(
-                user_fields=item.fields,
                 operation=operation
             )
         )
@@ -97,22 +97,23 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         return item
 
     @error_operation_ldap
-    def modify(self,  item, operation):
+    def modify(self,  item, operation, not_modify_item=None):
 
         serialized_data_modify = item.serialize_data(
-            user_fields=item.fields,
             operation=operation,
         )
 
         modify_dict = dict()
-        for key, value in serialized_data_modify.items():
 
-            print(value)
-            print(type(value))
-            pprint.pprint(value)
-            if value is None or len(value) == 0 or len(str(value)) == 0:
+        for key, value in serialized_data_modify.items():
+            if (value is None or ((isinstance(value, list)
+                                  or isinstance(value, str))
+                                  and (len(value) == 0
+                                  or len(str(value)) == 0))) \
+                    and getattr(not_modify_item, key) \
+                    and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE
-                tmp_value = None
+                tmp_value = []
             else:
                 tmp_modify = MODIFY_REPLACE
                 tmp_value = value if type(value) == list else [value]
@@ -124,21 +125,11 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
                 )]
             })
 
-        pprint.pprint(modify_dict)
         self._connection.modify(
             item.dn,
             modify_dict
         )
-        # self._connection.modify(
-        #     item.dn,
-        #     {
-        #         key: [(
-        #             MODIFY_REPLACE,
-        #             value if type(value) == list else [value]
-        #         )]
-        #         for key, value in serialized_data_modify.items()
-        #     }
-        # )
+
         print('result modify:', self._connection.result)
 
         res = self._connection.result
@@ -157,3 +148,29 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         res = self._connection.result
         if 'success' not in res['description']:
             abort(400, message=f'Error deletion {item.dn}')
+
+    def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):
+        status_search = self._connection.search(
+            search_base=dn,
+            search_filter=filters,
+            attributes=attributes,
+        )
+        if not status_search:
+            return None
+
+        return self._connection.response[0]
+
+    def get_id_numbers(self):
+        data = self.list(
+            value=None,
+            fields=search_fields,
+            attributes=['gidNumber'],
+            required_fields={'objectClass': 'person'},
+        )
+
+        ids = []
+        for item in data:
+            ids.append(item.gidNumber)
+
+        unique_ids = set(ids)
+        return unique_ids

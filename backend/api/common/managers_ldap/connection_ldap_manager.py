@@ -3,6 +3,7 @@ import pprint
 from ldap3 import Connection, EXTERNAL
 from flask_restful import abort
 
+from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.ldap import config
@@ -11,11 +12,12 @@ from backend.api.config.ldap import config
 class ConnectionManagerLDAP:
     _connections = {}
 
-    def __init__(self, user: UserLdap, *args, **kwargs):
+    def __init__(self, user: UserLdap = None, *args, **kwargs):
         self.connection = None
         self.user = user
         self.ldap_manager = ManagerLDAP()
 
+    @error_operation_ldap
     def make_connection(self):
         self.connection = self.ldap_manager.make_connection(
             bind_user=self.user.dn,
@@ -36,7 +38,7 @@ class ConnectionManagerLDAP:
     def connect(self):
         self.connection = self._connections.get(self.user.dn)
         if not self.connection:
-            abort(403, message='Unauthorized Access')#'Insufficient access rights.')
+            abort(403, message='Unauthorized Access', status=403)#'Insufficient access rights.')
 
         self.connection.open()
         if config['LDAP_USE_SSL']:
@@ -71,7 +73,6 @@ class ConnectionManagerLDAP:
         :return: None
         """
         self.connection.unbind()
-        # del self._connections[self.user.dn]
 
     def clear(self):
         """
@@ -81,4 +82,9 @@ class ConnectionManagerLDAP:
         del self._connections[self.user.dn]
 
     def __repr__(self):
-        return f'<Connection(user={self.connection.user}; password={self.connection.password})>'
+        return (f'<Connection('
+                f'user={self.connection.user}; '
+                f'password={self.connection.password}; '
+                f'closed={self.connection.closed} '
+                f'listening={self.connection.listening}'
+                f')>')

@@ -1,18 +1,18 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
+from backend.api.config import settings
 
-
-load_dotenv()
+# load_dotenv()
 config = dict()
 
 # Setup LDAP Configuration Variables. Change these to your own settings.
 # All configuration directives can be found in the documentation.
 
 # Hostnames of your LDAP Servers
-config['LDAP_HOSTS'] = os.getenv('LDAP_HOSTS').split(',')
+config['LDAP_HOSTS'] = settings.HOSTS
 
 # Port of your LDAP Servers
-config['LDAP_PORT'] = int(os.getenv('LDAP_PORT'))
+config['LDAP_PORT'] = settings.LDAP_PORT
 
 # Base DN of your directory
 config['LDAP_BASE_DN'] = 'dc=example,dc=com'
@@ -47,7 +47,7 @@ config['LDAP_BIND_USER_PASSWORD'] = None
 config['LDAP_USE_SSL'] = False
 
 # The path to certificate
-config['CERT_PATH'] = os.getenv('CERT_PATH')
+config['CERT_PATH'] = settings.CERT_FILE_LDAP
 
 # Instruct Flask-LDAP3-Login to not automatically add the server
 config['LDAP_ADD_SERVER'] = False
