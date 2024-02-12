@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.8.15
 
 ENV PYDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -21,4 +21,4 @@ RUN python -m pip install -r backend/requirements.txt
 
 RUN chmod u+x startapp_server.sh
 
-CMD ["sh", "./startapp_server.sh"]
+CMD sh ./startapp_server.sh

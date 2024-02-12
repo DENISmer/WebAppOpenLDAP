@@ -27,3 +27,6 @@ class RedisStorage:
 
     def delete(self, *names):
         return self.__redis.delete(*names)
+
+    def __del__(self):
+        self.__redis.close()

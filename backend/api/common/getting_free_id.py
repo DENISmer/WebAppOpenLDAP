@@ -10,7 +10,8 @@ class GetFreeId:
         self.reserved_identifiers.add(name=value, value=f'{value}')
 
     def delete_from_reserved(self, value):
-        self.reserved_identifiers.delete(value)
+        if value:
+            self.reserved_identifiers.delete(value)
 
     def get_free_spaces(self, ids):  # redis storage
 
