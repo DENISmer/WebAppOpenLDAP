@@ -125,7 +125,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
     };
 
     return (
-        <form>
+        <form className={FFE_S.Admin_form}>
             {Object.entries(userData).map(([key, value]) => {
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
