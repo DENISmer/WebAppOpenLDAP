@@ -94,9 +94,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         {fieldIsChange(key) && !index ?
                             <span className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}>изменено{' '}</span> : null
                         }
-                    </label>
-                    {key === 'sshPublicKey' ? <textarea className={fieldIsChange(key) && !index ? FFE_S.isChanged : null} name="" id="" cols={30} rows={10}></textarea>
-                        : <input
+                        </label>
+                        <input
 
                             className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}
                             type={key === 'mail' ? "email" : "text"}
@@ -110,7 +109,6 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             }
                             }
                         />
-                    }
 
 
 

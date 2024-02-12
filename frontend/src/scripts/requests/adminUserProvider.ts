@@ -36,6 +36,7 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
             Authorization: `Bearer ${Params.token}`
         },
     }).then((response) => {
+        //console.log(response,'anywayh')
         return response.data
     }).catch((e) => {
         console.log(e.message)
@@ -44,9 +45,8 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
     return request
 }
 
-export async function sendChanges(data: PatchParams['userData'], token: PatchParams['currentToken']): Promise<ReturnThenPatch> {
-    //console.log(data)
-    const sendDataToChange = await axios.patch(`${APIS.USERS}/${data.uid}`,{
+export async function sendChanges(data: PatchParams['userData'], token: string): Promise<ReturnThenPatch> {
+    return await axios.patch(`${APIS.USERS}/${data.uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
@@ -77,15 +77,13 @@ export async function sendChanges(data: PatchParams['userData'], token: PatchPar
             console.log("E", e.response.data)
             return e.response.data
         })
-
-    return  sendDataToChange
 }
 
-export async function deleteUser(uid: string) {
+export async function deleteUser(uid: string,token: string) {
     if(uid){
         return await axios.delete(`${APIS.USERS}/${uid}`,{
             headers: {
-                Authorization: `Bearer ${uid}`
+                Authorization: `Bearer ${token}`
             }
         })
             .then((response) => {
