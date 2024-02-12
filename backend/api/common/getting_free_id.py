@@ -11,7 +11,7 @@ class GetFreeId:
         if value in cls.reserved_identifiers:
             cls.reserved_identifiers.remove(value)
 
-    def get_free_spaces(self, ids):
+    def get_free_spaces(self, ids):  # redis storage
 
         if not ids:
             return 10000

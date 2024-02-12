@@ -59,7 +59,7 @@ class GroupOpenLDAPResource(Resource):
     @permission_group
     @define_schema
     def get(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
+        group_schema = kwargs['schema']
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_cn)
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)

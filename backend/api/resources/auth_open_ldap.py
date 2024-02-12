@@ -1,5 +1,6 @@
 from flask_restful import Resource, request, abort
 
+from backend.api.common.crypt_passwd import CryptPasswd
 from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
@@ -51,6 +52,7 @@ class AuthOpenLDAP(Resource):
 
         connection.close()
 
+        user.userPassword = CryptPasswd(password=deserialized_data['userPassword']).crypt()
         token = TokenManagerDB(user=user).create_token()
         if not token:
             abort(400, message='Try again now or later', status=400)

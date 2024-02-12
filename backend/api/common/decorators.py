@@ -37,7 +37,7 @@ def connection_ldap(func):
         if hasattr(args[0], 'connection') or not connection:
             current_user = auth.current_user()
 
-            # print('current_user', current_user)
+            print('current_user', current_user)
             if settings.NOT_AUTH:
                 user = UserLdap(
                     dn='uid=bob,ou=People,dc=example,dc=com',
@@ -56,7 +56,7 @@ def connection_ldap(func):
             setattr(args[0], 'connection', connection)
 
         if settings.NOT_AUTH:
-            connection.create_connection() # REMOVE
+            connection.create_connection()  # REMOVE
 
         connection.connect()
 

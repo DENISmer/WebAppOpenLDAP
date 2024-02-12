@@ -15,6 +15,7 @@ class TokenModel(db.Model):
     role: Mapped[str] = mapped_column(String(50))
     token: Mapped[str] = mapped_column(String(150))
     datetime_create = mapped_column(DateTime, default=datetime.datetime.utcnow)
+    userPassword: Mapped[str] = mapped_column(String(250))
 
     def __str__(self):
         return f'<{TokenModel.__name__} {self.dn}>'

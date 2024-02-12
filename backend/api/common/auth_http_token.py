@@ -14,6 +14,7 @@ def verify_token(token):
         is_token = TokenManagerDB().check_token(token)
         if not is_token:
             return False
+        is_token.pop('userPassword')
     else:
         is_token = {
             'dn': 'uid=bob,ou=People,dc=example,dc=com',
