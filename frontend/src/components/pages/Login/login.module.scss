@@ -3,6 +3,12 @@ $second-clr-bg: #1e2e4b;
 $first-clr-txt: #1e2e4b;
 $second-clr-txt: white;
 
+@font-face {
+  font-family: 'Roboto';
+}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+
 .Page {
   position: absolute;
   top: 0;
@@ -18,7 +24,7 @@ $second-clr-txt: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: "Roboto Thin", sans-serif;
+  font-family: "Roboto", sans-serif;
   position: relative;
   width: 60%;
   height: 100%;
@@ -41,7 +47,7 @@ $second-clr-txt: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: "Roboto Thin", sans-serif;
+  font-family: "Roboto", sans-serif;
 
   .inputsField {
     align-items: center;
@@ -91,11 +97,12 @@ $second-clr-txt: white;
     }
   }
   .submitButton {
+    position: relative;
     border-radius: 5px;
     width: 50%;
     height: 2rem;
     transition: 0.3s;
-    font-family: "Roboto Thin", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-size: 17px;
 
 

@@ -19,11 +19,11 @@ export async function getUsersList(props: Params) {
     return request
 }
 
-export async function getUserDataByUid_Admin(props: string): Promise<userDataForEdit> {
-    console.log(props)
+export async function getUserDataByUid_Admin(props: string, Params): Promise<userDataForEdit> {
+    console.log(Params.token)
     const request = axios.get(`${APIS.USERS}/${props}`, {
         headers: {
-            Authorization: `Bearer ${props}`
+            Authorization: `Bearer ${Params.token}`
         },
     }).then((response) => {
         return response.data

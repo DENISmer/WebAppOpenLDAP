@@ -84,8 +84,8 @@ const WorkRoom: React.FC = () => {
         return await getUsersList(props)
     }
 
-    const getUserData = async (uid: string) => {
-        return await getUserDataByUid_Admin(uid)
+    const getUserData = async (uid: string, props: Params) => {
+        return await getUserDataByUid_Admin(uid, props)
     }
 
     const pageSwitch = (next: boolean) => {
@@ -129,7 +129,7 @@ const WorkRoom: React.FC = () => {
 
     useEffect(() => {
         if(isEditing.isEditing && isEditing.uid){
-            getUserData(isEditing.uid)
+            getUserData(isEditing.uid, userAuthCookies.userAuth)
                 .then((response) => {
                     console.log(response)
                     setUserForEditAdmin(response)
@@ -313,7 +313,7 @@ const WorkRoom: React.FC = () => {
                 </button>
             </div>}
 
-            {isEditing && isEditing.isEditing && editedUser && <button className={WR_S.button_back}>Вернуться к списку пользователей</button>}
+            {isEditing && isEditing.isEditing && editedUser && <button className={WR_S.button_back} onClick={()=>{discardChanges()}}>Вернуться к списку пользователей</button>}
         </div>
     </>)
 }
