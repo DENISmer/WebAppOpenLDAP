@@ -91,7 +91,8 @@ const WorkRoom: React.FC = () => {
     }
 
     const getUserData = async (uid: string) => {
-        return await getUserDataByUid_Admin(uid)
+        return await getUserDataByUid_Admin(uid, userAuthCookies['userAuth'])
+        console.log(await getUserDataByUid_Admin(uid, userAuthCookies['userAuth']))
     }
 
     const pageSwitch = (next: boolean) => {
@@ -122,6 +123,9 @@ const WorkRoom: React.FC = () => {
     //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
+            if(userAuthCookies['userAuth'].role === 'simple_user') {
+                setIsEditing({isEditing: true, uid: userAuthCookies['userAuth'].userName})
+            }
             setCurrentEditor({
                     token: userAuthCookies['userAuth'].token,
                     role: userAuthCookies['userAuth'].role,
@@ -135,10 +139,11 @@ const WorkRoom: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        console.log(isEditing)
         if(isEditing.isEditing && isEditing.uid){
             getUserData(isEditing.uid)
                 .then((response) => {
-                    console.log(response)
+                    console.log('simple User',response)
                     setUserForEditAdmin(response)
                     setEditedUser(response)
                 })
@@ -170,7 +175,12 @@ const WorkRoom: React.FC = () => {
         if(!userIsChanged) alert('нет данных для изменения')
 
         else {
-            const request: any = await sendChanges(editedUser, currentEditor.token)
+            if(!editedUser.objectClass.includes('ldappublickey')){
+                delete editedUser['sshPublicKey']
+                console.log(editedUser)
+            }
+            console.log(currentEditor.token)
+            await sendChanges(editedUser, currentEditor.token)
                 .then((response: any) => {
                     if (response.status === 200){
                         setEditedUser(response.userData)
@@ -239,7 +249,7 @@ const WorkRoom: React.FC = () => {
     const deleteUserFromList = async ()  => {
         const confirmForDelete = confirm(`Вы уверены? \nПользователь ${isEditing.uid} будет удален`)
         if(confirmForDelete){
-            await deleteUser(isEditing.uid)
+            await deleteUser(isEditing.uid, currentEditor.token)
                 .then((response: any) => {
                     console.log('delete_response',response)
                     if(response.status === 204) {
@@ -329,7 +339,7 @@ const WorkRoom: React.FC = () => {
                     </div>
             </div>}
 
-            {isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+            {currentEditor && currentEditor.role === 'webadmins' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
                 {userIsChanged && <div>Есть изменения</div>}
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged}/>
 
@@ -341,11 +351,19 @@ const WorkRoom: React.FC = () => {
                         }}>выйти к списку
                 </button>
             </div>}
-            {currentEditor && currentEditor.role !== 'webadmins' &&
+            {currentEditor && currentEditor.role !== 'webadmins' && editedUser &&
                 <div className={WR_S.Admin_Panel}>
                     <div className={WR_S.Admin_UseProfile}>
-                        {JSON.stringify(editedUser)}
-                        {/*<UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} />*/}
+                        {/*{JSON.stringify(editedUser)}*/}
+                        <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} />
+
+                        <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
+                        </button>
+                        <button className={WR_S.cancelChanges}
+                                onClick={() => {
+                                    discardChanges()
+                                }}>выйти к списку
+                        </button>
                     </div>
                 </div>
             }
