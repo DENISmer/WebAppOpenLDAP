@@ -92,7 +92,7 @@ const WorkRoom: React.FC = () => {
 
     const getUserData = async (uid: string) => {
         return await getUserDataByUid_Admin(uid, userAuthCookies['userAuth'])
-        console.log(await getUserDataByUid_Admin(uid, userAuthCookies['userAuth']))
+        // console.log(await getUserDataByUid_Admin(uid, userAuthCookies['userAuth']))
     }
 
     const pageSwitch = (next: boolean) => {
@@ -175,7 +175,7 @@ const WorkRoom: React.FC = () => {
         if(!userIsChanged) alert('нет данных для изменения')
 
         else {
-            if(!editedUser.objectClass.includes('ldappublickey')){
+            if(!editedUser.objectClass.includes('ldapPublicKey')){
                 delete editedUser['sshPublicKey']
                 console.log(editedUser)
             }
@@ -343,6 +343,9 @@ const WorkRoom: React.FC = () => {
                 {userIsChanged && <div>Есть изменения</div>}
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged}/>
 
+            </div>}
+
+            {currentEditor && currentEditor.role === 'webadmins' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
                 <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
                 </button>
                 <button className={WR_S.cancelChanges}
@@ -351,6 +354,7 @@ const WorkRoom: React.FC = () => {
                         }}>выйти к списку
                 </button>
             </div>}
+
             {currentEditor && currentEditor.role !== 'webadmins' && editedUser &&
                 <div className={WR_S.Admin_Panel}>
                     <div className={WR_S.Admin_UseProfile}>

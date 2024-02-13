@@ -418,6 +418,20 @@
     justify-content: center;
     align-items: center;
 
+    .button_group{
+      flex-direction: column;
+      display: flex;
+      position: absolute;
+      width: max-content;
+      bottom: 10%;
+      left: 38%;
+
+      .submitButton{
+        margin-bottom: 10px;
+      }
+
+      }
+
 
     .SearchList{
       .UsersListItem{
@@ -502,13 +516,10 @@
         margin: 1rem 0 0 1rem;
         position: relative;
         height: auto;
-        .CurrentUserName {
-        }
-        .CurrentUserUid {
-        }
       }
     }
     .Admin_UseProfile {
+      top: 0;
       position: relative;
       margin: 1rem 1rem 1rem 2rem;
       width: 90%;
