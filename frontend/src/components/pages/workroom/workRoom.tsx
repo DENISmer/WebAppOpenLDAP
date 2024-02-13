@@ -305,7 +305,7 @@ const WorkRoom: React.FC = () => {
                             page <button className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
                                          disabled={listLoading || currentListPage === 1}></button>
 
-                            {currentListPage}
+                            {currentListPage + "..." + pagesCount}
 
                             <button className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
                                     disabled={listLoading || currentListPage === pagesCount}></button>
