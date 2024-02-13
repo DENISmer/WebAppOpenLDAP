@@ -24,5 +24,3 @@ SQLALCHEMY_DATABASE_URI = f'sqlite:///{FILE_DB_NAME}'
 CERT_FILE_LDAP = os.getenv('CERT_FILE')
 HOSTS = os.getenv('LDAP_HOSTS').split(',')
 LDAP_PORT = int(os.getenv('LDAP_PORT'))
-
-# Redis

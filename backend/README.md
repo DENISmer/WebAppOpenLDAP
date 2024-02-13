@@ -379,6 +379,10 @@ Docker build:
 
     docker build -t web-app-ldap .
 
+Docker build celery from WebAppOpenLDAP directory:
+
+    sudo docker build -f ../backend/api/celery/Dockerfile -t celery-app-ldap .
+
 Docker run
 
     docker run --rm -d --name web-app-ldap -p 8000:8000 --network=host web-app-ldap

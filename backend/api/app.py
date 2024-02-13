@@ -72,7 +72,7 @@ def handle_exception(e):
 
 celery_app = celery_init_app(app)
 
-if settings.DEVELOPMENT and  __name__ == '__main__':  # Comment when prod
+if settings.DEVELOPMENT and __name__ == '__main__':  # Comment when prod
     app.run(debug=settings.DEBUG)  # Comment when prod
 
 

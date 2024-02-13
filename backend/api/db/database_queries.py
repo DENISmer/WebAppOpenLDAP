@@ -1,5 +1,6 @@
 
 import logging
+from flask_restful import abort
 
 
 class DbQueries:
@@ -7,7 +8,12 @@ class DbQueries:
         self.session = session
 
     def get_instance(self, model, **kwargs):
-        instance = self.session.query(model).filter_by(**kwargs).one_or_none()
+        try:
+            instance = self.session.query(model).filter_by(**kwargs).one_or_none()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            abort(500, message='DB', status=500)
+
         return instance
 
     def create_instance(self, model, **kwargs):

@@ -25,3 +25,5 @@ def celery_init_app(app: Flask):
 
     return celery_app
 
+
+celery_app = celery_init_app(Flask(__name__))
