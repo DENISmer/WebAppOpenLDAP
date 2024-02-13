@@ -1,5 +1,4 @@
-import WR_S from "@/components/pages/workroom/workRoom.module.scss"
-import {ChangeEvent, useEffect} from "react";
+import {ChangeEvent} from "react";
 import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
 
 export interface userDataForEdit {
@@ -24,10 +23,11 @@ interface Props {
     userData: userDataForEdit;
     onUserDataChange: (newData: userDataForEdit) => void;
     fieldIsChange: (fieldName: string) => boolean;
+    role: string;
 }
 
 
-export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange }) => {
+export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange, role }) => {
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
         let updatedValue: any = value;
@@ -103,7 +103,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             name={inputName}
                             placeholder={`Enter ${key}`}
                             value={inputValue || ''}
-                            disabled={key === 'dn'}
+                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && role === 'simple_user'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 handleInputChange(key, e.target.value, index)
                             }
@@ -112,8 +112,12 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
 
 
-                    {isValueArray && typeof index === 'number' && value.length > 1 && (
-                        <button className={FFE_S.Button_Remove} type="button" onClick={() => handleRemoveArrayItem(key, index)}>
+                    {isValueArray &&
+                        typeof index === 'number' && value.length > 1 && (
+                        <button className={FFE_S.Button_Remove}
+                                type="button"
+                                disabled={key === 'dn'}
+                                onClick={() => handleRemoveArrayItem(key, index)}>
                             Remove
                         </button>
                     )}
@@ -131,7 +135,10 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         <div className={FFE_S.div}>
                             <div className={FFE_S.element} key={key}>
                                 {inputs}
-                                <button className={FFE_S.Button_Add} type="button" onClick={() => handleAddArrayItem(key)}>
+                                    <button className={FFE_S.Button_Add}
+                                         disabled={key === 'dn'}
+                                         type="button"
+                                         onClick={() => handleAddArrayItem(key)}>
                                     Add more {key}
                                 </button>
                             </div>

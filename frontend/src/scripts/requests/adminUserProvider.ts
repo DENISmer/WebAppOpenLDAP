@@ -1,7 +1,6 @@
 import {Params, userDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
 import {APIS} from "@/scripts/constants";
-import {response} from "express";
 
 export interface ReturnThenPatch {
     userData?: userDataForEdit,
@@ -13,9 +12,29 @@ export interface PatchParams {
     currentToken: string
 }
 
+export interface userAddDataForEdit {
+    dn: string,
+    uidNumber?: number,
+    gidNumber?: number,
+    uid: string,
+    sshPublicKey?: [],
+    st?: string[],
+    mail?: string[],
+    street?: string[],
+    cn: string[],
+    displayName?: string,
+    givenName?: string[],
+    sn: string[],
+    postalCode?: number,
+    homeDirectory: string,
+    loginShell?: string,
+    objectClass: string[],
+    userPassword: string
+}
+
 export async function getUsersList(props: Params) {
     console.log(props.token)
-    const request = axios.get(`${APIS.USERS}?search=${props.value}&page=${props.pageNumber}`,{
+    return await axios.get(`${APIS.USERS}?search=${props.value}&page=${props.pageNumber}`,{
         headers: {
             Authorization: `Bearer ${props.token}`
         },
@@ -26,12 +45,11 @@ export async function getUsersList(props: Params) {
         .catch((e) => {
             e.response
         })
-    return request
 }
 
 export async function getUserDataByUid_Admin(props: string, Params): Promise<userDataForEdit> {
     console.log(Params.token)
-    const request = axios.get(`${APIS.USERS}/${props}`, {
+    return await axios.get(`${APIS.USERS}/${props}`, {
         headers: {
             Authorization: `Bearer ${Params.token}`
         },
@@ -41,12 +59,26 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
     }).catch((e) => {
         console.log(e.message)
     })
-
-    return request
 }
 
-export async function sendChanges(data: PatchParams['userData'], token: string): Promise<ReturnThenPatch> {
-    return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+export async function sendChanges(data: PatchParams['userData'], token: string, role: string): Promise<ReturnThenPatch> {
+    if (role === 'simple_user'){
+        return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+            mail: data.mail,
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((response) => {
+                if(response.request.status === 200){
+                    return {userData :response.data, status: response.request.status }
+                }
+            })
+            .catch((e) => {
+                return e.response.data
+            })
+    } else return await axios.patch(`${APIS.USERS}/${data.uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
@@ -68,13 +100,11 @@ export async function sendChanges(data: PatchParams['userData'], token: string):
         }
     })
         .then((response) => {
-            console.log('FterReq',response)
             if(response.request.status === 200){
                 return {userData :response.data, status: response.request.status }
             }
         })
         .catch((e) => {
-            console.log("E", e.response.data)
             return e.response.data
         })
 }
@@ -93,6 +123,42 @@ export async function deleteUser(uid: string,token: string) {
                 alert(`smth went wrong ${e}`)
             })
     }
+}
 
+export async function addUser(data: userAddDataForEdit, token: string) {
+    console.log("REQuest data: ",data)
+    return await axios.post(`${APIS.USERS}`,
+        {
+            dn: data.dn,
+            uidNumber: Number(data.uidNumber),
+            gidNumber: Number(data.gidNumber),
+            uid: data.uid,
+            sshPublicKey: data.sshPublicKey,
+            st: data.st,
+            mail: data.mail,
+            street: data.street,
+            cn: data.cn,
+            displayName: data.displayName,
+            givenName: data.givenName,
+            sn: data.sn,
+            postalCode: data.postalCode,
+            homeDirectory: data.homeDirectory,
+            loginShell: data.loginShell,
+            objectClass: [data.objectClass],
+            userPassword: data.userPassword
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+        )
+        .then((response) => {
+            alert("Данные успешно сохранены")
+            return response
+        })
+        .catch((e) => {
+            alert(`smth went wrong ${e}`)
+        })
 }
 

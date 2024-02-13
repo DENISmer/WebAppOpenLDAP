@@ -6,8 +6,7 @@ import {deleteUser, getUserDataByUid_Admin, getUsersList} from "@/scripts/reques
 import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
-import Modal from "@/components/Modal_Window/modalWindow";
-import {SimpleUserEditor} from "@/components/pages/workroom/simpleUserEditor";
+import ModalForAddUser from "@/components/Modal_Window/modalForAddUser";
 
 
 export interface userDataForEdit {
@@ -65,9 +64,7 @@ export interface IeEditing {
 }
 const WorkRoom: React.FC = () => {
 
-    const [subject,setSubject] = useState();
     const [searchResult1, setSearchResult1] = useState<ListOfUsers[]>(null);
-    const [searchResult, setSearchResult] = useState<any[]>(null);
     const [searchValue, setSearchValue] = useState<string>('')
 
     const navigate = useNavigate();
@@ -86,6 +83,7 @@ const WorkRoom: React.FC = () => {
     const [editedUser, setEditedUser] = useState<userDataForEdit>(null)
     const [listLoading, setListLoading] = useState<boolean>(false)
     // const [currentUser, setCurrentUser] = useState({})
+    const [addUserIsActive, setAddUserIsActive] = useState(false)
     const fillUsersList = async (props: Params) => {
         return await getUsersList(props)
     }
@@ -150,10 +148,13 @@ const WorkRoom: React.FC = () => {
                 .catch((e) => {
                     console.log(e)
                 })
-        }
-        else if (!isEditing.isEditing && isEditing.uid){
+        } else if (!isEditing.isEditing && isEditing.uid){
             deleteUserFromList()
         }
+        // else if (!isEditing.isEditing && isEditing.uid && userAuthCookies.userAuth.role === 'simple_user'){
+        //     removeCookie("userAuth")
+        //     navigate('/login')
+        // }
     }, [isEditing]);
 
     useEffect(() => {
@@ -171,6 +172,19 @@ const WorkRoom: React.FC = () => {
         else setIsEditing({isEditing: false, uid: null})
     }
 
+    const quitForSimpleUser = () => {
+        if (userIsChanged) {
+            const isConfirm = confirm("Уверены? Изменения не будут сохранены")
+            if (isConfirm) {
+                removeCookie('userAuth')
+                navigate("/login")
+            }
+        } else {
+            removeCookie('userAuth')
+            navigate("/login")
+        }
+    }
+
     const saveChanges = async ()  => {
         if(!userIsChanged) alert('нет данных для изменения')
 
@@ -180,7 +194,7 @@ const WorkRoom: React.FC = () => {
                 console.log(editedUser)
             }
             console.log(currentEditor.token)
-            await sendChanges(editedUser, currentEditor.token)
+            await sendChanges(editedUser, currentEditor.token, userAuthCookies.userAuth.role)
                 .then((response: any) => {
                     if (response.status === 200){
                         setEditedUser(response.userData)
@@ -207,11 +221,6 @@ const WorkRoom: React.FC = () => {
 
 
     // events for event Changes!
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setEditedUser({ ...editedUser, [name]: value });
-    };
-
     const handleUserDataChange = (newData: userDataForEdit) => {
         setEditedUser(newData);
         // Здесь вы можете также отправить изменения на сервер, если это необходимо.
@@ -269,12 +278,25 @@ const WorkRoom: React.FC = () => {
         }
     }
 
+    const onCloseModalAddUser = () => {
+        const confirmClose = confirm('Уверены?')
+        if(confirmClose){
+            setAddUserIsActive(false)
+        }
+    }
+
 
 
     return (<>
         <div className={WR_S.Page}>
 
-            <Modal />
+            {/*<Modal />*/}
+            {addUserIsActive &&
+                <ModalForAddUser
+                    onClose={onCloseModalAddUser}
+                    token={userAuthCookies.userAuth.token ?? currentEditor.token}
+                />
+            }
 
             <div className={WR_S.menu}>
                 <div className={WR_S.logout} onClick={() => {
@@ -290,9 +312,9 @@ const WorkRoom: React.FC = () => {
                 {/*menu*/}
 
                 {/*seacrh and list of users*/}
-                <div className={WR_S.Information_Window}>
+                    <div className={WR_S.Information_Window}>
                         <input list={"browsers"} type={"text"} className={WR_S.Input} required
-                               // placeholder={'Введите имя'}
+                            // placeholder={'Введите имя'}
                                value={searchValue}
                                onChange={(e) => {
                                    setSearchValue(e.target.value)
@@ -302,17 +324,23 @@ const WorkRoom: React.FC = () => {
                         <label className={WR_S.Label}>Введите имя</label>
 
                         <div className={WR_S.pageSelect}>
-                            page <button className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left} onClick={() => pageSwitch(false)}
-                                         disabled={listLoading || currentListPage === 1}></button>
+                            page <button
+                            className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left}
+                            onClick={() => pageSwitch(false)}
+                            disabled={listLoading || currentListPage === 1}></button>
 
                             {currentListPage + "..." + pagesCount}
 
-                            <button className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right} onClick={() => pageSwitch(true)}
-                                    disabled={listLoading || currentListPage === pagesCount}></button>
+                            <button
+                                className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right}
+                                onClick={() => pageSwitch(true)}
+                                disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
+
                         {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
 
                         <div className={WR_S.SearchList}>
+                            <button onClick={() => setAddUserIsActive(true)}>add user</button>
                             {!listLoading && searchResult1 && searchResult1.map((element, index) => (
                                 <div className={WR_S.UsersListItem}
                                      key={index}
@@ -329,48 +357,56 @@ const WorkRoom: React.FC = () => {
                                         {/*    + " | " + element.gidNumber}*/}
                                     </div>
                                     <div className={WR_S.Button_Group}>
-                                        <button className={WR_S.Edit_Button} onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
+                                        <button className={WR_S.Edit_Button}
+                                                onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
                                         </button>
-                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({isEditing: false, uid: element.uid})}>delete</button>
+                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({
+                                            isEditing: false,
+                                            uid: element.uid
+                                        })}>delete
+                                        </button>
                                     </div>
                                 </div>)
                             )}
                         </div>
                     </div>
-            </div>}
+                </div>}
 
-            {currentEditor && currentEditor.role === 'webadmins' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+            {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
                 {userIsChanged && <div>Есть изменения</div>}
-                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged}/>
+                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={userAuthCookies['userAuth'].role}/>
 
             </div>}
 
-            {currentEditor && currentEditor.role === 'webadmins' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
+            {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
                 <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
                 </button>
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            discardChanges()
-                        }}>выйти к списку
+                            userAuthCookies.userAuth.role === 'simple_user' ?
+                                quitForSimpleUser() : discardChanges()
+                        }}>выйти к {currentEditor.role === 'webadmins' ? <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}
 
-            {currentEditor && currentEditor.role !== 'webadmins' && editedUser &&
-                <div className={WR_S.Admin_Panel}>
-                    <div className={WR_S.Admin_UseProfile}>
-                        {/*{JSON.stringify(editedUser)}*/}
-                        <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} />
+            {/*{currentEditor && currentEditor.role !== 'webadmins' && editedUser &&*/}
+            {/*    <div className={WR_S.Admin_Panel}>*/}
+            {/*        <div className={WR_S.Admin_UseProfile}>*/}
+            {/*            /!*{JSON.stringify(editedUser)}*!/*/}
+            {/*            <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={userAuthCookies['userAuth'].role}/>*/}
 
-                        <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
-                        </button>
-                        <button className={WR_S.cancelChanges}
-                                onClick={() => {
-                                    discardChanges()
-                                }}>выйти к списку
-                        </button>
-                    </div>
-                </div>
-            }
+            {/*            {currentEditor && currentEditor.role === 'simple_user' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>*/}
+            {/*                <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения*/}
+            {/*                </button>*/}
+            {/*                <button className={WR_S.cancelChanges}*/}
+            {/*                        onClick={() => {*/}
+            {/*                            discardChanges()*/}
+            {/*                        }}>выйти к списку*/}
+            {/*                </button>*/}
+            {/*            </div>}*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*}*/}
         </div>
     </>)
 }
