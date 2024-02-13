@@ -6,6 +6,7 @@ from werkzeug.exceptions import HTTPException
 
 from backend.api.celery.celery_app import celery_init_app
 from backend.api.common.regex_converter import RegexConverter
+from backend.api.redis.redis_storage import RedisStorage
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
 from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
@@ -71,6 +72,8 @@ def handle_exception(e):
 
 
 celery_app = celery_init_app(app)
+
+RedisStorage().remove_all()
 
 if settings.DEVELOPMENT and __name__ == '__main__':  # Comment when prod
     app.run(debug=settings.DEBUG)  # Comment when prod

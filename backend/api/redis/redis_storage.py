@@ -30,3 +30,8 @@ class RedisStorage:
 
     def __del__(self):
         self.__redis.close()
+
+    def remove_all(self):
+        keys: list = self.__redis.keys()
+        if keys:
+            self.delete(*keys)
