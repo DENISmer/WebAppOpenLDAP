@@ -211,6 +211,7 @@ Run celery (example):
 **route**: /api/v1/users/testuser
 ```json
 {
+    "dn": "uid=testuser,ou=People,dc=example,dc=com",
     "uidNumber": 10000, 
     "gidNumber": 10000, 
     "uid": "testuser", 
