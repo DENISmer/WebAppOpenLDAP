@@ -20,7 +20,6 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-#      network: host
     restart: unless-stopped
     container_name: web-server
 
@@ -33,12 +32,6 @@ services:
       REDIS_PORT: 6379
     volumes:
       - proj-db-volume:/usr/src/app/instance
-#    networks:
-#      - host
-#    network_mode: host
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
-
 
   web-celery:
     build:
@@ -62,6 +55,18 @@ services:
     command: redis-server
     expose:
       - "6379"
+
+  ldap:
+    build:
+      context: .
+      dockerfile: backend/ldap-conf/Dockerfile
+    environment:
+      LDAP_ORGANISATION: "People"
+      LDAP_ADMIN_PASSWORD: "1234"
+      LDAP_DOMAIN: "example.com"
+    ports:
+      - "0.0.0.0:389:389"
+    profiles: ['ldap']
 
 volumes:
   proj-db-volume:

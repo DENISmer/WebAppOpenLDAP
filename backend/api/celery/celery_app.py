@@ -1,10 +1,12 @@
 from celery import Celery, Task
 from flask import Flask
+from backend.api.db.database import db
 import backend.api.celery.settings as settings_celery
 
 
 # Init celery app
 def celery_init_app(app: Flask):
+
     class FlaskTask(Task):
         def __call__(self, *args, **kwargs):
             with app.app_context():
@@ -27,5 +29,6 @@ def celery_init_app(app: Flask):
 
 
 app = Flask(__name__)
-# db.init_app(app)
+app.config.from_object('backend.api.config.settings')
+db.init_app(app)
 celery_app = celery_init_app(app)

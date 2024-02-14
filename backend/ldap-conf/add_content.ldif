@@ -31,6 +31,7 @@ dn: uid=bob,ou=People,dc=example,dc=com
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: shadowAccount
+objectClass: ldapPublicKey
 uid: bob
 sn: Bondy
 givenName: bob

@@ -22,5 +22,5 @@ FILE_DB_NAME = os.getenv('FILE_DB_NAME')
 SQLALCHEMY_DATABASE_URI = f'sqlite:///{FILE_DB_NAME}'
 
 CERT_FILE_LDAP = os.getenv('CERT_FILE')
-HOSTS = os.getenv('LDAP_HOSTS').split(',')
+HOSTS = os.getenv('LDAP_HOSTS', '0.0.0.0').split(',')
 LDAP_PORT = int(os.getenv('LDAP_PORT'))

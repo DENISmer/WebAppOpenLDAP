@@ -1,3 +1,3 @@
 #!/bin/bash
 
-celery -A backend.api.celery.celery_app:celery_app worker --beat --concurrency=6
+celery -A backend.api.celery.celery_app:celery_init_app worker --beat --concurrency=6
