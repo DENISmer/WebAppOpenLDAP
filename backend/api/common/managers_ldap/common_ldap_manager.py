@@ -3,6 +3,7 @@ from typing import Dict
 
 from flask_restful import abort
 from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, MODIFY_DELETE
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
 
 from backend.api.common.decorators import error_operation_ldap
 from backend.api.common.exceptions import ItemFieldsIsNone
@@ -64,7 +65,6 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             required_filter
         )
         # print(common_filter)
-        # exception connection is open!!!!!
         status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,
@@ -92,6 +92,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
             abort(400, message=res['message'])
+            # return None
         print('Success')
 
         return item
@@ -135,7 +136,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         res = self._connection.result
         if 'success' not in res['description']:
             abort(400, message=res['description'])
-
+            # return None
         return item
 
     @error_operation_ldap
@@ -147,14 +148,19 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
         if 'success' not in res['description']:
+            # return None
             abort(400, message=f'Error deleting {item.dn}')
 
+    @error_operation_ldap
     def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):
-        status_search = self._connection.search(
-            search_base=dn,
-            search_filter=filters,
-            attributes=attributes,
-        )
+        try:
+            status_search = self._connection.search(
+                search_base=dn,
+                search_filter=filters,
+                attributes=attributes,
+            )
+        except LDAPNoSuchObjectResult:
+            return None
         if not status_search:
             return None
 

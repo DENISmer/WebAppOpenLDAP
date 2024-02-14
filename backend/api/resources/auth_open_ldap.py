@@ -44,6 +44,7 @@ class AuthOpenLDAP(Resource):
         groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
 
         user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, groups)
+
         if user.is_webadmin: user.role = Role.WEBADMIN
         else: user.role = Role.SIMPLE_USER
 

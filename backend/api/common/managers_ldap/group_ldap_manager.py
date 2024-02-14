@@ -35,23 +35,20 @@ class GroupManagerLDAP(CommonManagerLDAP):
         type_group: list,
         fields: dict,
         attributes=ALL_ATTRIBUTES,
-        abort_raise=True
     ) -> CnGroupLdap | None:
 
         dn = 'cn={0},{1}'.format(
             uid,
             self.ldap_manager.full_group_search_dn
         )
-        data = {}
+
         filter_group = '(&%s)' % (''.join(
             ['(objectClass=%s)' % group for group in type_group])
         )
-        try:
-            data = self.search_by_dn(dn=dn, filters=filter_group, attributes=attributes)
-        except LDAPNoSuchObjectResult:
-            if not abort_raise:
-                return None
-            abort(404, message='Group not found.', status=404)
+
+        data = self.search_by_dn(dn=dn, filters=filter_group, attributes=attributes)
+        if not data:
+            return None
 
         group = CnGroupLdap(
             username=uid,
@@ -78,5 +75,4 @@ class GroupManagerLDAP(CommonManagerLDAP):
             username_cn, ['posixGroup'],
             webadmins_cn_posixgroup_fields,
             attributes=attributes,
-            abort_raise=abort_raise
         )

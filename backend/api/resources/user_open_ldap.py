@@ -51,6 +51,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         user = user_obj.item(
             username_uid
         )
+        if not user:
+            abort(404, message='User not found.', status=404)
 
         updated_user = UserLdap(
             dn=user.dn,
@@ -65,20 +67,20 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
             ids.remove(user.uidNumber)  # why?
             validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
-        if updated_user.uidNumber:
+        if updated_user.uidNumber or user.uidNumber:
             deserialized_data['gidNumber'] = \
-                updated_user.gidNumber = updated_user.uidNumber
-        if updated_user.gidNumber:
+                updated_user.gidNumber = updated_user.uidNumber or user.uidNumber
+        if updated_user.gidNumber or user.gidNumber:
             deserialized_data['uidNumber'] = \
-                updated_user.uidNumber = updated_user.gidNumber
+                updated_user.uidNumber = updated_user.gidNumber or user.gidNumber
 
         user_obj.modify(
             item=updated_user,
             operation=operation,
             not_modify_item=user
         )
-        # self.connection.connection.bind()
-        group = group_obj.get_group_info_posix_group(username_uid, attributes=[], abort_raise=False)
+
+        group = group_obj.get_group_info_posix_group(username_uid, attributes=[])
 
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
@@ -115,6 +117,9 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @define_schema
     def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
+        if not user:
+            abort(404, message='User not found.', status=404)
+
         user_schema = kwargs['schema']
 
         serialized_user = self.serialize_data(user_schema, user)
@@ -170,7 +175,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         group_obj = GroupManagerLDAP(connection=self.connection)
         user = user_obj.item(username_uid, [])
         group = group_obj.get_group_info_posix_group(
-            username_uid, [], abort_raise=False
+            username_uid, []
         )
 
         db_queries = DbQueries(db.session)
@@ -276,7 +281,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             operation='create',
         )
 
-        found_group = group_obj.get_group_info_posix_group(user.uid, [], abort_raise=False)
+        found_group = group_obj.get_group_info_posix_group(user.uid, [])
         if found_group:
             group_obj.delete(found_group)
 

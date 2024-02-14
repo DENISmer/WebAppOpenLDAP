@@ -18,19 +18,16 @@ class UserManagerLDAP(CommonManagerLDAP):
         super().__init__(*args, **kwargs)
         self.free_id = GetFreeId()
 
-    def item(self, uid, attributes=ALL_ATTRIBUTES, abort_raise: bool = True) -> UserLdap | None:
+    def item(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap | None:
 
         dn = 'uid={0},{1}'.format(
             uid,
             self.ldap_manager.full_user_search_dn
         )
-        data = {}
-        try:
-            data = self.search_by_dn(dn=dn, filters='(objectClass=person)', attributes=attributes)
-        except LDAPNoSuchObjectResult:
-            if not abort_raise:
-                return None
-            abort(404, message='User not found.', status=404)
+
+        data = self.search_by_dn(dn=dn, filters='(objectClass=person)', attributes=attributes)
+        if not data:
+            return None
 
         return UserLdap(username=uid, dn=data['dn'], **data['attributes'])
 
@@ -68,8 +65,7 @@ class UserManagerLDAP(CommonManagerLDAP):
         return self.free_id.get_free_spaces(unique_ids)
 
     def get_user_info_by_dn(self, dn: str, attributes=ALL_ATTRIBUTES):
-        try:
-            user = self.search_by_dn(dn=dn, filters='(objectClass=person)', attributes=attributes)
-        except LDAPNoSuchObjectResult:
-            return None
+        user = self.search_by_dn(
+            dn=dn, filters='(objectClass=person)', attributes=attributes
+        )
         return user

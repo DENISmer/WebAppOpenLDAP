@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pprint
-
-from flask_restful import Resource, request
+from flask_restful import Resource, request, abort
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_group, define_schema
@@ -13,9 +11,8 @@ from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import CnGroupLdap
 from backend.api.config import settings
-from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_posixgroup_fields
+from backend.api.config.fields import search_posixgroup_fields
 from backend.api.resources import schema
-from backend.api.resources.schema import CnGroupOutSchemaToList
 
 
 class GroupOpenLDAPResource(Resource):
@@ -36,6 +33,8 @@ class GroupOpenLDAPResource(Resource):
         user_obj = UserManagerLDAP(connection=self.connection)
 
         group = group_obj.get_group_info_posix_group(username_cn)
+        if not group:
+            abort(404, message='Group not found.', status=404)
 
         updated_group = CnGroupLdap(
             username=username_cn,
@@ -45,12 +44,13 @@ class GroupOpenLDAPResource(Resource):
         )
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
-            user = user_obj.item(username_cn, [], abort_raise=False)
-            user.fields = user_fields['fields']
-            user.gidNumber = user.uidNumber = updated_group.gidNumber
-            user_obj.modify(item=user, operation='update')
+            user = user_obj.item(username_cn, [])
+            if user:
+                user.fields = user_fields['fields']
+                user.gidNumber = user.uidNumber = updated_group.gidNumber
+                user_obj.modify(item=user, operation='update')
 
-        updated_group = group_obj.modify(item=updated_group, operation='update')
+        group_obj.modify(item=updated_group, operation='update')
         group.__dict__.update(deserialized_data)
         return group
 
@@ -59,9 +59,12 @@ class GroupOpenLDAPResource(Resource):
     @permission_group
     @define_schema
     def get(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['schema']
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_cn)
+        if not group:
+            abort(404, message='Group not found.', status=404)
+
+        group_schema = kwargs['schema']
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)
         return serialized_data, 200
 

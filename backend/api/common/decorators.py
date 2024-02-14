@@ -24,6 +24,8 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPOperationResult,
                                    LDAPObjectClassViolationResult,
                                    LDAPSocketOpenError,
+                                   LDAPNoSuchObjectResult,
+                                   LDAPUnwillingToPerformResult,
                                    LDAPAttributeOrValueExistsResult)
 
 
@@ -202,13 +204,23 @@ def error_operation_ldap(func):
             )
         except LDAPObjectClassViolationResult as e:
             logging.log(logging.ERROR, e.__dict__)
-            message = e.__dict__['message']
-            fields = form_dict_field_error(object_item, message)
+            # message = e.__dict__['message']
+            # fields = form_dict_field_error(object_item, message)
             abort(
                 400,
-                fields=fields,
+                # fields=fields,
+                error='ObjectClass Violation',
+                message='The required objectClass is missing',
                 status=400,
             )
+        except LDAPUnwillingToPerformResult as e:
+            abort(
+                400,
+                error='Unwilling To Perform Result',
+                message='Server LDAP is unwilling to perform',
+                status=400,
+            )
+            pass
         except LDAPOperationResult as e:
             logging.log(logging.ERROR, e)
             abort(
