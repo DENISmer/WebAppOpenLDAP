@@ -337,10 +337,12 @@ const WorkRoom: React.FC = () => {
                                 disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
 
+                        <button className={WR_S.add_user_button} onClick={() => setAddUserIsActive(true)}>add user</button>
+
                         {listLoading && <p><img src={loadingGif} alt="loading.."/></p>}
 
                         <div className={WR_S.SearchList}>
-                            <button onClick={() => setAddUserIsActive(true)}>add user</button>
+
                             {!listLoading && searchResult1 && searchResult1.map((element, index) => (
                                 <div className={WR_S.UsersListItem}
                                      key={index}
@@ -373,7 +375,7 @@ const WorkRoom: React.FC = () => {
                 </div>}
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
-                {userIsChanged && <div>Есть изменения</div>}
+                {/*{userIsChanged && <div>Есть изменения</div>}*/}
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={userAuthCookies['userAuth'].role}/>
 
             </div>}

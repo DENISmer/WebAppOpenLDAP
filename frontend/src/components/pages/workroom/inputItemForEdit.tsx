@@ -114,9 +114,9 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
                     {isValueArray &&
                         typeof index === 'number' && value.length > 1 && (
-                        <button className={FFE_S.Button_Remove}
+                        <button className={(key === 'mail' && role === 'simple_user') || (role !== 'simple_user') ? FFE_S.Button_Remove : FFE_S.button_disabled}
                                 type="button"
-                                disabled={key === 'dn'}
+                                disabled={key === 'dn' || role === 'simple_user' && key !== 'mail'}
                                 onClick={() => handleRemoveArrayItem(key, index)}>
                             Remove
                         </button>
@@ -135,8 +135,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         <div className={FFE_S.div}>
                             <div className={FFE_S.element} key={key}>
                                 {inputs}
-                                    <button className={FFE_S.Button_Add}
-                                         disabled={key === 'dn'}
+                                    <button className={key === 'mail' && role === 'simple_user' || role !== "simple_user" ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                         disabled={key === 'dn' || role === 'simple_user' && key !== 'mail'}
                                          type="button"
                                          onClick={() => handleAddArrayItem(key)}>
                                     Add more {key}

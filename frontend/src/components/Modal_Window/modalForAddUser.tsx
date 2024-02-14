@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import styles from './ModalStyleForAddUser.module.scss';
 import {addUser, userAddDataForEdit} from "@/scripts/requests/adminUserProvider";
+import {string} from "prop-types";
 
 interface ModalProps {
     onClose: () => void;
@@ -14,9 +15,9 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
         uidNumber: null,
         gidNumber: null,
         uid: '',
-        sshPublicKey: [],
+        sshPublicKey: null,
         st: null,
-        mail: [],
+        mail: null,
         street: null,
         cn: null,
         displayName: '',
@@ -57,15 +58,15 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
         }
 
         // Валидация числовых полей
-        if (formData.uidNumber && isNaN(Number(formData.uidNumber))) {
-            setError(`Field "uidNumber" must be a number.`);
-            return null;
-        }
-
-        if (formData.gidNumber && isNaN(Number(formData.gidNumber))) {
-            setError(`Field "gidNumber" must be a number.`);
-            return null;
-        }
+        // if (formData.uidNumber && isNaN(Number(formData.uidNumber))) {
+        //     setError(`Field "uidNumber" must be a number.`);
+        //     return null;
+        // }
+        //
+        // if (formData.gidNumber && isNaN(Number(formData.gidNumber))) {
+        //     setError(`Field "gidNumber" must be a number.`);
+        //     return null;
+        // }
 
         setError(null);
         return validatedData;
@@ -85,9 +86,9 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
         <div className={styles.modalOverlay}>
             <div className={styles.modal} >
                 <div className={styles.modalHeader}>
-          <span onClick={onClose} className={styles.modalCloseButton}>
-            &times;
-          </span>
+                  <span onClick={onClose} className={styles.modalCloseButton}>
+                    &times;
+                  </span>
                 </div>
                 <div className={styles.modalContent}>
                     <div className={styles.inputGroup}>
@@ -99,28 +100,42 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                                 name="dn"
                                 value={formData.dn}
                                 onChange={handleInputChange}
+                                // required
                             />
                         </div>
 
                         <label htmlFor="uidNumber">UID Number:</label>
                         <input
+                            onKeyPress={(event) => {
+                                if (!/[0-9]/.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                            }}
+                            // maxLength={10}
                             type="text"
                             id="uidNumber"
                             name="uidNumber"
                             value={formData.uidNumber}
                             onChange={handleInputChange}
                         />
+                        {/*{formData.uidNumber && isNaN(formData.uidNumber) && <div className={styles.modalError}>{error}</div>}*/}
                     </div>
 
                     <div className={styles.inputGroup}>
                         <label htmlFor="gidNumber">GID Number:</label>
                         <input
+                            onKeyPress={(event) => {
+                                if (!/[0-9]/.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                            }}
                             type="text"
                             id="gidNumber"
                             name="gidNumber"
                             value={formData.gidNumber}
                             onChange={handleInputChange}
                         />
+                        {/*{formData.gidNumber && <div className={styles.modalError}>{error}</div>}*/}
                     </div>
 
                     <div className={styles.inputGroup}>
@@ -140,7 +155,7 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                             type="text"
                             id="sshPublicKey"
                             name="sshPublicKey"
-                            value={formData.sshPublicKey.join(',')}
+                            value={formData.sshPublicKey}
                             onChange={handleInputChange}
                         />
                     </div>
@@ -162,7 +177,7 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                             type="text"
                             id="mail"
                             name="mail"
-                            value={formData.mail.join(',')}
+                            value={formData.mail}
                             onChange={handleInputChange}
                         />
                     </div>
@@ -225,7 +240,12 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                     <div className={styles.inputGroup}>
                         <label htmlFor="postalCode">Postal Code:</label>
                         <input
-                            type="text"
+                            onKeyPress={(event) => {
+                                if (!/[0-9]/.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                            }}
+                            type="number"
                             id="postalCode"
                             name="postalCode"
                             value={formData.postalCode}
@@ -275,7 +295,8 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                             value={formData.userPassword}
                             onChange={handleInputChange}
                         />
-                    </div>{error && <div className={styles.modalError}>{error}</div>}
+                    </div>
+                    {error && <div className={styles.modalError}>{error}</div>}
                 </div>
                 <div className={styles.modalFooter}>
 

@@ -231,11 +231,28 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 80px;
+      margin-top: 20px;
       width: 70vw;
       height: 900px;
       max-height: 80%;
       overflow: auto;
+    }
+
+    .add_user_button{
+      font-size: 16px;
+      padding: 5px;
+      margin-top: 55px;
+      width: max-content;
+      background-color: #04AA6D;
+      color: white;
+      border-radius: 10px;
+      transition: .3s ease-in-out;
+
+      &:hover{
+        background-color: white;
+        color: #04AA6D;
+        transition: .3s ease-in-out;
+      }
     }
 
     .UsersListItem{
