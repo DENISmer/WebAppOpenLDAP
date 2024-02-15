@@ -19,17 +19,18 @@
   font-family: "Roboto", sans-serif;
 
   .menu {
+    gap: 10px;
     border-radius: 5px;
     padding: 4px;
     top: 10px;
     position: absolute;
-    width: 150px;
+    width: max-content;
     height: 30px;
     background-color: #1e2e4b;
     margin: 1rem;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    //flex-direction: row;
+    //justify-content: space-between;
     //border-radius: 6px;
 
     .logout{
@@ -41,7 +42,7 @@
       padding: 0.3rem;
       width: max-content;
       //border-radius: 3px;
-      margin-right: 10%;
+      //margin-right: 10%;
       transition: .3s ease-in-out;
 
       &:hover {
@@ -68,7 +69,13 @@
         transition: 0.3s ease-in-out;
       }
     }
+
+    .Admin_Profile_disabled{
+      display: none;
+    }
+
   }
+
 
   .Admin_Panel{
     position: relative;
@@ -301,7 +308,7 @@
 
         .Edit_Button{
           float: right;
-          background-color: #04AA6D;
+          background-color: #a0bbd9;
           border: none;
           border-radius: 5px;
           color: white;
@@ -314,14 +321,14 @@
           cursor: pointer;
 
           &:hover{
-            background-color: white;
-            color: green;
-            border: 1px solid green;
+            background-color: rgba(129, 169, 124, 0.5);
+            color: rgba(85, 110, 82, 0.5);
+            border: 1px solid rgba(85, 110, 82, 0.5);
           }
 
         }
         .Delete_Button{
-          background-color: rgba(217, 0, 0, 0.78);
+          background-color: rgb(160, 187, 217);
           border: none;
           border-radius: 5px;
           color: white;
@@ -337,7 +344,7 @@
           margin-right: 10px;
 
           &:hover{
-            background-color: rgba(255, 255, 255, 0.78);
+            background-color: rgba(155, 101, 101, 0.53);
             color: rgba(217, 0, 0, 0.78);
             border: 1px solid rgba(217, 0, 0, 0.78);
           }
@@ -393,7 +400,7 @@
       border-radius: 10px;
       font-size: 18px;
       padding: 5px;
-      background-color: green;
+      background-color: rgba(0, 128, 0, 0.7);
       color: white;
       transition: .3s ease-in-out;
 
@@ -409,7 +416,7 @@
       border-radius: 10px;
       font-size: 18px;
       padding: 5px;
-      background-color: yellow;
+      background-color: rgba(255, 255, 0, 0.7);
       color: #000000;
       transition: .3s ease-in-out;
 
