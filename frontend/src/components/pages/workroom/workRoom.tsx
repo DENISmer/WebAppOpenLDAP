@@ -7,6 +7,8 @@ import loadingGif from "@/assets/icons/h6viz.gif"
 import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
 import ModalForAddUser from "@/components/Modal_Window/modalForAddUser";
+import pen from "@/assets/icons/pen_edit1.png"
+import delete_user from "@/assets/icons/delete_user.png"
 
 
 export interface userDataForEdit {
@@ -302,9 +304,9 @@ const WorkRoom: React.FC = () => {
                 <div className={WR_S.logout} onClick={() => {
                     removeCookie('userAuth')
                     navigate('/login')
-                }}>выйти
+                }}>Выйти
                 </div>
-                <div className={WR_S.Admin_Profile}>профиль</div>
+                <div className={userAuthCookies.userAuth.role === 'simple_user' ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
             </div>
 
             {currentEditor && currentEditor.role === 'webadmins' &&
@@ -360,12 +362,12 @@ const WorkRoom: React.FC = () => {
                                     </div>
                                     <div className={WR_S.Button_Group}>
                                         <button className={WR_S.Edit_Button}
-                                                onClick={() => setIsEditing({isEditing: true, uid: element.uid})}>edit
+                                                onClick={() => setIsEditing({isEditing: true, uid: element.uid})}><img src={pen} alt="Edit information"/>
                                         </button>
                                         <button className={WR_S.Delete_Button} onClick={() => setIsEditing({
                                             isEditing: false,
                                             uid: element.uid
-                                        })}>delete
+                                        })}><img src={delete_user} alt="Delete user"/>
                                         </button>
                                     </div>
                                 </div>)

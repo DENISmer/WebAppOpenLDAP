@@ -1,5 +1,7 @@
 import {ChangeEvent} from "react";
 import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
+import delete_object from "@/assets/icons/delete_object.png"
+import {object} from "prop-types";
 
 export interface userDataForEdit {
     dn?: string,
@@ -84,7 +86,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
         const inputValue = isValueArray && typeof index === 'number' ? value[index] : value;
 
         return (
-            <div className={FFE_S.div} key={typeof index === 'number' ? `${key}-${index}` : key}>
+            <div className={FFE_S.public_div} key={typeof index === 'number' ? `${key}-${index}` : key}>
                 {/*рендер каждого элемента*/}
                 <div className={FFE_S.element}>
                     <label htmlFor={inputName}>
@@ -97,13 +99,13 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         </label>
                         <input
 
-                            className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}
+                            className={fieldIsChange(key) && key !== 'objectClass' && key !== 'mail' && key !== 'sshPublicKey' &&  index !== 0 ? FFE_S.isChanged : null}
                             type={key === 'mail' ? "email" : "text"}
                             id={inputName}
                             name={inputName}
                             placeholder={`Enter ${key}`}
                             value={inputValue || ''}
-                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && role === 'simple_user'}
+                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === 'simple_user'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 handleInputChange(key, e.target.value, index)
                             }
@@ -114,11 +116,11 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
                     {isValueArray &&
                         typeof index === 'number' && value.length > 1 && (
-                        <button className={(key === 'mail' && role === 'simple_user') || (role !== 'simple_user') ? FFE_S.Button_Remove : FFE_S.button_disabled}
+                        <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Remove : FFE_S.button_disabled}
                                 type="button"
-                                disabled={key === 'dn' || role === 'simple_user' && key !== 'mail'}
+                                disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
                                 onClick={() => handleRemoveArrayItem(key, index)}>
-                            Remove
+                            <img src={delete_object} alt="Delete this field"/>
                         </button>
                     )}
                 </div>
@@ -128,18 +130,18 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
     return (
         <form className={FFE_S.Admin_form}>
-            {Object.entries(userData).map(([key, value]) => {
+            {Object.entries(userData).sort().map(([key, value]) => {
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
                     return (
-                        <div className={FFE_S.div}>
-                            <div className={FFE_S.element} key={key}>
+                        <div className={FFE_S.objects_div}>
+                            <div className={FFE_S.objects_element} key={key}>
                                 {inputs}
-                                    <button className={key === 'mail' && role === 'simple_user' || role !== "simple_user" ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                         disabled={key === 'dn' || role === 'simple_user' && key !== 'mail'}
+                                    <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                         disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
                                          type="button"
                                          onClick={() => handleAddArrayItem(key)}>
-                                    Add more {key}
+                                    + {key}
                                 </button>
                             </div>
                         </div>
