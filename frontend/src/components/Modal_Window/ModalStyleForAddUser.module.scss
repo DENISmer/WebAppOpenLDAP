@@ -50,6 +50,27 @@
   }
 }
 
+.inputGroup_error{
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #ff0000;
+    border-radius: 4px;
+  }
+}
+
+.required:after{
+  content: '*';
+  color: red;
+}
+
 .modalCloseButton {
   cursor: pointer;
 }

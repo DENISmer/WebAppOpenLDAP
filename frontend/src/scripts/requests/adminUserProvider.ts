@@ -43,7 +43,7 @@ export async function getUsersList(props: Params) {
            return response
         })
         .catch((e) => {
-            e.response
+            return e
         })
 }
 
@@ -130,8 +130,6 @@ export async function addUser(data: userAddDataForEdit, token: string) {
     return await axios.post(`${APIS.USERS}`,
         {
             dn: data.dn,
-            uidNumber: Number(data.uidNumber),
-            gidNumber: Number(data.gidNumber),
             uid: data.uid,
             sshPublicKey: data.sshPublicKey,
             st: data.st,
@@ -144,7 +142,7 @@ export async function addUser(data: userAddDataForEdit, token: string) {
             postalCode: data.postalCode,
             homeDirectory: data.homeDirectory,
             loginShell: data.loginShell,
-            objectClass: [data.objectClass],
+            objectClass: data.objectClass,
             userPassword: data.userPassword
         },
         {
@@ -158,7 +156,8 @@ export async function addUser(data: userAddDataForEdit, token: string) {
             return response
         })
         .catch((e) => {
-            alert(`smth went wrong ${e}`)
+            return e
+            //alert(`smth went wrong ${e}`)
         })
 }
 

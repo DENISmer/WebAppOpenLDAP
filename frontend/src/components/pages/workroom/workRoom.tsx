@@ -99,24 +99,13 @@ const WorkRoom: React.FC = () => {
     }
 
     useEffect(() => {
-        setListLoading(true)
-        try{
-            fillUsersList({value : searchValue,pageNumber: currentListPage,token : userAuthCookies['userAuth'].token})
-                .then((response) => {
-                    if (response && response.status && response.status === 200) {
-                        response.data.items && setSearchResult1(response.data.items)
-                        response.data.page && setCurrentListPage(response.data.page)
-                        response.data.num_pages && setPagesCount(response.data.num_pages)
-                        setListLoading(false)
-                    }
-                    else {
-                        console.log(response)
-                    }
-                })
-        } catch { (e) => {
-            console.log(e)
-        } }
-    }, [searchValue,currentListPage])
+        onUserListPageChange()
+    }, [currentListPage])
+
+    useEffect(() => {
+        setCurrentListPage(1);
+        onUserListPageChange()
+    },[searchValue])
 
     //then auth success
     useEffect(() => {
@@ -151,16 +140,38 @@ const WorkRoom: React.FC = () => {
         } else if (!isEditing.isEditing && isEditing.uid){
             deleteUserFromList()
         }
-        // else if (!isEditing.isEditing && isEditing.uid && userAuthCookies.userAuth.role === 'simple_user'){
-        //     removeCookie("userAuth")
-        //     navigate('/login')
-        // }
     }, [isEditing]);
 
     useEffect(() => {
         console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
         setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
     },[editedUser])
+
+    const onUserListPageChange = () => {
+        setListLoading(true)
+        try{
+            fillUsersList({value : searchValue,pageNumber: currentListPage,token : userAuthCookies['userAuth'].token})
+                .then((response) => {
+                    if (response && response.status && response.status === 200) {
+                        response.data.items && setSearchResult1(response.data.items)
+                        //response.data.page && setCurrentListPage(response.data.page)
+                        response.data.num_pages && setPagesCount(response.data.num_pages)
+                        setListLoading(false)
+                    }
+                    else {
+                        if(response && response.response.status === 401){
+                            removeCookie('userAuth')
+                            navigate('/login')
+                        }
+                    }
+                })
+                .catch((e) => {
+                    console.log(e)
+                })
+        } catch { (e) => {
+            console.log(e)
+        } }
+    }
 
     const discardChanges = () => {
         if (userIsChanged){
@@ -278,10 +289,15 @@ const WorkRoom: React.FC = () => {
         }
     }
 
-    const onCloseModalAddUser = () => {
-        const confirmClose = confirm('Уверены?')
-        if(confirmClose){
+    const onCloseModalAddUser = (data: boolean) => {
+        if(data){
             setAddUserIsActive(false)
+        }
+        else {
+            const confirmClose = confirm('Уверены?')
+            if(confirmClose){
+                setAddUserIsActive(false)
+            }
         }
     }
 
@@ -291,7 +307,7 @@ const WorkRoom: React.FC = () => {
         <div className={WR_S.Page}>
 
             {/*<Modal />*/}
-            {addUserIsActive &&
+            {addUserIsActive && userAuthCookies.userAuth.token &&
                 <ModalForAddUser
                     onClose={onCloseModalAddUser}
                     token={userAuthCookies.userAuth.token ?? currentEditor.token}
@@ -376,7 +392,7 @@ const WorkRoom: React.FC = () => {
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
                 {/*{userIsChanged && <div>Есть изменения</div>}*/}
-                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={userAuthCookies['userAuth'].role}/>
+                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>
 
             </div>}
 
@@ -390,25 +406,6 @@ const WorkRoom: React.FC = () => {
                         }}>выйти к {currentEditor.role === 'webadmins' ? <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}
-
-            {/*{currentEditor && currentEditor.role !== 'webadmins' && editedUser &&*/}
-            {/*    <div className={WR_S.Admin_Panel}>*/}
-            {/*        <div className={WR_S.Admin_UseProfile}>*/}
-            {/*            /!*{JSON.stringify(editedUser)}*!/*/}
-            {/*            <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={userAuthCookies['userAuth'].role}/>*/}
-
-            {/*            {currentEditor && currentEditor.role === 'simple_user' && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>*/}
-            {/*                <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения*/}
-            {/*                </button>*/}
-            {/*                <button className={WR_S.cancelChanges}*/}
-            {/*                        onClick={() => {*/}
-            {/*                            discardChanges()*/}
-            {/*                        }}>выйти к списку*/}
-            {/*                </button>*/}
-            {/*            </div>}*/}
-            {/*        </div>*/}
-            {/*    </div>*/}
-            {/*}*/}
         </div>
     </>)
 }
