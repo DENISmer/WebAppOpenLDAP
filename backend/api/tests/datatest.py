@@ -1,25 +1,85 @@
+from enum import Enum
 
-data_user_auth_bob = {
+
+class Route(Enum):
+    common_route = '/api/v1'
+    AUTH = f'{common_route}/auth/token'
+    USERS = f'{common_route}/users'
+    GROUPS = f'{common_route}/groups'
+
+
+# Authentication
+data_user_auth_bob_webadmins = {
     "username": "bob",
     "userPassword": "bob"
 }
+data_user_auth_bob_simple_user = {
+    "username": "john",
+    "userPassword": "johnldap"
+}
+data_user_auth_bob_invalid_data = {
+    "username": "bob1",
+    "userPassword": "bob1"
+}
+data_user_auth_more_field = {
+    "username": "bob1",
+    "userPassword": "bob1",
+    "password": "asdasdas",
+    "gesoc": "dasdasd"
+}
+data_user_auth_missing_field = {
+    "username": "bob1",
+}
+data_user_auth_empty_field = {
+    "username": "",
+    "userPassword": "",
+}
 
 
-data_john_user = {
-    'cn': 'testuser_100',
-    'displayName': 'Test User 100',
-    'dn': 'uid=testuser_100,ou=People,dc=example,dc=com',
-    'gidNumber': 10100,
-    'givenName': 'testuser 100',
-    'homeDirectory': '/home/testuser_100',
-    'loginShell': ['/'],
-    'mail': ['testuser_100@mail.ru', 'testuser_1002@mail.ru'],
+# Default users: bob is webadmins, john
+
+data_user_get_bob_webadmins = {
+    'cn': 'Bob Bondy',
+    'displayName': 'Bob Bondy',
+    'dn': 'uid=bob,ou=People,dc=example,dc=com',
+    'gidNumber': 10001,
+    'givenName': 'bob',
+    'homeDirectory': '/home/bob',
+    'loginShell': '/bin/bash',
+    'mail': [],
+    'objectClass': ['inetOrgPerson',
+                 'posixAccount',
+                 'shadowAccount',
+                 'ldapPublicKey'],
+    'postalCode': None,
+    'sn': 'Bondy',
+    'sshPublicKey': [],
+    'st': None,
+    'street': None,
+    'uid': 'bob',
+    'uidNumber': 10001
+}
+
+data_user_get_john_simple_user = {
+    'cn': 'John Doe',
+    'displayName': 'John Doe',
+    'dn': 'uid=john,ou=People,dc=example,dc=com',
+    'gidNumber': 10000,
+    'givenName': 'John',
+    'homeDirectory': '/home/john',
+    'loginShell': '/bin/bash',
+    'mail': [],
     'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount'],
     'postalCode': None,
-    'sn': 'Test User 100',
+    'sn': 'Doe',
     'sshPublicKey': [],
-    'st': 'Moskow city',
-    'street': 'green street 12',
-    'uid': 'testuser_100',
-    'uidNumber': 10100
+    'st': None,
+    'street': None,
+    'uid': 'john',
+    'uidNumber': 10000
+}
+
+
+data_user_get_not_found = {
+    'uid': 'boboob'
 }

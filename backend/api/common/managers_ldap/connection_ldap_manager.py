@@ -41,6 +41,10 @@ class ConnectionManagerLDAP:
         self.connection.bind()
 
     def get_connection(self):
+        """
+        This function performs get connection
+        :return: connection
+        """
         return self.connection
 
     def rebind(self, user: UserLdap):

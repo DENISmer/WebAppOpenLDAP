@@ -12,7 +12,7 @@ if ! [ -n "$STATUS_LDAP_UTILS" ]; then
 fi
 
 # LDAP hosts
-LDAP_HOST="ldap://$LDAP_IP:389";
+LDAP_HOST="ldap://$LDAP_IP:8389";
 LDAPI_HOST="ldapi:///";
 
 # List files
@@ -37,19 +37,19 @@ PATH_TO_LDAP_FILES_DOCKER=/opt/ldap/files
 sudo docker build -f backend/ldap-conf/Dockerfile -t $DOCKER_TAG_IMAGE .
 
 # Run docker container
-sudo docker run --name $DOCKER_NAME_CONTAINER -p 0.0.0.0:389:389 --rm -d $DOCKER_TAG_IMAGE
+sudo docker run --name $DOCKER_NAME_CONTAINER -p 0.0.0.0:8389:389 --rm -d $DOCKER_TAG_IMAGE
 sleep 2
-sudo docker exec ldap-name-server ldapsearch -Q -Y EXTERNAL -H ldapi:/// -b cn=config -LLL '(olcDatabase={1}mdb)'
-
+#sudo docker exec ldap-name-server ldapsearch -Q -Y EXTERNAL -H ldapi:/// -b cn=config -LLL '(olcDatabase={1}mdb)'
 
 ## Add conf files, executing commands
-sudo docker exec $DOCKER_NAME_CONTAINER ldapmodify -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/modify_olcdatabase.ldif;
 sudo docker exec $DOCKER_NAME_CONTAINER ldapadd -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/openssh-lpk_openldap.ldif;
 sudo docker exec $DOCKER_NAME_CONTAINER ldapmodify -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/ppolicy-module.ldif;
 sudo docker exec $DOCKER_NAME_CONTAINER ldapadd -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/ppolicy-conf.ldif;
 
 # Add data files
-for file in ${LDAP_FILES_DATA[*]}; do
-  ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES/$file -D cn=admin,dc=example,dc=com -w 1234;
-  echo $file 'is added.';
-done
+
+ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES/add_content.ldif -D cn=admin,dc=example,dc=com -w 1234;
+ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES/add_group_webadmins.ldif -D cn=admin,dc=example,dc=com -w 1234;
+
+## Add conf files, executing commands
+sudo docker exec $DOCKER_NAME_CONTAINER ldapmodify -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/modify_olcdatabase.ldif;

@@ -84,7 +84,7 @@ def permission_user(miss=False):
 
             if not miss:
                 if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
-                    abort(403, message='Insufficient access rights.', status=403)
+                    abort(403, message='Insufficient access rights', status=403)
             # else:
             #     username_uid = current_user['uid']
 
@@ -105,7 +105,7 @@ def permission_group(func):
 
         # username_cn = kwargs.get('username_cn')
         if not current_user['role'] == Role.WEBADMIN.value:
-            abort(403, message='Insufficient access rights.', status=403)
+            abort(403, message='Insufficient access rights', status=403)
 
         res = func(*args, **kwargs)
 

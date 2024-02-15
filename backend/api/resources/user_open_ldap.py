@@ -52,7 +52,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
             username_uid
         )
         if not user:
-            abort(404, message='User not found.', status=404)
+            abort(404, message='User not found', status=404)
 
         updated_user = UserLdap(
             dn=user.dn,
@@ -63,8 +63,9 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         )
 
         if updated_user.uidNumber or updated_user.gidNumber:
-            ids = user_obj.get_id_numbers()
-            ids.remove(user.uidNumber)  # why?
+            ids: list = user_obj.get_id_numbers()
+            if user.uidNumber in ids:
+                ids.remove(user.uidNumber)  # why?
             validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
         if updated_user.uidNumber or user.uidNumber:
@@ -118,7 +119,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         if not user:
-            abort(404, message='User not found.', status=404)
+            abort(404, message='User not found', status=404)
 
         user_schema = kwargs['schema']
 

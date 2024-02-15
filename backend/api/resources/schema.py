@@ -11,6 +11,16 @@ from backend.api.common.validators import validate_uid_gid_number, validate_requ
 from backend.api.config import fields as conf_fields
 
 
+class TrimmedString(fields.String):
+    def _deserialize(self, value, *args, **kwargs):
+        if hasattr(value, 'strip'):
+            value = value.strip()
+        return super()._deserialize(value, *args, **kwargs)
+
+
+fields.Str = TrimmedString
+
+
 class OuterFields:
 
     def fetch_fields(self):
@@ -217,6 +227,13 @@ class AuthUserSchemaLdap(Schema):
     '''
     username = fields.Str(required=True, load_only=True)
     userPassword = fields.Str(required=True, load_only=True)
+
+    @validates_schema
+    def validate_object(self, data, **kwargs):
+        errors = {}
+        validate_required_fields(data, errors, self._declared_fields)
+        if errors:
+            raise ValidationError(errors)
 
     def __repr__(self):
         return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'

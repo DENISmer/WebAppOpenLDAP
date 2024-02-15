@@ -14,7 +14,6 @@ class ManagerLDAP(LDAP3LoginManager):  # Singleton
         self.init_config(config)
         self.tls_ctx = None
         self._add_tls_ctx()
-
         for host in config['LDAP_HOSTS']:
             self.add_server(
                 hostname=host,

@@ -53,7 +53,7 @@ def validate_uid_dn(data, errors):
 
     dn_dict = {}
     if dn:
-        dn_dict = {item[0]: item[1] for item in map(lambda i: i.split('='), dn.split(',')) if len(item) < 3}
+        dn_dict = {item[0]: item[1] for item in map(lambda i: i.split('='), dn.split(',')) if 1 < len(item) < 3}
 
     if dn and not dn_dict.get('uid'):
         errors['dn'] = ['The uid parameter is missing']
