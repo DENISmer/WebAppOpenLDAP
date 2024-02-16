@@ -5,7 +5,8 @@ from abc import ABC
 class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
         self.__username = kwargs.get('username')
-        self.dn = kwargs.get('dn')
+        self.__dn = kwargs.get('dn')
+
         self.cn = kwargs.get('cn') #or []
         self.objectClass = kwargs.get('objectClass') #or []
 
@@ -14,6 +15,14 @@ class UserCnAbstract(ABC):
             self.gidNumber = self.gidNumber[0]
 
         self.fields = kwargs.get('fields') #or []
+
+    @property
+    def dn(self):
+        return self.__dn.lower()
+
+    @dn.setter
+    def dn(self, value: str):
+        self.__dn = value.lower()
 
     def serialize_data(self, operation) -> dict:
 

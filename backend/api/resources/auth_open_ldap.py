@@ -33,7 +33,7 @@ class AuthOpenLDAP(Resource):
         response = ldap_auth.authenticate()
 
         if response.status.value == 1:
-            abort(401, message='Invalid username or password.', status=401)
+            abort(401, message='Invalid username or password', status=401)
 
         user.dn = response.user_dn
         user.uid = response.user_id
@@ -41,9 +41,8 @@ class AuthOpenLDAP(Resource):
         connection = ConnectionManagerLDAP(user)
         connection.connect()
 
-        groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
-
-        user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, groups)
+        group = GroupManagerLDAP(connection=connection).get_webadmins_group()
+        user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, group)
 
         if user.is_webadmin: user.role = Role.WEBADMIN
         else: user.role = Role.SIMPLE_USER

@@ -257,8 +257,20 @@ def error_auth_ldap(func):
 
         try:
             res = func(*args, **kwargs)
+        except LDAPNoSuchObjectResult as e:
+            logging.log(logging.ERROR, e)
+            abort(
+                401,
+                message='Invalid username or password',
+                status=401
+            )
         except LDAPException as e:
-            abort(401, message='Try again later', status=401)
+            logging.log(logging.ERROR, e)
+            abort(
+                400,
+                message='Try again later',
+                status=400
+            )
 
         return res
 
@@ -279,7 +291,7 @@ def define_schema(func):
         type_group = kwargs.get('type_group')
         if type_group:
             kwargs['webadmins_fields'] = schema[role]['fields']
-            role = type_group
+            role = type_group # ERROR
 
         kwargs['schema'] = schema[role][func_name]['schema']
         kwargs['fields'] = schema[role]['fields']

@@ -42,7 +42,7 @@ data_user_auth_empty_field = {
 data_user_get_bob_webadmins = {
     'cn': 'Bob Bondy',
     'displayName': 'Bob Bondy',
-    'dn': 'uid=bob,ou=People,dc=example,dc=com',
+    'dn': 'uid=bob,ou=people,dc=example,dc=com',
     'gidNumber': 10001,
     'givenName': 'bob',
     'homeDirectory': '/home/bob',
@@ -64,7 +64,7 @@ data_user_get_bob_webadmins = {
 data_user_get_john_simple_user = {
     'cn': 'John Doe',
     'displayName': 'John Doe',
-    'dn': 'uid=john,ou=People,dc=example,dc=com',
+    'dn': 'uid=john,ou=people,dc=example,dc=com',
     'gidNumber': 10000,
     'givenName': 'John',
     'homeDirectory': '/home/john',
@@ -90,18 +90,108 @@ data_user_get_not_found = {
 data_user_post_margo_simple_user = {
     'cn': 'Margo Rob',
     'displayName': 'Margo Rob',
-    'dn': 'uid=margo,ou=People,dc=example,dc=com',
+    'dn': 'uid=margo,ou=people,dc=example,dc=com',
     'gidNumber': 10003,
     'givenName': 'Margo',
     'homeDirectory': '/home/margo',
     'loginShell': '/bin/bash',
-    'mail': [],
+    'mail': ['margo@mail.ru', 'margo1@mail.ru'],
     'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey'],
     'postalCode': 123123,
     'sn': 'Margo',
-    'sshPublicKey': [],
+    'sshPublicKey': ['ssh-rsa asdasdas='],
     'st': 'grenlandy',
     'street': 'groove street',
     'uid': 'margo',
     'uidNumber': 10003
+}
+
+data_user_post_james_data_non_required_fields_is_null_simple_user = {
+    'cn': 'James Raf',
+    'displayName': None,
+    'dn': 'uid=james,ou=people,dc=example,dc=com',
+    'gidNumber': None,
+    'givenName': None,
+    'homeDirectory': '/home/james',
+    'loginShell': None,
+    'mail': None,
+    'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey'],
+    'postalCode': None,
+    'sn': 'James',
+    'sshPublicKey': None,
+    'st': None,
+    'street': None,
+    'uid': 'james',
+    'uidNumber': None,
+    'userPassword': '12341234'
+}
+
+data_user_post_data_all_fields_is_null = {
+    'cn': None,
+    'displayName': None,
+    'dn': None,
+    'gidNumber': None,
+    'givenName': None,
+    'homeDirectory': None,
+    'loginShell': None,
+    'mail': None,
+    'objectClass': None,
+    'postalCode': None,
+    'sn': None,
+    'sshPublicKey': None,
+    'st': None,
+    'street': None,
+    'uid': None,
+    'uidNumber': None,
+    'userPassword': None
+}
+
+data_user_post_data_all_fields_is_list = {
+    'cn': [],
+    'displayName': [],
+    'dn': [],
+    'gidNumber': [],
+    'givenName': [],
+    'homeDirectory': [],
+    'loginShell': [],
+    'mail': [],
+    'objectClass': [],
+    'postalCode': [],
+    'sn': [],
+    'sshPublicKey': [],
+    'st': [],
+    'street': [],
+    'uid': [],
+    'uidNumber': [],
+    'userPassword': []
+}
+
+data_user_post_data_all_fields_is_list_with_none_empty_row = {
+    'cn': ["", None],
+    'displayName': ["", None],
+    'dn': ["", None],
+    'gidNumber': ["", None],
+    'givenName': ["", None],
+    'homeDirectory': ["", None],
+    'loginShell': ["", None],
+    'mail': ["", None],
+    'objectClass': ["", None],
+    'postalCode': ["", None],
+    'sn': ["", None],
+    'sshPublicKey': ["", None],
+    'st': ["", None],
+    'street': ["", None],
+    'uid': ["", None],
+    'uidNumber': ["", None],
+    'userPassword': ["", None]
+}
+
+data_user_post_james_data_required_fields_simple_user = {
+    'cn': 'James Raf',
+    'dn': 'uid=james,ou=people,dc=example,dc=com',
+    'homeDirectory': '/home/james',
+    'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey'],
+    'sn': 'James',
+    'uid': 'james',
+    'userPassword': '12341234'
 }

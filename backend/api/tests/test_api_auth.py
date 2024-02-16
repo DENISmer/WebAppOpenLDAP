@@ -43,7 +43,7 @@ def test_auth_invalid_data_401(client):
 
     response_data = orjson.loads(response.data)
     expected_data = {
-        'message': 'Invalid username or password.',
+        'message': 'Invalid username or password',
         'status': 401
     }
 

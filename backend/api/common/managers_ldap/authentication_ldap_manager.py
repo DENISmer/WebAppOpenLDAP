@@ -13,5 +13,4 @@ class AuthenticationManagerLDAP:
             username=self.user.get_username(),
             password=self.user.userPassword,
         )
-
         return response  # *.status: 2 - success, 1 - failed

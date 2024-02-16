@@ -37,7 +37,8 @@ class ConnectionManagerLDAP:
         self.create_connection()
         self.connection.open()
         if config['LDAP_USE_SSL']:
-            self.connection.tls_started()
+            self.connection.start_tls()
+            # self.connection.tls_started()
         self.connection.bind()
 
     def get_connection(self):

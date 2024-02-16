@@ -50,12 +50,10 @@ class UserManagerLDAP(CommonManagerLDAP):
             for user in users
         ]
 
-    def is_webadmin(self, dn: str, groups: List[GroupWebAdmins]) -> bool:
-
-        if not groups:
+    def is_webadmin(self, dn: str, group: GroupWebAdmins) -> bool:
+        if not group:
             return False
-        member = groups[0].member or []
-        if dn not in member:
+        if dn not in group.member:
             return False
 
         return True

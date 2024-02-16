@@ -58,17 +58,19 @@ class GroupManagerLDAP(CommonManagerLDAP):
         )
         return group
 
-    def get_webadmins_groups(self) -> List[GroupWebAdmins]:
+    def get_webadmins_group(self) -> GroupWebAdmins:
         groups = self.search(
             value=Group.WEBADMINS.value,
             fields={'cn': '%s'},
             required_fields={'objectClass': 'groupOfNames'}
         )
+        group = groups[0]
+        member = list(map(lambda i: i.lower(), group['attributes']['member']))
+        group['attributes']['member'] = member
 
-        return [
-            GroupWebAdmins(dn=group['dn'], **group['attributes'])
-            for group in groups
-        ]
+        return GroupWebAdmins(
+            dn=group['dn'], **group['attributes']
+        )
 
     def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES, abort_raise: bool = True):
         return self.item(

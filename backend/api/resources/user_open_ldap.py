@@ -175,6 +175,10 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
         user = user_obj.item(username_uid, [])
+
+        if not user:
+            abort(404, message='User not found', status=404)
+
         group = group_obj.get_group_info_posix_group(
             username_uid, []
         )

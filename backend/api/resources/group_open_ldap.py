@@ -34,7 +34,7 @@ class GroupOpenLDAPResource(Resource):
 
         group = group_obj.get_group_info_posix_group(username_cn)
         if not group:
-            abort(404, message='Group not found.', status=404)
+            abort(404, message='Group not found', status=404)
 
         updated_group = CnGroupLdap(
             username=username_cn,
@@ -62,7 +62,7 @@ class GroupOpenLDAPResource(Resource):
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_cn)
         if not group:
-            abort(404, message='Group not found.', status=404)
+            abort(404, message='Group not found', status=404)
 
         group_schema = kwargs['schema']
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)

@@ -104,6 +104,7 @@ class TokenManagerDB(TokenManagerAbstract):
                 instance,
                 token=token,
                 datetime_create=datetime.utcnow(),
+                role=self.user.role.value,
                 userPassword=self.user.userPassword
             )
         else:
