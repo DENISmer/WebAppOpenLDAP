@@ -8,6 +8,7 @@ from backend.api.common.auth_http_token import auth
 from backend.api.common.crypt_passwd import CryptPasswd
 from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message
 from backend.api.common.getting_free_id import GetFreeId
+from backend.api.common.groups import Group
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config import settings
@@ -85,8 +86,6 @@ def permission_user(miss=False):
             if not miss:
                 if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
                     abort(403, message='Insufficient access rights', status=403)
-            # else:
-            #     username_uid = current_user['uid']
 
             res = func(*args, **kwargs)
 
@@ -281,17 +280,18 @@ def define_schema(func):
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-
         username_uid = kwargs.get('username_uid')
         current_user = auth.current_user()
         role = current_user['role']
-
         func_name = func.__name__ if username_uid or func.__name__ == 'post' else 'list'
 
-        type_group = kwargs.get('type_group')
-        if type_group:
-            kwargs['webadmins_fields'] = schema[role]['fields']
-            role = type_group # ERROR
+        try:
+            type_group = kwargs.get('type_group')
+            if type_group and schema.get(type_group := type_group.lower()) and Group(type_group):
+                kwargs['webadmins_fields'] = schema[role]['fields']
+                role = type_group
+        except ValueError:
+            abort(400, message=f'Type group not found', status=400)
 
         kwargs['schema'] = schema[role][func_name]['schema']
         kwargs['fields'] = schema[role]['fields']

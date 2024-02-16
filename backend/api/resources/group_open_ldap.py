@@ -23,7 +23,7 @@ class GroupOpenLDAPResource(Resource):
 
     def __modify_group(
         self,
-        username_cn,
+        username_uid,
         deserialized_data,
         group_fields,
         user_fields,
@@ -32,19 +32,19 @@ class GroupOpenLDAPResource(Resource):
         group_obj = GroupManagerLDAP(connection=self.connection)
         user_obj = UserManagerLDAP(connection=self.connection)
 
-        group = group_obj.get_group_info_posix_group(username_cn)
+        group = group_obj.get_group_info_posix_group(username_uid)
         if not group:
             abort(404, message='Group not found', status=404)
 
         updated_group = CnGroupLdap(
-            username=username_cn,
+            username=username_uid,
             dn=group.dn,
             **deserialized_data,
             fields=group_fields['fields']
         )
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
-            user = user_obj.item(username_cn, [])
+            user = user_obj.item(username_uid, [])
             if user:
                 user.fields = user_fields['fields']
                 user.gidNumber = user.uidNumber = updated_group.gidNumber
@@ -58,9 +58,9 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def get(self, username_cn, type_group, *args, **kwargs):
+    def get(self, username_uid, type_group, *args, **kwargs):
         group = GroupManagerLDAP(connection=self.connection) \
-            .get_group_info_posix_group(username_cn)
+            .get_group_info_posix_group(username_uid)
         if not group:
             abort(404, message='Group not found', status=404)
 
@@ -72,7 +72,7 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def put(self, username_cn, type_group, *args, **kwargs):
+    def put(self, username_uid, type_group, *args, **kwargs):
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -80,7 +80,7 @@ class GroupOpenLDAPResource(Resource):
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=False)
         updated_group = self.__modify_group(
-            username_cn, deserialized_data, group_fields,
+            username_uid, deserialized_data, group_fields,
             webadmins_user_fields, True
         )
         serialized_user = self.serializer.serialize_data(group_schema, item=updated_group)
@@ -91,7 +91,7 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def patch(self, username_cn, type_group, *args, **kwargs):
+    def patch(self, username_uid, type_group, *args, **kwargs):
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -99,7 +99,7 @@ class GroupOpenLDAPResource(Resource):
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=True)
         updated_group = self.__modify_group(
-            username_cn, deserialized_data,
+            username_uid, deserialized_data,
             group_fields, webadmins_user_fields,
             True
         )
@@ -111,9 +111,9 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def delete(self, username_cn, type_group, *args, **kwargs):
+    def delete(self, username_uid, type_group, *args, **kwargs):
         group_obj = GroupManagerLDAP(connection=self.connection)
-        group = group_obj.get_group_info_posix_group(username_cn)
+        group = group_obj.get_group_info_posix_group(username_uid)
         group_obj.delete(item=group, operation='delete')
         return None, 204
 

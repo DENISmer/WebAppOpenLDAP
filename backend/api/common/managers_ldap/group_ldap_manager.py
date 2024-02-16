@@ -9,6 +9,7 @@ from ldap3.core.exceptions import (LDAPException,
 
 from backend.api.common.groups import Group
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
+from backend.api.common.roles import Role
 from backend.api.common.user_manager import CnGroupLdap, GroupWebAdmins
 from backend.api.config.fields import webadmins_cn_posixgroup_fields
 
@@ -60,7 +61,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
 
     def get_webadmins_group(self) -> GroupWebAdmins:
         groups = self.search(
-            value=Group.WEBADMINS.value,
+            value=Role.WEBADMIN.value,
             fields={'cn': '%s'},
             required_fields={'objectClass': 'groupOfNames'}
         )
