@@ -112,3 +112,28 @@ def test_auth_missing_field_400(client):
     }
 
     assert response_data == expected_data
+
+
+def test_auth_post_not_webadmins_200(client):
+    data = orjson.dumps(dt.data_user_auth_john_simple_user)
+    headers = {'Content-Type': 'application/json'}
+    response = client.post(
+        dt.Route.AUTH.value,
+        headers=headers,
+        data=data,
+    )
+
+    assert response.status_code == 200
+
+    response_data = orjson.loads(response.data)
+    expected_data = {
+        'token': 'token',
+        'uid': dt.data_user_auth_john_simple_user['username'],
+        'role': 'simple_user'
+    }
+
+    assert response_data.get('token') is not None
+
+    response_data['token'] = expected_data['token']
+
+    assert response_data == expected_data

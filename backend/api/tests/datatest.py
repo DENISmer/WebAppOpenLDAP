@@ -13,7 +13,7 @@ data_user_auth_bob_webadmins = {
     "username": "bob",
     "userPassword": "bob"
 }
-data_user_auth_bob_simple_user = {
+data_user_auth_john_simple_user = {
     "username": "john",
     "userPassword": "johnldap"
 }
@@ -36,6 +36,7 @@ data_user_auth_empty_field = {
 }
 
 
+# GET
 # Default users: bob is webadmins, john
 
 data_user_get_bob_webadmins = {
@@ -82,4 +83,25 @@ data_user_get_john_simple_user = {
 
 data_user_get_not_found = {
     'uid': 'boboob'
+}
+
+
+# POST
+data_user_post_margo_simple_user = {
+    'cn': 'Margo Rob',
+    'displayName': 'Margo Rob',
+    'dn': 'uid=margo,ou=People,dc=example,dc=com',
+    'gidNumber': 10003,
+    'givenName': 'Margo',
+    'homeDirectory': '/home/margo',
+    'loginShell': '/bin/bash',
+    'mail': [],
+    'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey'],
+    'postalCode': 123123,
+    'sn': 'Margo',
+    'sshPublicKey': [],
+    'st': 'grenlandy',
+    'street': 'groove street',
+    'uid': 'margo',
+    'uidNumber': 10003
 }

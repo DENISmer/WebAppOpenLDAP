@@ -53,7 +53,7 @@ def test_get_user_not_found_404(client):
 
 
 def test_get_user_not_webadmins_not_own_profile_403(client):
-    authorized_user = authorize_user(client, dt.data_user_auth_bob_simple_user)
+    authorized_user = authorize_user(client, dt.data_user_auth_john_simple_user)
     headers = {'Authorization': f'Bearer {authorized_user["token"]}'}
     response = client.get(
         f'{dt.Route.USERS.value}/{dt.data_user_get_bob_webadmins["uid"]}',
@@ -85,8 +85,21 @@ def test_get_user_invalid_token_401(client):
     assert response_data == expected_data
 
 
+def test_get_user_without_token_401(client):
+    response = client.get(
+        f'{dt.Route.USERS.value}/{dt.data_user_get_bob_webadmins["uid"]}',
+    )
+
+    assert response.status_code == 401
+
+    response_data = orjson.loads(response.data)
+    expected_data = {'message': 'Unauthorized Access', 'status': 401}
+
+    assert response_data == expected_data
+
+
 def test_get_user_not_webadmins_own_profile_200(client):
-    authorized_user = authorize_user(client, dt.data_user_auth_bob_simple_user)
+    authorized_user = authorize_user(client, dt.data_user_auth_john_simple_user)
     headers = {'Authorization': f'Bearer {authorized_user["token"]}'}
     response = client.get(
         f'{dt.Route.USERS.value}/{dt.data_user_get_john_simple_user["uid"]}',
@@ -101,6 +114,48 @@ def test_get_user_not_webadmins_own_profile_200(client):
     assert response_data == expected_data
 
 
+def test_post_user_not_webadmins_403(client):
+    authorized_user = authorize_user(client, dt.data_user_auth_john_simple_user)
+    headers = {'Authorization': f'Bearer {authorized_user["token"]}'}
+    payload = orjson.dumps(dt.data_user_post_margo_simple_user)
+    response = client.post(
+        dt.Route.USERS.value,
+        headers=headers,
+        data=payload
+    )
+
+    assert response.status_code == 403
+
+    response_data = orjson.loads(response.data)
+    expected_data = {
+        'message': 'Insufficient access rights',
+        'status': 403
+    }
+
+    assert response_data == expected_data
+
+
+def test_post_user_201(client):  # must be done
+    authorized_user = authorize_user(client, dt.data_user_auth_bob_webadmins)
+    headers = {
+        'Authorization': f'Bearer {authorized_user["token"]}',
+        'Content-Type': 'application/json'
+    }
+    data = dt.data_user_post_margo_simple_user
+    data.update({'userPassword': 'margo123'})
+    payload = orjson.dumps(dt.data_user_post_margo_simple_user)
+    response = client.post(
+        dt.Route.USERS.value,
+        headers=headers,
+        data=payload
+    )
+    pprint.pprint(response.data)
+    assert response.status_code == 200
+
+    response_data = orjson.loads(response.data)
+    expected_data = dt.data_user_post_margo_simple_user
+
+    assert response_data == expected_data
 
 
 # def test_patch_john(client):

@@ -27,5 +27,8 @@ def verify_token(token):
 
 @auth.error_handler
 def auth_error(status):
-    return {'message': 'Unauthorized Access', 'status': status}, status
+    if status == 401:
+        return {'message': 'Unauthorized Access', 'status': status}, status
+    else:
+        return {'message': 'Insufficient access rights', 'status': status}, status
 

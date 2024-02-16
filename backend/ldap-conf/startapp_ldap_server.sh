@@ -43,13 +43,18 @@ sleep 2
 
 ## Add conf files, executing commands
 sudo docker exec $DOCKER_NAME_CONTAINER ldapadd -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/openssh-lpk_openldap.ldif;
+sleep 1
 sudo docker exec $DOCKER_NAME_CONTAINER ldapmodify -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/ppolicy-module.ldif;
+sleep 1
 sudo docker exec $DOCKER_NAME_CONTAINER ldapadd -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/ppolicy-conf.ldif;
+sleep 1
 
 # Add data files
 
 ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES/add_content.ldif -D cn=admin,dc=example,dc=com -w 1234;
+sleep 1
 ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES/add_group_webadmins.ldif -D cn=admin,dc=example,dc=com -w 1234;
+sleep 1
 
 ## Add conf files, executing commands
 sudo docker exec $DOCKER_NAME_CONTAINER ldapmodify -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/modify_olcdatabase.ldif;
