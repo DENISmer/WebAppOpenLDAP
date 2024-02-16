@@ -296,7 +296,7 @@ const WorkRoom: React.FC = () => {
             setAddUserIsActive(false)
         }
         else {
-            const confirmClose = confirm('Уверены?')
+            const confirmClose = confirm('Введенные данные не сохранятся, вы уверены, что хотите выйти?')
             if(confirmClose){
                 setAddUserIsActive(false)
             }
@@ -309,7 +309,7 @@ const WorkRoom: React.FC = () => {
         <div className={WR_S.Page}>
 
             {/*<Modal />*/}
-            {addUserIsActive && userAuthCookies.userAuth.token &&
+            {addUserIsActive && userAuthCookies && userAuthCookies.userAuth.token &&
                 <ModalForAddUser
                     onClose={onCloseModalAddUser}
                     token={userAuthCookies.userAuth.token ?? currentEditor.token}
@@ -322,7 +322,7 @@ const WorkRoom: React.FC = () => {
                     navigate('/login')
                 }}>Выйти
                 </div>
-                <div className={userAuthCookies.userAuth.role === 'simple_user' ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
+                <div className={userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user' ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
             </div>
 
             {currentEditor && currentEditor.role === 'webadmins' &&
