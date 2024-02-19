@@ -81,17 +81,23 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
             not_modify_item=user
         )
 
-        group = group_obj.get_group_info_posix_group(username_uid, attributes=['gidNumber'])
+        group = group_obj.get_group_info_posix_group(username_uid)
 
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
-            group.gidNumber = updated_user.gidNumber or updated_user.uidNumber
-            group.input_field_keys = ['gidNumber']
+
+            updated_user = CnGroupLdap(
+                dn=group.dn,
+                gidNumber=updated_user.gidNumber or updated_user.uidNumber,
+                input_field_keys=['gidNumber'],
+                fields=webadmins_cn_posixgroup_fields['fields'],
+            )
             group_obj.modify(
-                item=group,
+                item=updated_user,
                 operation=operation,
+                not_modify_item=group
             )  # must be test
-            pprint.pprint(group.__dict__)
+
         elif not group:
             new_group = CnGroupLdap(
                 cn=username_uid,
@@ -245,6 +251,8 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
     @define_schema
     def post(self, *args, **kwargs):
         json_data = request.get_json()
+        pprint.pprint('request.files')
+        print(request.files)
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
 

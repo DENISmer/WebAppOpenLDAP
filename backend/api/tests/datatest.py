@@ -359,12 +359,50 @@ data_user_patch_rambo_change_dn = {
     'dn': 'uid=rambo123,ou=people,dc=example,dc=com'
 }
 
+data_user_patch_john_with_none_fields = {'cn': 'john1',
+    'displayName': 'John Swan',
+    'gidNumber': 11022,
+    'givenName': 'John Swan',
+    'homeDirectory': '/home/john',
+    'loginShell': '/bin/bash',
+    'mail': ['john@mail.ru'],
+    'objectClass': ['inetOrgPerson',
+                 'posixAccount',
+                 'shadowAccount',
+                 'ldapPublicKey'],
+    'postalCode': None,
+    'sn': 'Swan22',
+    'sshPublicKey': ['11112123'],
+    'st': '1',
+    'street': None,
+    'uid': 'john',
+    'uidNumber': 11022
+}
+data_user_patch_james_data_required_fields_simple_user = {
+    'cn': 'James Raf',
+    'homeDirectory': '/home/james',
+    'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey'],
+    'sn': 'James',
+    'uid': 'james',
+    'userPassword': '12341234',
+
+    'uidNumber': 11022,
+    'street': None,
+    'postalCode': None,
+    'sshPublicKey': ['11112123'],
+    'loginShell': '/bin/bash',
+    'mail': ['james@mail.ru'],
+    'gidNumber': 11022,
+    'givenName': 'James NEc',
+}
+
 
 # Delete
 
 
 # Group
 
+# Post
 data_group_post_rambo = {
     'cn': 'rambo',
     'dn': 'cn=rambo,ou=groups,dc=example,dc=com',
@@ -386,6 +424,8 @@ data_group_post_rambo_invalid_object_class = {
     'memberUid': 'rambo',
     'objectClass': ['asdasdasda']
 }
+
+# Patch
 data_group_patch_rambo = {
     'cn': 'rambo',
     'gidNumber': 10006,
@@ -397,4 +437,11 @@ data_group_patch_several_member_uid = {
 }
 data_group_patch_rambo_invalid_object_class = {
     'objectClass': ['posixGroup', 'asdafaf']
+}
+
+data_group_post_rambo_for_create_without_member_uid = {
+    'cn': 'rambo',
+    'dn': 'cn=rambo,ou=groups,dc=example,dc=com',
+    'gidNumber': 10005,
+    'objectClass': ['posixGroup']
 }

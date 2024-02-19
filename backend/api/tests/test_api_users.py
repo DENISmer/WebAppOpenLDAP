@@ -829,6 +829,47 @@ def test_patch_user_not_webadmins_and_current_user_more_fields_other_user_403(cl
 
 
 @auth
+def test_patch_user_james_have_only_required_fields_with_none_fields_200(client, **kwargs):
+    headers = kwargs['headers']
+    payload = orjson.dumps(dt.data_user_patch_james_data_required_fields_simple_user)
+    res = create_user(client, dt.data_user_post_james_data_required_fields_simple_user, headers)
+
+    response = client.patch(
+        f'{dt.Route.USERS.value}/{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
+        headers=headers,
+        data=payload
+    )
+    response_data = orjson.loads(response.data)
+
+    response_get = client.get(
+        f'{dt.Route.USERS.value}/{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
+        headers=headers
+    )
+    response_get_data = orjson.loads(response_get.data)
+    expected_data = response_get_data
+
+    response_group = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/'
+        f'{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
+        headers=headers,
+    )
+    response_group_data = orjson.loads(response_group.data)
+
+    delete_user(client, dt.data_user_post_james_data_required_fields_simple_user["uid"], headers)
+    assert response.status_code == 200
+
+    assert response_get.status_code == 200
+
+    assert response_data == expected_data
+
+    assert response_group.status_code == 200
+
+    assert response_group_data['gidNumber'] == response_get_data['gidNumber']
+
+    assert response_group_data['memberUid'] == response_get_data['uid']
+
+
+@auth
 def test_delete_user_204(client, **kwargs):
     headers = kwargs['headers']
     create_user(client, dt.data_user_patch_rambo_for_create, headers)

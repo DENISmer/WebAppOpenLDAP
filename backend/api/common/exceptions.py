@@ -16,6 +16,10 @@ class ItemFieldsIsNone(Exception):
 class InputFieldKeysIsNone(Exception):
     pass
 
+
+class NotModifyItemIsNone(Exception):
+    pass
+
 # def get_attribute_error_message(fields: list, row: str) -> list:
 #     return list(set(re.findall("|".join(fields), row)))
 

@@ -106,9 +106,15 @@ simple_user_fields = {
         'postalCode': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
-            'operation': ['read',],
+            'operation': ['read', ],
             'required': [],
-        }
+        },
+        # 'jpegPhoto': {
+        #     'type': TYPE_STR,
+        #     'element_type': TYPE_STR,
+        #     'operation': ['read', ],
+        #     'required': [],
+        # }
     },
 }
 
@@ -217,7 +223,13 @@ webadmins_fields = {
             'element_type': TYPE_INT,
             'operation': ['create', 'read', 'update',],
             'required': ['update'],
-        }
+        },
+        # 'jpegPhotoPath': {
+        #     'type': TYPE_STR,
+        #     'element_type': TYPE_STR,
+        #     'operation': ['read', ],
+        #     'required': [],
+        # }
     },
 }
 

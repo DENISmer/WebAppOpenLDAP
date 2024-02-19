@@ -10,7 +10,7 @@ from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
-from backend.api.common.user_manager import CnGroupLdap
+from backend.api.common.user_manager import CnGroupLdap, UserLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import search_posixgroup_fields
@@ -47,14 +47,18 @@ class GroupOpenLDAPResource(Resource):
         )
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
-            user = user_obj.item(username_uid, [])
+            user = user_obj.item(username_uid)
             if user:
-                user.fields = user_fields['fields']
-                user.input_field_keys = ['gidNumber']
-                user.gidNumber = user.uidNumber = updated_group.gidNumber
-                user_obj.modify(item=user, operation='update')
+                updated_users = UserLdap(
+                    dn=user.dn,
+                    fields=user_fields['fields'],
+                    input_field_keys=['gidNumber', 'uidNumber'],
+                    gidNumber=updated_group.gidNumber,
+                    uidNumber=updated_group.gidNumber,
+                )
+                user_obj.modify(item=updated_users, operation='update', not_modify_item=user)
 
-        group_obj.modify(item=updated_group, operation='update')
+        group_obj.modify(item=updated_group, operation='update', not_modify_item=group)
         group.__dict__.update(deserialized_data)
         return group
 

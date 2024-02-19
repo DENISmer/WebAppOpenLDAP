@@ -18,7 +18,7 @@ def delete_group(client, uid, headers):
 def create_group(client, user_data, headers):
     data = orjson.dumps(user_data)
     response = client.post(
-        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP}',
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
         headers=headers,
         data=data,
     )
@@ -383,6 +383,33 @@ def test_patch_group_invalid_object_class_400(client, **kwargs):
     assert response.status_code == 400
 
     assert response_data == expected_data
+
+
+@auth
+def test_patch_group_with_none_fields_200(client, **kwargs):
+    headers = kwargs['headers']
+    create_group(client, dt.data_group_post_rambo_for_create_without_member_uid, headers)
+    payload = orjson.dumps(dt.data_group_patch_rambo)
+
+    response = client.patch(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/rambo',
+        headers=headers,
+        data=payload
+    )
+    response_data = orjson.loads(response.data)
+
+    response_group_get = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/rambo',
+        headers=headers
+    )
+    response_group_get_data = orjson.loads(response_group_get.data)
+
+    delete_group(client, 'rambo', headers)
+    assert response.status_code == 200
+
+    assert response_group_get.status_code == 200
+
+    assert response_data == response_group_get_data
 
 
 @auth
