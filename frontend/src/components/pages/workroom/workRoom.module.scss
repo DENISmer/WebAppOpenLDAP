@@ -359,7 +359,8 @@
     justify-content: center;
     position: absolute;
     top: 100px;
-    margin: 2rem 2rem 2rem 2rem;
+    left: 50px;
+    margin: 1rem 1rem 1rem 1rem;
     overflow-x: hidden;
     overflow-y: auto;
     width: 90vw;
@@ -544,14 +545,21 @@
       }
     }
     .Admin_UseProfile {
-      top: 0;
-      position: relative;
-      margin: 1rem 1rem 1rem 2rem;
-      width: 90%;
+      display: flex;
+      //flex-wrap: wrap;
+      justify-content: center;
+      position: absolute;
+      top: 70px;
+      left: 0px;
+      margin: 1rem 1.5rem 1rem 1rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      width: 93%;
       height: 70%;
-      max-height: 50%;
+      min-height: 70%;
       background-color: rgba(30, 46, 75, 0.38);
       border-radius: 20px;
+      padding: 10px;
     }
   }
 }

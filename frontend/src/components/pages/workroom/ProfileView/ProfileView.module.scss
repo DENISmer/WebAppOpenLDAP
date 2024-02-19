@@ -1,9 +1,12 @@
 .Profile_Module {
   border: 1px solid black;
-  position: relative;
+  position: fixed;
   padding: 10px;
   width: 20%;
-  min-width: 200px;
+  min-width: 302px;
+  top: 152px;
+  left: 80px;
+  overflow: hidden;
 }
 .Profile_Body {
   border: 1px solid black;
@@ -26,12 +29,21 @@
     height: 100px;
   }
   p{
+    min-width: 220px;
+    max-width: 220px;
+    word-wrap: break-word;
     padding: 5px;
     border-radius: 7px;
     margin-top: 10px;
-    border: 1px solid blue;
+    border: 1px solid #050517;
     font-size: medium;
     font-weight: bold;
     font-family: "Roboto", sans-serif;
+  }
+}
+
+@media screen and (width < 900px) {
+  .Profile_Module{
+    visibility: hidden;
   }
 }

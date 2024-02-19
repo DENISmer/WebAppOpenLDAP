@@ -169,14 +169,18 @@
 }
 
 .Admin_form{
-  width: 100%;
+  //margin-left: 220px;
+  float: right;
+  justify-content: center;
+  width: 70%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex-wrap: wrap;
   //gap: 1em;
   max-height: 100%;
 
   .objects_div{
+    min-width: 325px;
     margin: 10px;
     padding: 10px;
     width: max-content;
@@ -209,23 +213,42 @@
   }
 }
 
-
-@media screen and (900px < width < 1400px){
-  .Admin_form{
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    max-height: max-content;
-  }
-}
-
 @media screen and (width < 900px) {
   .Admin_form{
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    max-height: max-content;
-  }
+        justify-content: center;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        //gap: 1em;
+        max-height: 100%;
+        margin: 10px 0 0 0;
+      }
 }
+//@media screen and (900px < width < 1400px){
+//  .Admin_form{
+//    margin-left: 300px;
+//    float: right;
+//    justify-content: center;
+//    width: 70%;
+//    display: flex;
+//    flex-direction: row;
+//    flex-wrap: wrap;
+//    //gap: 1em;
+//    max-height: 100%;
+//  }
+//}
+//
+//@media screen and (width < 900px) {
+//  .Admin_form{
+//    margin-left: 300px;
+//    float: right;
+//    justify-content: center;
+//    width: 70%;
+//    display: flex;
+//    flex-direction: row;
+//    flex-wrap: wrap;
+//    //gap: 1em;
+//    max-height: 100%;
+//  }
+//}
