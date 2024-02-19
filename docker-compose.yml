@@ -1,0 +1,28 @@
+version: "3.8"
+
+#services:
+#  nginx:
+#
+#  web-client:
+#
+#  web-server:
+#
+#  celery:
+#
+#  redis:
+#
+#volumes:
+#
+
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+  #redis:
+  #  image: redis:6.2-alpine
+
+

@@ -12,6 +12,7 @@ class ItemFieldsIsNone(Exception):
 
 
 def get_attribute_error_fields(fields: list, row: str) -> list:
+    row = row.replace('\'', '')
     split_row = set(row.split(' '))
     keys = set(fields)
     out = (split_row & keys)

@@ -1,0 +1,5 @@
+
+*.ldif
+*.md
+example
+**/tests

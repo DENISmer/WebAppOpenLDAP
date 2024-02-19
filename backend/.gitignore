@@ -11,4 +11,5 @@ rabbish.txt
 
 *.sqlite
 *.db
+.pytest_cache
 

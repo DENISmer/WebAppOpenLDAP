@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pprint
+
 from flask_restful import Resource, request
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
@@ -13,6 +15,7 @@ from backend.api.common.user_manager import CnGroupLdap
 from backend.api.config import settings
 from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_posixgroup_fields
 from backend.api.resources import schema
+from backend.api.resources.schema import CnGroupOutSchemaToList
 
 
 class GroupOpenLDAPResource(Resource):
@@ -33,15 +36,13 @@ class GroupOpenLDAPResource(Resource):
         user_obj = UserManagerLDAP(connection=self.connection)
 
         group = group_obj.get_group_info_posix_group(username_cn)
+
         updated_group = CnGroupLdap(
             username=username_cn,
             dn=group.dn,
             **deserialized_data,
             fields=group_fields['fields']
         )
-
-        if username_cn not in updated_group.cn:
-            updated_group.cn.append(username_cn)
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
             user = user_obj.item(username_cn, [], abort_raise=False)
@@ -123,24 +124,24 @@ class GroupListOpenLDAPResource(Resource):
     def get(self, type_group, *args, **kwargs):
         group_schema = kwargs['group_schema']
         search = request.args.get('search', type=str)
-        page = request.args.get('page', type=int, default=1)
+        page = request.args.get('page', type=int, default=1) or 1
 
         out_fields = getattr(schema, group_schema)().fetch_fields()
-        json_groups = GroupManagerLDAP(connection=self.connection).list(
+        groups = GroupManagerLDAP(connection=self.connection).list(
             value=search,
             fields=search_posixgroup_fields,
             required_fields={'objectClass':  type_group},
             attributes=out_fields
         )
-        groups = [
-            CnGroupLdap(**group) for group in json_groups
-        ]
-        serialized_data = self.serializer.serialize_data(group_schema, groups, many=True)
 
-        items, num_items, num_pages = Pagintion(serialized_data, page, items_per_page=settings.ITEMS_PER_PAGE).get_items()
+        items, num_items, num_pages = Pagintion(
+            groups, page, items_per_page=settings.ITEMS_PER_PAGE
+        ).get_items()
+
+        serialized_data = self.serializer.serialize_data(group_schema, items, many=True)
 
         return {
-            'items': items,
+            'items': serialized_data,
             'num_pages': num_pages,
             'num_items': num_items,
             'page': page,

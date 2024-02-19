@@ -20,4 +20,11 @@ def verify_token(token):
             'uid': 'bob',
             'role': 'webadmins',
         }
+
     return is_token
+
+
+@auth.error_handler
+def auth_error(status):
+    return {'message': 'Unauthorized Access', 'status': 403}, 403
+

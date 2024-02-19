@@ -1,12 +1,14 @@
 import functools
 import pprint
 import logging
+import time
 
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.exceptions import get_attribute_error_fields
-from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
+from backend.api.common.getting_free_id import GetFreeId
+
 from backend.api.common.roles import Role
 from backend.api.common.user_manager import UserLdap
 from backend.api.config.fields import (simple_user_fields,
@@ -28,14 +30,18 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPInvalidDNSyntaxResult,
                                    LDAPObjectClassError,
                                    LDAPInvalidCredentialsResult,
-                                   LDAPOperationResult)
+                                   LDAPOperationResult,
+                                   LDAPObjectClassViolationResult,
+                                   LDAPSocketOpenError,
+                                   LDAPAttributeOrValueExistsResult)
 
 
 def connection_ldap(func):
+    from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
 
     @functools.wraps(func)
     def wraps(*args, **kwargs):
-
+        print('##########  REQUEST ###########')
         # args[0] - self of the function
         connection = getattr(args[0], 'connection')
         if hasattr(args[0], 'connection') or not connection:
@@ -45,22 +51,28 @@ def connection_ldap(func):
 
             print('current_user', current_user)
             connection = ConnectionManagerLDAP(
-                UserLdap(
-                    dn=current_user['dn'],
-                )
                 # UserLdap(
-                #     dn='uid=bob,ou=People,dc=example,dc=com',
-                #     username='bob',
-                #     userPassword='bob',
+                #     dn=current_user['dn'],
                 # )
+                UserLdap( # REMOVE
+                    dn='uid=bob,ou=People,dc=example,dc=com',
+                    username='bob',
+                    userPassword='bob',
+                )
             )
+            # print(1)
 
             setattr(args[0], 'connection', connection)
         # connection.show_connections()
-        # connection.create_connection()
+        connection.create_connection() # REMOVE
         connection.connect()
+        # connection.show_connections()
 
-        res = func(*args, **kwargs)
+        start = time.perf_counter()
+        res = func(*args, **kwargs) ####
+        end = time.perf_counter()
+        print(f'Time of work func {func.__name__} : {(end - start):.4f}s')
+
         connection.close()
         # connection.clear()
         return res
@@ -152,61 +164,115 @@ def error_operation_ldap(func):
         object_item = kwargs.get('item')
 
         try:
+            error = True
             res = func(*args, **kwargs)
+            error = False
         except LDAPInsufficientAccessRightsResult as e:
             print('##LDAPInsufficientAccessRightsResult##')
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(403, message='Insufficient access rights', status=403)
+            abort(
+                403,
+                message='Insufficient access rights',
+                status=403
+            )
+        except LDAPSocketOpenError as e:
+            logging.log(logging.ERROR, str(e))
+            abort(
+                400,  # - 499 Client Closed Request (клиент закрыл соединение);
+                message='Try again later',
+                status=400
+            )
         except (LDAPInvalidDnError, LDAPInvalidDNSyntaxResult) as e:
             print('##LDAPInvalidDnError, LDAPInvalidDNSyntaxResult##')
             print(e)
             logging.log(logging.ERROR, e)
             fields = {
-                'dn': f'Invalid field, {e}',
+                'dn': [f'Invalid field, {e}'],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPObjectClassError as e:
             print('##LDAPObjectClassError##')
             print(str(e))
             print(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
-                'objectClass': str(e),
+                'objectClass': [str(e)],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
         except LDAPAttributeError as e:
             print('##LDAPATTRERROR##')
             pprint.pprint(e.__dict__)
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
             fields = {
-                item: str(e)
+                item: [str(e)]
                 for item in get_attribute_error_fields(
                     list(object_item.fields.keys()), str(e)
                 )
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400
+            )
+        except LDAPAttributeOrValueExistsResult as e:
+            pass
         except LDAPEntryAlreadyExistsResult as e:
             print('##LDAPEntryAlreadyExistsResult##')
             pprint.pprint(e.__dict__)
             logging.log(logging.ERROR, e)
             fields = {
-                'dn': f'An element with such a dn already exists',
+                'dn': [f'An element with such a dn already exists'],
             }
-            abort(400, message='Invalid attributes', fields=fields, status=400)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=fields,
+                status=400,
+            )
         except LDAPInvalidCredentialsResult as e:
             logging.log(logging.ERROR, e.__dict__)
-            abort(400, message='Invalid credentials')
+            abort(
+                400,
+                message='Invalid credentials',
+                status=400,
+            )
+        except LDAPObjectClassViolationResult as e:
+            logging.log(logging.ERROR, e.__dict__)
+            message = e.__dict__['message']
+            fields = {
+                item: [message]
+                for item in get_attribute_error_fields(
+                    list(object_item.fields.keys()), message
+                )
+            }
+            abort(
+                400,
+                fields=fields,
+                status=400,
+            )
         except LDAPOperationResult as e:
             print('##LDAPOperationResult##')
             logging.log(logging.ERROR, e)
             print(e.__dict__)
             abort(
                 400,
-                message=f'The operation {operation} has not '
-                        f'been completed (description={e.__dict__["description"]},'
-                        f' message={e.__dict__["message"]})')
+                message=e.__dict__["message"],
+                error=e.__dict__["description"],
+                type=e.__dict__["type"]
+            )
         except LDAPException as e:
             print('##LDAPException##')
             # pprint.pprint(self._connection.result)
@@ -214,12 +280,81 @@ def error_operation_ldap(func):
             pprint.pprint(e.args)
             pprint.pprint(e)
             logging.log(logging.ERROR, e)
-            abort(400, message='Failed 500. Unhandled errors', status=400)
+            abort(
+                400,
+                message='Try again later..',
+                status=400
+            )
+        finally:
+            if object_item:
+                get_free_id = GetFreeId()
+                get_free_id.del_from_reserved(object_item.gidNumber)
+
+                if hasattr(args[0], 'connection_upwrap') and error:
+                    args[0].connection_upwrap.close()
 
         return res
 
     return wraps
 
 
-def define_schema():
-    pass # must be done
+def error_auth_ldap(func):
+
+    @functools.wraps(func)
+    def wraps(*args, **kwargs):
+
+        try:
+            res = func(*args, **kwargs)
+        except LDAPException as e:
+            abort(401, message='Try again later', status=401)
+
+        return res
+
+    return wraps
+
+
+def define_schema(func):
+
+    @functools.wraps(func)
+    def wraps(*args, **kwargs):
+
+        username_uid = kwargs.get('username_id')
+        current_user = auth.current_user()
+        current_user_role = current_user['role']
+        func_name = func.__name__
+
+        schema = {
+            Role.SIMPLE_USER.value: {
+                'get': {
+
+                },
+                'patch': {
+
+                },
+                'put': {
+
+                },
+            },
+            Role.WEBADMIN.value: {
+                'get': {
+
+                },
+                'patch': {
+
+                },
+                'put': {
+
+                },
+                'post': {
+
+                },
+            },
+        }
+
+        res = func(*args, **kwargs)
+
+        return res
+
+    return wraps
+
+

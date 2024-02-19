@@ -8,7 +8,8 @@ class GetFreeId:
 
     @classmethod
     def del_from_reserved(cls, value):
-        cls.reserved_identifiers.remove(value)
+        if value in cls.reserved_identifiers:
+            cls.reserved_identifiers.remove(value)
 
     def get_free_spaces(self, ids):
 
@@ -16,6 +17,9 @@ class GetFreeId:
             return 10000
 
         sorted_ids = sorted(filter(lambda x: x >= 10000, ids))
+
+        if not sorted_ids:
+            return 10000
 
         j = 1
         for i in range(len(sorted_ids)-1):

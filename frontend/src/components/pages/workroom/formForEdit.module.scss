@@ -1,0 +1,231 @@
+@font-face {
+  font-family: 'Roboto';
+}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+
+*{
+  margin: 0;
+  padding: 0;
+}
+
+.button_disabled{
+  display: none;
+  background-color: rgba(114, 114, 114, 0.8);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  margin:5px 0;
+  width: max-content;
+  height: 25px;
+}
+
+.Button_Remove{
+  background-color: transparent;
+  border: none;
+  border-radius: 5px;
+  //color: white;
+  text-decoration: none;
+  height: 25px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  margin:5px 3px;
+  padding: 3px;
+  width: max-content;
+  align-items: center;
+
+  &:hover{
+    background-color: rgba(155, 101, 101, 0.53);
+    color: rgba(217, 0, 0, 0.78);
+    scale: 1.08;
+  }
+}
+
+.Button_Add{
+  background-color: rgba(64, 159, 54, 0);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  text-decoration: none;
+  margin:5px 3px;
+  padding: 3px;
+  width: max-content;
+  height: 25px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+  &:hover{
+    background-color: rgba(56, 154, 84, 0.58);
+    color: rgb(6, 148, 19);
+    scale: 1.08;
+  }
+}
+
+.Button_fullView{
+  background-color: rgba(64, 159, 54, 0);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  text-decoration: none;
+  margin:5px 3px;
+  padding: 3px;
+  width: max-content;
+  height: 25px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+  &:hover{
+    background-color: rgba(56, 139, 154, 0.58);
+    color: rgb(6, 148, 19);
+    scale: 1.08;
+  }
+}
+
+.public_div{
+  height: max-content;
+  width: max-content;
+  justify-content: center;
+  position: relative;
+  display: flex;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  margin: 10px;
+  padding: 5px;
+
+
+
+  //align-items: center;
+  //flex-direction: row;
+  //width: 100%;
+  //justify-content: space-between;
+  //columns: 500px 2;/
+
+
+  .element{
+    //margin: 10px;
+    padding: 5px;
+    //border: 1px solid;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+    label,textarea,input{
+      font-family: Roboto, sans-serif;
+      font-size: 17px;
+      margin: 15px 0 0 0;
+      transition: .25s all;
+    }
+
+
+
+    span{
+      margin: 0 0 0 5px;
+      padding: 0;
+    }
+
+    .default_input {
+      width: 320px;
+      min-width: 150px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.94);
+      transition: all .25s;
+    }
+
+    .isChanged{
+      background-color: rgba(9, 158, 162, 0.26);
+      transition: all .25s;
+    }
+
+    label{
+      font-weight: bold;
+    }
+
+    textarea{
+      resize: vertical;
+      max-height: 100px;
+    }
+
+    input{
+      border-radius: 5px;
+      padding: 3px;
+    }
+  }
+
+}
+.button_group {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.Admin_form{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  //gap: 1em;
+  max-height: 100%;
+
+  .objects_div{
+    margin: 10px;
+    padding: 10px;
+    width: max-content;
+    height: max-content;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .objects_element{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      div{
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      label,textarea,input{
+        font-family: Roboto, sans-serif;
+        font-size: 17px;
+        margin: 15px 0 0 0;
+        transition: .25s all;
+      }
+    }
+  }
+}
+
+
+@media screen and (900px < width < 1400px){
+  .Admin_form{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: max-content;
+  }
+}
+
+@media screen and (width < 900px) {
+  .Admin_form{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: max-content;
+  }
+}

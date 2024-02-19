@@ -21,12 +21,20 @@
 }
 
 .modal__content{
-  padding: 10px;
+  height: max-content;
+  padding: 25px;
   border-radius: 15px;
   background-color: #fff;
   transform: scale(.5);
   transition: .4s all;
   width: 30vw;
+}
+
+.text {
+  font-family: "Roboto", sans-serif;
+  font-size: 21px;
+  position: relative;
+  word-wrap: break-word;
 }
 
 .modal__content_active{

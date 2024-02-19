@@ -3,7 +3,7 @@ import orjson
 from ldap3 import Tls, Connection, Server, SASL, ALL_ATTRIBUTES, SUBTREE
 import ssl
 import pprint
-from backend.tests.config import CERT_FILE, HOSTS, TEST_USERNAME, TEST_PASSWORD
+from backend.example.config import CERT_FILE, HOSTS, TEST_USERNAME, TEST_PASSWORD
 
 # LDAP connection test
 
@@ -37,7 +37,7 @@ connection_search = connection.search(
     attributes=['sshPublicKey']
 )
 ssh_key = orjson.loads(connection.entries[0].entry_to_json())
-print(ssh_key['attributes']['sshPublicKey'][0])
+print(ssh_key['attributes'])
 # print(type(ssh_key), bytearray(ssh_key).decode())
 
 # True - not empty, False - empty
