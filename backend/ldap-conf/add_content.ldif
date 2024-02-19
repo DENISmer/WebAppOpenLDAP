@@ -44,3 +44,19 @@ gecos: Bob Bondy
 loginShell: /bin/bash
 homeDirectory: /home/bob
 
+dn: uid=rambo,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: ldapPublicKey
+uid: rambo
+sn: Rambo
+givenName: Rambo
+cn: Rambo Ram
+displayName: Rambo Ram
+uidNumber: 10005
+gidNumber: 10005
+userPassword: rambo
+gecos: Rambo Ram
+loginShell: /bin/bash
+homeDirectory: /home/rambo

@@ -215,7 +215,7 @@ webadmins_fields = {
         'postalCode': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
-            'operation': ['read', 'update',],
+            'operation': ['create', 'read', 'update',],
             'required': ['update'],
         }
     },

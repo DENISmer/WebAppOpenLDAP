@@ -68,10 +68,10 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
                 ids.remove(user.uidNumber)  # why?
             validate_uid_gid_number_to_unique(ids, updated_user.uidNumber, updated_user.gidNumber)
 
-        if updated_user.uidNumber or user.uidNumber:
+        if updated_user.uidNumber:
             deserialized_data['gidNumber'] = \
                 updated_user.gidNumber = updated_user.uidNumber or user.uidNumber
-        if updated_user.gidNumber or user.gidNumber:
+        if updated_user.gidNumber:
             deserialized_data['uidNumber'] = \
                 updated_user.uidNumber = updated_user.gidNumber or user.gidNumber
 
@@ -81,16 +81,17 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
             not_modify_item=user
         )
 
-        group = group_obj.get_group_info_posix_group(username_uid, attributes=[])
+        group = group_obj.get_group_info_posix_group(username_uid, attributes=['gidNumber'])
 
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
             group.gidNumber = updated_user.gidNumber or updated_user.uidNumber
-
+            group.input_field_keys = ['gidNumber']
             group_obj.modify(
                 item=group,
                 operation=operation,
             )  # must be test
+            pprint.pprint(group.__dict__)
         elif not group:
             new_group = CnGroupLdap(
                 cn=username_uid,
@@ -98,6 +99,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
                 objectClass=['posixGroup'],
                 gidNumber=updated_user.gidNumber,
                 fields=webadmins_cn_posixgroup_fields['fields'],
+                input_field_keys=['cn', 'memberUid', 'objectClass', 'gidNumber']
             )
             new_group.dn = 'cn={0},{1}'.format(
                 username_uid,
@@ -261,6 +263,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
 
         user = UserLdap(
             fields=user_fields['fields'],
+            input_field_keys=deserialized_data.keys(),
             **deserialized_data
         )
         group = CnGroupLdap(
@@ -269,16 +272,17 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             objectClass=['posixGroup'],
             gidNumber=user.gidNumber,
             fields=webadmins_cn_posixgroup_fields['fields'],
+            input_field_keys=['cn', 'memberUid', 'objectClass', 'gidNumber']
         )
         group.dn = 'cn={0},{1}'.format(
             user.uid,
             str(group_obj.ldap_manager.full_group_search_dn)
         )
 
-        found_user = user_obj.get_user_info_by_dn(user.dn, [])
-
-        if found_user:
-            abort(400, fields={'dn': 'The user already exists'}, status=400)
+        # found_user = user_obj.get_user_info_by_dn(user.dn, [])
+        #
+        # if found_user:
+        #     abort(400, fields={'dn': 'The user already exists'}, status=400)
 
         #create objects
         user_obj.create(

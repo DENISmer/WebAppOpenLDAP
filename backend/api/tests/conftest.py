@@ -14,6 +14,7 @@ def app_test():
     )
     ldap.config['LDAP_PORT'] = 8389
     ldap.config['LDAP_HOSTS'] = ['0.0.0.0']
+
     yield app
 
 

@@ -31,7 +31,7 @@ class MissingFieldsValidation:
     @post_load
     def is_empty_data(self, in_data, **kwargs):
         if not in_data:
-            abort(400, fields_error='Fields are missing', status=400)
+            abort(400, message='Fields are missing', status=400)
         return in_data
 
 
@@ -106,7 +106,6 @@ class Meta(SchemaMeta):
                             setattr(cls._declared_fields[key].inner, 'required', True)
 
                     if 'create' not in value['required'] and type_required_fields == 'update':
-
                         setattr(cls._declared_fields[key], 'allow_none', True)
                         if hasattr(cls._declared_fields[key], 'inner'):
                             setattr(cls._declared_fields[key].inner, 'allow_none', True)
@@ -132,7 +131,7 @@ class BaseSchema(Schema,
     displayName = fields.Str()
     givenName = fields.Str()
     sn = fields.Str()
-    userPassword = fields.Str(load_only=True)
+    userPassword = fields.Str(load_only=True, allow_none=False)
     postalCode = fields.Int()
     homeDirectory = fields.Str()
     loginShell = fields.Str()
@@ -185,21 +184,22 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
-        
+
         uid_number = data.get('uidNumber')
         gid_number = data.get('gidNumber')
         if uid_number and not gid_number:
             errors['gidNumber'] = ['The gidNumber attribute is required']
-            raise ValidationError(errors)
+            # raise ValidationError(errors)
         elif gid_number and not uid_number:
             errors['uidNumber'] = ['The uidNumber attribute is required']
-            raise ValidationError(errors)
+            # raise ValidationError(errors)
 
         errors.update({
             key: ['Missing data for attribute']
             for key, value in data.items()
             if not value or value == ''
         })
+        # validate_required_fields(data, errors, self._declared_fields)
         validate_uid_dn(data, errors)
         validate_uid_gid_number(data, errors)
 

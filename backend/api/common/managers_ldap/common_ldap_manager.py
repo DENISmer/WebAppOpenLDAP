@@ -107,10 +107,9 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         modify_dict = dict()
 
         for key, value in serialized_data_modify.items():
-            if (value is None or ((isinstance(value, list)
-                                  or isinstance(value, str))
-                                  and (len(value) == 0
-                                  or len(str(value)) == 0))) \
+
+            if (value is None or ((isinstance(value, list) or isinstance(value, str))
+                    and (len(value) == 0 or len(str(value)) == 0)))  \
                     and getattr(not_modify_item, key) \
                     and 'create' not in item.fields[key]['required']:
                 tmp_modify = MODIFY_DELETE
@@ -166,12 +165,15 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         return self._connection.response[0]
 
-    def get_id_numbers(self):
+    def get_id_numbers(self, required_fields=None):
+        if required_fields is None:
+            required_fields = {'objectClass': 'person'}
+
         data = self.list(
             value=None,
             fields=search_fields,
             attributes=['gidNumber'],
-            required_fields={'objectClass': 'person'},
+            required_fields=required_fields,
         )
 
         ids = []

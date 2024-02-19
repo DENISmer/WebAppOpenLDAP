@@ -27,7 +27,8 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPSocketOpenError,
                                    LDAPNoSuchObjectResult,
                                    LDAPUnwillingToPerformResult,
-                                   LDAPAttributeOrValueExistsResult)
+                                   LDAPAttributeOrValueExistsResult,
+                                   LDAPNamingViolationResult)
 
 
 def connection_ldap(func):
@@ -203,14 +204,22 @@ def error_operation_ldap(func):
             )
         except LDAPObjectClassViolationResult as e:
             logging.log(logging.ERROR, e.__dict__)
-            # message = e.__dict__['message']
-            # fields = form_dict_field_error(object_item, message)
             abort(
                 400,
-                # fields=fields,
                 error='ObjectClass Violation',
-                message='The required objectClass is missing',
+                fields={
+                    'objectClass': f'The required objectClass is missing, {e.__dict__["message"]}',
+                },
                 status=400,
+            )
+        except LDAPNamingViolationResult as e:
+            logging.log(logging.ERROR, e)
+            fields = form_dict_field_error(object_item, e.__dict__["message"])
+            abort(
+                400,
+                errorr='Naming violation',
+                fields=fields,
+                status=400
             )
         except LDAPUnwillingToPerformResult as e:
             abort(
@@ -219,7 +228,6 @@ def error_operation_ldap(func):
                 message='Server LDAP is unwilling to perform',
                 status=400,
             )
-            pass
         except LDAPOperationResult as e:
             logging.log(logging.ERROR, e)
             abort(
@@ -287,15 +295,14 @@ def define_schema(func):
 
         try:
             type_group = kwargs.get('type_group')
-            if type_group and schema.get(type_group := type_group.lower()) and Group(type_group):
+            if type_group and Group(type_group := type_group.lower()) and schema.get(type_group):
                 kwargs['webadmins_fields'] = schema[role]['fields']
                 role = type_group
         except ValueError:
-            abort(400, message=f'Type group not found', status=400)
+            abort(404, message=f'Type group not found', status=404)
 
         kwargs['schema'] = schema[role][func_name]['schema']
         kwargs['fields'] = schema[role]['fields']
-
         res = func(*args, **kwargs)
 
         return res

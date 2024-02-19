@@ -5,11 +5,13 @@ from flask_restful import Resource, request, abort
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_group, define_schema
 from backend.api.common.auth_http_token import auth
+from backend.api.common.groups import Group
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.user_manager import CnGroupLdap
+from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import search_posixgroup_fields
 from backend.api.resources import schema
@@ -39,6 +41,7 @@ class GroupOpenLDAPResource(Resource):
         updated_group = CnGroupLdap(
             username=username_uid,
             dn=group.dn,
+            input_field_keys=deserialized_data.keys(),
             **deserialized_data,
             fields=group_fields['fields']
         )
@@ -47,6 +50,7 @@ class GroupOpenLDAPResource(Resource):
             user = user_obj.item(username_uid, [])
             if user:
                 user.fields = user_fields['fields']
+                user.input_field_keys = ['gidNumber']
                 user.gidNumber = user.uidNumber = updated_group.gidNumber
                 user_obj.modify(item=user, operation='update')
 
@@ -110,10 +114,13 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    @define_schema
     def delete(self, username_uid, type_group, *args, **kwargs):
         group_obj = GroupManagerLDAP(connection=self.connection)
         group = group_obj.get_group_info_posix_group(username_uid)
+
+        if not group:
+            abort(404, message='Group not found', status=404)
+
         group_obj.delete(item=group, operation='delete')
         return None, 204
 
@@ -163,13 +170,21 @@ class GroupListOpenLDAPResource(Resource):
         json_data = request.get_json()
         group_schema = kwargs['schema']
         group_field = kwargs['fields']
+        group_obj = GroupManagerLDAP(connection=self.connection)
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data)
 
         group = CnGroupLdap(
             **deserialized_data,
-            fields=group_field['fields']
+            fields=group_field['fields'],
+            input_field_keys=deserialized_data.keys(),
         )
-        new_group = GroupManagerLDAP(connection=self.connection).create(item=group, operation='create')
+
+        found_group_ids = group_obj.get_id_numbers(
+            required_fields={'objectClass': Group.POSIXGROUP.value}
+        )
+        validate_uid_gid_number_to_unique(found_group_ids, gid_number=group.gidNumber)
+
+        new_group = group_obj.create(item=group, operation='create')
 
         serialized_data = self.serializer.serialize_data(group_schema, new_group, many=False)
         return serialized_data, 201

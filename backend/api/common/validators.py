@@ -63,12 +63,15 @@ def validate_uid_dn(data, errors):
 
 
 def validate_uid_gid_number_to_unique(ids, uid_number=None, gid_number=None):
+    fields = {}
     if uid_number in ids or gid_number in ids:
+        if uid_number:
+            fields['uidNumber'] = ['An element with such a uidNumber already exists']
+        if gid_number:
+            fields['gidNumber'] = ['An element with such a gidNumber already exists']
+
         abort(
             400,
-            fields={
-                'uidNumber': ['An element with such a uidNumber already exists'],
-                'gidNumber': ['An element with such a gidNumber already exists'],
-            },
+            fields=fields,
             status=400,
         )

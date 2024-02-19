@@ -1,6 +1,8 @@
 import pprint
 from abc import ABC
 
+from backend.api.common.exceptions import InputFieldKeysIsNone
+
 
 class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
@@ -13,7 +15,7 @@ class UserCnAbstract(ABC):
         self.gidNumber = kwargs.get('gidNumber')
         if self.gidNumber and type(self.gidNumber) == list:
             self.gidNumber = self.gidNumber[0]
-
+        self.input_field_keys = kwargs.get('input_field_keys') or {}
         self.fields = kwargs.get('fields') #or []
 
     @property
@@ -25,13 +27,15 @@ class UserCnAbstract(ABC):
         self.__dn = value.lower()
 
     def serialize_data(self, operation) -> dict:
+        if not self.input_field_keys:
+            raise InputFieldKeysIsNone('input_field_keys is {}')
 
         res = {
             key: getattr(self, key)
             for key, value in self.fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
-               and getattr(self, key) is not None
+               and key in self.input_field_keys
         }
 
         if not operation == 'read' and res.get('dn'):
