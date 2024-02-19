@@ -2,7 +2,8 @@ import {ChangeEvent, useState} from "react";
 import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
 import delete_object from "@/assets/icons/delete_object.png"
 import {Modal} from "@/components/Modal_Window/modalWindow";
-
+import add_object from "@/assets/icons/add_item_v2.svg"
+import full_view from "@/assets/icons/openInModal_v2.svg"
 export interface userDataForEdit {
     dn?: string,
     uidNumber?: number,
@@ -44,6 +45,10 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
             // Если это массив чисел, преобразуем каждый элемент
             const parsed = parseFloat(value);
             updatedValue = isNaN(parsed) ? '' : parsed;
+        } else if (Array.isArray(userData[key])){
+            if(userData[key].includes("")){
+                console.log(userData)
+            }
         }
 
         if (typeof index === 'number' && Array.isArray(newData[key])) {
@@ -105,9 +110,11 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         {fieldIsChange(key) && !index ?
                             <span className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}>изменено{' '}</span> : null
                         }
+
                         </label>
+
                         <input
-                            className={fieldIsChange(key) && key !== 'objectClass' && key !== 'mail' && key !== 'sshPublicKey' &&  index !== 0 ? FFE_S.isChanged : null}
+                            className={fieldIsChange(key) && key !== 'objectClass' && key !== 'mail' && key !== 'sshPublicKey' &&  index !== 0 ? FFE_S.isChanged : FFE_S.default_input}
                             type={key === 'mail' ? "email" : "text"}
                             id={inputName}
                             name={inputName}
@@ -118,19 +125,39 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                 handleInputChange(key, e.target.value, index)
                             }
                             }
-                        />{key === 'sshPublicKey' && <button onClick={() => modal(false, inputValue)}
-                                   type={"button"}
-                         >full view</button>}
+                        />
+                        {/*button group*/}
+                        <div className={FFE_S.button_group}>
 
-                    {isValueArray &&
-                        typeof index === 'number' && value.length > 1 && (
-                        <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Remove : FFE_S.button_disabled}
-                                type="button"
+                            {isValueArray && index === value.length - 1 && <button
+                                className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
                                 disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
-                                onClick={() => handleRemoveArrayItem(key, index)}>
-                            <img src={delete_object} alt="Delete this field"/>
-                        </button>
-                    )}
+                                type="button"
+                                title={"Добавить новое поле"}
+                                onClick={() => handleAddArrayItem(key)}>
+                                    <img src={add_object} alt="add field" width={20}/>
+                            </button>}
+
+                            {key === 'sshPublicKey' &&
+                                <button className={FFE_S.Button_fullView}
+                                        onClick={() => modal(false, inputValue)}
+                                        type={"button"}
+                                        title={"открыть в окне для просмотра"}>
+                                    <img src={full_view} alt="full view" width={20}/>
+                                </button>}
+
+                            {isValueArray &&
+                                typeof index === 'number' && value.length > 1 && (
+                                    <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Remove : FFE_S.button_disabled}
+                                            type="button"
+                                            disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
+                                            onClick={() => handleRemoveArrayItem(key, index)}
+                                            title={"удалить текущее поле"}>
+                                        <img src={delete_object} alt="Delete this field" width={20}/>
+                                    </button>
+                                )}
+
+                        </div>
                 </div>
             </div>
         );
@@ -153,12 +180,15 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         <div className={FFE_S.objects_div} key={key}>
                             <div className={FFE_S.objects_element}>
                                 {inputs}
-                                <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                        disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
-                                        type="button"
-                                        onClick={() => handleAddArrayItem(key)}>
-                                    +
-                                </button>
+                                {value.length === 0 && <button
+                                    className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                    disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
+                                    type="button"
+                                    title={"Добавить новое поле"}
+                                    onClick={() => handleAddArrayItem(key)}>
+                                    <img src={add_object} alt="add field" width={20}/>
+                                    {key}
+                                </button>}
                             </div>
                         </div>
                     );

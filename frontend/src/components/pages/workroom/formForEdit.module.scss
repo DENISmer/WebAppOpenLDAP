@@ -28,36 +28,62 @@
   border-radius: 5px;
   //color: white;
   text-decoration: none;
-  font-size: 16px;
-  margin:5px 0;
-  width: 60px;
   height: 25px;
   transition-duration: 0.4s;
   cursor: pointer;
+  margin:5px 3px;
+  padding: 3px;
+  width: max-content;
+  align-items: center;
 
   &:hover{
     background-color: rgba(155, 101, 101, 0.53);
     color: rgba(217, 0, 0, 0.78);
+    scale: 1.08;
   }
 }
 
 .Button_Add{
-  background-color: rgba(64, 159, 54, 0.7);
+  background-color: rgba(64, 159, 54, 0);
   border: none;
   border-radius: 5px;
   color: white;
   text-decoration: none;
-  font-size: 16px;
-  margin:5px 0;
+  margin:5px 3px;
   padding: 3px;
   width: max-content;
   height: 25px;
   transition-duration: 0.4s;
   cursor: pointer;
+  align-items: center;
+  justify-content: center;
 
   &:hover{
-    background-color: white;
+    background-color: rgba(56, 154, 84, 0.58);
     color: rgb(6, 148, 19);
+    scale: 1.08;
+  }
+}
+
+.Button_fullView{
+  background-color: rgba(64, 159, 54, 0);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  text-decoration: none;
+  margin:5px 3px;
+  padding: 3px;
+  width: max-content;
+  height: 25px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+  &:hover{
+    background-color: rgba(56, 139, 154, 0.58);
+    color: rgb(6, 148, 19);
+    scale: 1.08;
   }
 }
 
@@ -105,6 +131,14 @@
       padding: 0;
     }
 
+    .default_input {
+      width: 320px;
+      min-width: 150px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.94);
+      transition: all .25s;
+    }
+
     .isChanged{
       background-color: rgba(9, 158, 162, 0.26);
       transition: all .25s;
@@ -126,6 +160,13 @@
   }
 
 }
+.button_group {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+}
 
 .Admin_form{
   width: 100%;
@@ -139,6 +180,7 @@
     margin: 10px;
     padding: 10px;
     width: max-content;
+    height: max-content;
     justify-content: center;
     border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, 0.25);

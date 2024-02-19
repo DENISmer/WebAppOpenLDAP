@@ -354,10 +354,11 @@
   }
 
   .Admin_UseProfile {
+    display: flex;
+    //flex-wrap: wrap;
     justify-content: center;
     position: absolute;
     top: 100px;
-    display: flex;
     margin: 2rem 2rem 2rem 2rem;
     overflow-x: hidden;
     overflow-y: auto;

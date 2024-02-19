@@ -9,6 +9,7 @@ import {sendChanges} from "@/scripts/requests/adminUserProvider";
 import ModalForAddUser from "@/components/Modal_Window/modalForAddUser";
 import pen from "@/assets/icons/pen_edit1.png"
 import delete_user from "@/assets/icons/delete_user.png"
+import {ProfileView} from "@/components/pages/workroom/ProfileView/ProfileView";
 
 
 export interface userDataForEdit {
@@ -175,7 +176,7 @@ const WorkRoom: React.FC = () => {
         } }
     }
 
-    const discardChanges = () => {
+    const quitForAdmin = () => {
         if (userIsChanged){
             const isConfirm = confirm("Уверены? Изменения не будут сохранены")
             if (isConfirm && userIsChanged) {
@@ -183,6 +184,17 @@ const WorkRoom: React.FC = () => {
             }
         }
         else setIsEditing({isEditing: false, uid: null})
+    }
+
+
+    const discardChanges = () => {
+        if(userIsChanged){
+            const askForDiscard = confirm("Все изменения будут сброшены. Продолжить?")
+            askForDiscard ? setEditedUser(userForEditAdmin) : null
+        } else {
+            alert("Изменений нет")
+        }
+
     }
 
     const quitForSimpleUser = () => {
@@ -207,7 +219,7 @@ const WorkRoom: React.FC = () => {
                 console.log(editedUser)
             }
             console.log(currentEditor.token)
-            await sendChanges(editedUser, currentEditor.token, userAuthCookies.userAuth.role)
+            await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role)
                 .then((response: any) => {
                     if (response.status === 200){
                         setEditedUser(response.userData)
@@ -215,8 +227,10 @@ const WorkRoom: React.FC = () => {
                         setUserIsChanged(false)
                         alert("данные сохранены")
                     }
-                    else if(response.status === 400) {
-                        alert(`ERROR 400 \n ${response.message} \n ${JSON.stringify(response.fields)}`)
+                    else if(response.status === 401) {
+                        alert(`ERROR 401 \n ${response.message}`)
+                        removeCookie('userAuth')
+                        navigate('/login')
                     }
                     else if(response.status === 403) {
                         alert(`ERROR 403 \n ${response.response.data.message}`)
@@ -322,7 +336,9 @@ const WorkRoom: React.FC = () => {
                     navigate('/login')
                 }}>Выйти
                 </div>
-                <div className={userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user' ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
+                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user')
+                    || (currentEditor && currentEditor.role === 'simple_user')
+                    ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
             </div>
 
             {currentEditor && currentEditor.role === 'webadmins' &&
@@ -393,19 +409,29 @@ const WorkRoom: React.FC = () => {
                 </div>}
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+                <ProfileView />
                 {/*{userIsChanged && <div>Есть изменения</div>}*/}
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>
 
             </div>}
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
-                <button className={WR_S.submitButton} onClick={() => saveChanges()}>сохранить изменения
+                <button className={WR_S.submitButton}
+                        onClick={() => saveChanges()}>
+                    сохранить изменения
+                </button>
+
+                <button className={WR_S.cancelChanges}
+                        onClick={() => discardChanges()}>
+                    сбросить изменения
                 </button>
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            userAuthCookies.userAuth.role === 'simple_user' ?
-                                quitForSimpleUser() : discardChanges()
-                        }}>выйти к {currentEditor.role === 'webadmins' ? <span>списку</span> : <span>авторизации</span>}
+                            (currentEditor.role === 'simple_user') ?
+                                quitForSimpleUser() : quitForAdmin()
+                        }}>
+                    выйти к {currentEditor.role === 'webadmins' ?
+                    <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}
         </div>

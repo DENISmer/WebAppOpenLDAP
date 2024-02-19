@@ -1,0 +1,37 @@
+.Profile_Module {
+  border: 1px solid black;
+  position: relative;
+  padding: 10px;
+  width: 20%;
+  min-width: 200px;
+}
+.Profile_Body {
+  border: 1px solid black;
+  padding: 10px;
+  height: 80%;
+}
+.Profile_Content {
+  background-color: #dae1ec;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 10px;
+  div {
+    border: 1px solid crimson;
+    border-radius: 10px;
+    padding: 10px;
+    width: 100px;
+    height: 100px;
+  }
+  p{
+    padding: 5px;
+    border-radius: 7px;
+    margin-top: 10px;
+    border: 1px solid blue;
+    font-size: medium;
+    font-weight: bold;
+    font-family: "Roboto", sans-serif;
+  }
+}
