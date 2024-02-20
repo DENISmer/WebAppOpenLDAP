@@ -135,6 +135,7 @@ class BaseSchema(Schema,
     postalCode = fields.Int()
     homeDirectory = fields.Str()
     loginShell = fields.Str()
+    jpegPhotoPath = fields.Str()
 
     @validates_schema
     def validate_object(self, data, **kwargs):

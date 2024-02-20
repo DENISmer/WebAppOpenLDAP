@@ -1,3 +1,4 @@
+import logging
 import pprint
 from typing import Dict
 
@@ -88,12 +89,13 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
 
-        print(res)
+        # print(res)
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
-            abort(400, message=res['message'])
-            # return None
-        print('Success')
+            # abort(400, message=res['message'])
+            return None
+
+        logging.log(logging.INFO, 'SUCCESS CREATE')
 
         return item
 
@@ -131,12 +133,15 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             modify_dict
         )
 
-        print('result modify:', self._connection.result)
+        # print('result modify:', self._connection.result)
 
         res = self._connection.result
         if 'success' not in res['description']:
-            abort(400, message=res['description'])
-            # return None
+            # abort(400, message=res['description'])
+            return None
+
+        logging.log(logging.INFO, 'SUCCESS MODIFY')
+
         return item
 
     @error_operation_ldap
@@ -144,12 +149,14 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         if item.dn:
             self._connection.delete(item.dn)
 
-        print('result delete:', self._connection.result)
+        # print('result delete:', self._connection.result)
 
         res = self._connection.result
         if 'success' not in res['description']:
-            # return None
-            abort(400, message=f'Error deleting {item.dn}')
+            return None
+            # abort(400, message=f'Error deleting {item.dn}')
+
+        logging.log(logging.INFO, 'SUCCESS DELETE')
 
     @error_operation_ldap
     def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):

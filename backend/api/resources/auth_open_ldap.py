@@ -9,6 +9,7 @@ from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.token_manager import TokenManagerDB
 from backend.api.common.managers_ldap.authentication_ldap_manager import AuthenticationManagerLDAP
 from backend.api.common.user_manager import UserLdap
+from backend.api.config import settings
 from backend.api.resources.schema import AuthUserSchemaLdap, TokenSchemaLdap
 
 
@@ -49,7 +50,10 @@ class AuthOpenLDAP(Resource):
 
         connection.close()
 
-        user.userPassword = CryptPasswd(password=deserialized_data['userPassword'].encode()).crypt()
+        user.userPassword = CryptPasswd(
+            password=deserialized_data['userPassword'].encode(),
+            secret_key=bytes(settings.SECRET_KEY.encode())
+        ).crypt()
         token = TokenManagerDB(user=user).create_token()
         if not token:
             abort(400, message='Try again now or later', status=400)

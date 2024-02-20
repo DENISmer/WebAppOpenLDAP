@@ -109,12 +109,12 @@ simple_user_fields = {
             'operation': ['read', ],
             'required': [],
         },
-        # 'jpegPhoto': {
-        #     'type': TYPE_STR,
-        #     'element_type': TYPE_STR,
-        #     'operation': ['read', ],
-        #     'required': [],
-        # }
+        'jpegPhotoPath': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['read', ],
+            'required': [],
+        }
     },
 }
 
@@ -224,12 +224,12 @@ webadmins_fields = {
             'operation': ['create', 'read', 'update',],
             'required': ['update'],
         },
-        # 'jpegPhotoPath': {
-        #     'type': TYPE_STR,
-        #     'element_type': TYPE_STR,
-        #     'operation': ['read', ],
-        #     'required': [],
-        # }
+        'jpegPhotoPath': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['read', ],
+            'required': [],
+        }
     },
 }
 

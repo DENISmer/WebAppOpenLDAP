@@ -5,17 +5,22 @@ services:
     image: nginx
     restart: always
     depends_on:
-#      - web-client
+      - web-client
       - web-server
     ports:
-      - "8082:8080"
+      - "80:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
     profiles: ["nginx"]
 
-#  web-client:
-#    profiles:
-#      - donotstart
+  web-client:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: web-client-container
+    ports:
+      - "3000:3000"
+    profiles: ["web-client"]
 
   web-server:
     build:
@@ -23,7 +28,6 @@ services:
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     container_name: web-server-container
-
     depends_on:
       - redis
     env_file:
@@ -31,6 +35,8 @@ services:
     environment:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
+    ports:
+      - "8000:8000"
     volumes:
       - proj-db-volume:/usr/src/app/instance
     profiles: ["web-server"]
@@ -69,8 +75,6 @@ services:
       LDAP_ORGANISATION: "People"
       LDAP_ADMIN_PASSWORD: "1234"
       LDAP_DOMAIN: "example.com"
-#    ports:
-#      - "0.0.0.0:389:389"
     profiles: ["ldap-server"]
 
   ldap-load-data-conf:
@@ -78,8 +82,8 @@ services:
       context: .
       dockerfile: backend/ldap/ldap-load-data-conf/Dockerfile
     container_name: ldap-load-data-container
-    depends_on:
-      - ldap-server
+#    depends_on:
+#      - ldap-server
     environment:
       LDAP_HOST: "ldap-server"
     profiles: ["ldap-load-data-conf"]

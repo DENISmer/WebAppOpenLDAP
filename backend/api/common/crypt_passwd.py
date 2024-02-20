@@ -5,12 +5,12 @@ from backend.api.config import settings
 
 
 class CryptPasswd:
-    def __init__(self, password: bytes):
+    def __init__(self, password: bytes, secret_key: bytes):
         if not settings.SECRET_KEY:
             raise Exception('SECRET KEY is None')
 
         self.__fernet = Fernet(
-            base64.b64encode(bytes(settings.SECRET_KEY.encode()))
+            base64.b64encode(secret_key)
         )
         self.__password = password
 

@@ -53,7 +53,10 @@ def connection_ldap(func):
                 user = UserLdap(
                     dn=current_user['dn'],
                     username=current_user['dn'],
-                    userPassword=CryptPasswd(current_user['userPassword']).decrypt()
+                    userPassword=CryptPasswd(
+                        password=current_user['userPassword'],
+                        secret_key=bytes(settings.SECRET_KEY.encode())
+                    ).decrypt()
                 )
 
             connection = ConnectionManagerLDAP(

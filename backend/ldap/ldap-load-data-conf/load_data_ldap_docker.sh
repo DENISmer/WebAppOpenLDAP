@@ -2,8 +2,6 @@
 
 # Params
 export LDAP_IP=${1:-"0.0.0.0"};
-echo 'LDAP_HOST' $LDAP_HOST;
-ls /opt/ldap/files/ppolicy-module.ldif
 
 # Install ldap-utils
 STATUS_LDAP_UTILS=`dpkg -s ldap-utils | grep Status`;
@@ -22,6 +20,7 @@ LDAP_FILES_DATA=(add_group_webadmins.ldif add_content.ldif);
 LDAP_FILES=( "$LDAP_FILES_DATA" "$LDAP_FILES_CONF" );
 
 PATH_TO_LDAP_FILES_DOCKER=/opt/ldap/files
+
 # Check files
 for file in ${LDAP_FILES[*]}; do
   if ! [ -s $PATH_TO_LDAP_FILES_DOCKER/$file ]; then
@@ -39,7 +38,6 @@ ldapadd -Q -Y EXTERNAL -H $LDAPI_HOST -f $PATH_TO_LDAP_FILES_DOCKER/ppolicy-conf
 sleep 1
 
 # Add data files
-
 ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES_DOCKER/add_content.ldif -D cn=admin,dc=example,dc=com -w 1234;
 sleep 1
 ldapadd -H $LDAP_HOST -f $PATH_TO_LDAP_FILES_DOCKER/add_group_webadmins.ldif -D cn=admin,dc=example,dc=com -w 1234;
