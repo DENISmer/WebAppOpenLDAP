@@ -40,3 +40,10 @@
 .modal__content_active{
   transform: scale(1);
 }
+
+@media screen and (width < 900px) {
+  .modal__content{
+    height: max-content;
+    width: 80vw;
+  }
+}
