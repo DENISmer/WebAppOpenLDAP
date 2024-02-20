@@ -1,20 +1,25 @@
 import PV_S from "@/components/pages/workroom/ProfileView/ProfileView.module.scss"
-export function ProfileView(){
+import {userDataForEdit} from "@/components/pages/workroom/workRoom";
+
+interface Props {
+    data: userDataForEdit
+}
+
+export const ProfileView: React.FC<Props> = ({data}) => {
     return (
         <div className={PV_S.Profile_Module}>
-            this is all profile block
             <div className={PV_S.Profile_Body}>
-                profile body
                 <div className={PV_S.Profile_Content}>
-                    content here
-                    <div>photo</div>
-                    <p>John Swan</p>
-                    <p>uid=john,ou=people,dc=example,dc=com</p>
-                    <p>john@mail.ru</p>
-                    <p>display name</p>
-                    <p>inetOrgPerson</p>
-                    <p>loginShell</p>
-                    <p>postalCode</p>
+                    <div>
+                        <img src="https://www.dpstudio.ru/PhotoExaples/Visa_USA_0.jpg" alt=""/>
+                    </div>
+                    <p>{data.displayName ?? data.uid}</p>
+                    <p>{data.dn}</p>
+                    <p>{data.uidNumber}</p>
+                    {data.mail && data.mail.length > 0 && <p>{data.mail && data.mail[0]}</p>}
+                    <p>{data.homeDirectory}</p>
+                    {data.street && <p>{data.street}</p>}
+                    {data.postalCode && <p>{data.postalCode}</p>}
                 </div>
             </div>
         </div>

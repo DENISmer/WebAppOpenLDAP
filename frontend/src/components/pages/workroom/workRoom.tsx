@@ -29,7 +29,8 @@ export interface userDataForEdit {
     homeDirectory?: string,
     loginShell?: string,
     objectClass?: string[],
-    password?: string
+    userPassword?: string,
+    error?: any
 }
 export interface SimpleUserDataForEdit {
     sshPublicKey: string[],
@@ -128,17 +129,22 @@ const WorkRoom: React.FC = () => {
         console.log(userAuthCookies['userAuth'])
     }, []);
 
+
+    // hook works after editing trigger
     useEffect(() => {
         console.log(isEditing)
         if(isEditing.isEditing && isEditing.uid){
             getUserData(isEditing.uid)
-                .then((response) => {
-                    console.log('simple User',response)
+                .then((response: userDataForEdit ) => {
+                    if (response.error && response.error.status === 401){
+                        removeCookie('userAuth');
+                        navigate('/login')
+                    }
                     setUserForEditAdmin(response)
                     setEditedUser(response)
                 })
                 .catch((e) => {
-                    console.log(e)
+                    console.log("error catched",e)
                 })
         } else if (!isEditing.isEditing && isEditing.uid){
             deleteUserFromList()
@@ -233,7 +239,10 @@ const WorkRoom: React.FC = () => {
                         navigate('/login')
                     }
                     else if(response.status === 403) {
-                        alert(`ERROR 403 \n ${response.response.data.message}`)
+                        alert(`ERROR 403 \n ${response.message}`)
+                    }
+                    else if (response.status === 400){
+                        alert(`ERROR 400 \n ${response.message}\n${JSON.stringify(response.fields)}`)
                     }
                 })
                 .catch((response) => {
@@ -394,7 +403,12 @@ const WorkRoom: React.FC = () => {
                                     </div>
                                     <div className={WR_S.Button_Group}>
                                         <button className={WR_S.Edit_Button}
-                                                onClick={() => setIsEditing({isEditing: true, uid: element.uid})}><img src={pen} alt="Edit information"/>
+                                                onClick={() => setIsEditing(
+                                                    {
+                                                        isEditing: true,
+                                                        uid: element.uid
+                                                    }
+                                                    )}><img src={pen} alt="Edit information"/>
                                         </button>
                                         <button className={WR_S.Delete_Button} onClick={() => setIsEditing({
                                             isEditing: false,
@@ -409,7 +423,7 @@ const WorkRoom: React.FC = () => {
                 </div>}
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
-                <ProfileView />
+                <ProfileView data={editedUser}/>
                 {/*{userIsChanged && <div>Есть изменения</div>}*/}
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>
 
