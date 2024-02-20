@@ -211,6 +211,7 @@ Run celery (example):
 **route**: /api/v1/users/testuser
 ```json
 {
+    "dn": "uid=testuser,ou=People,dc=example,dc=com",
     "uidNumber": 10000, 
     "gidNumber": 10000, 
     "uid": "testuser", 
@@ -275,7 +276,7 @@ Run celery (example):
     "sn": required, 
     "postalCode": nonrequired,
     "homeDirectory": required, 
-    "loginShell": [nonrequired], 
+    "loginShell": nonrequired, 
     "objectClass": [required],
     "userPassword": required
 }
@@ -299,7 +300,7 @@ Run celery (example):
         "sn": required, 
         "postalCode": required,
         "homeDirectory": required, 
-        "loginShell": [required], 
+        "loginShell": required, 
         "objectClass": [required],
         "userPassword": required
     }
@@ -332,7 +333,7 @@ Run celery (example):
         "sn": nonrequired, 
         "postalCode": nonrequired,
         "homeDirectory": nonrequired, 
-        "loginShell": [nonrequired], 
+        "loginShell": nonrequired, 
         "objectClass": [nonrequired],
         "userPassword": nonrequired
     }
@@ -379,6 +380,19 @@ Docker build:
 
     docker build -t web-app-ldap .
 
-Docker run
+Docker build celery from WebAppOpenLDAP directory:
+
+    sudo docker build -f ../backend/api/celery/Dockerfile -t celery-app-ldap .
+
+Docker run:
 
     docker run --rm -d --name web-app-ldap -p 8000:8000 --network=host web-app-ldap
+
+LDAP Docker run:
+Start from WebAppOpenLDAP directory:
+
+     ./backend/ldap-conf/startapp_ldap_server.sh 0.0.0.0 backend/ldap-conf
+
+Start pytest command without warnigns:
+
+    pytest backend/api/tests/test_api_auth.py::test_auth_post -p no:warnings

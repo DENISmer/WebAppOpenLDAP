@@ -1,5 +1,6 @@
 
 import logging
+from flask_restful import abort
 
 
 class DbQueries:
@@ -7,7 +8,12 @@ class DbQueries:
         self.session = session
 
     def get_instance(self, model, **kwargs):
-        instance = self.session.query(model).filter_by(**kwargs).one_or_none()
+        try:
+            instance = self.session.query(model).filter_by(**kwargs).one_or_none()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            abort(500, message='DB', status=500)
+
         return instance
 
     def create_instance(self, model, **kwargs):
@@ -38,7 +44,20 @@ class DbQueries:
         return instance
 
     def delete_instance(self, instance):
-        self.session.delete(instance)
+        try:
+            self.session.delete(instance)
+            self.session.commit()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            self.session.rollback()
+
+    def delete_instance_by_params(self, model, **kwargs):
+        try:
+            self.session.query(model).filter_by(**kwargs).delete()
+            self.session.commit()
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            self.session.rollback()
 
     def bulk_delete(self, model, filter_del):
         try:

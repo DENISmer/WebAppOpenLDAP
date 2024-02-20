@@ -19,6 +19,7 @@ def verify_token(token):
             'dn': 'uid=bob,ou=People,dc=example,dc=com',
             'uid': 'bob',
             'role': 'webadmins',
+            'userPassword': b'gAAAAABlyam-qUrcndMw05tw6sCpLvCVucmni3MKeZhEN7Be7Sqn7V2KlfWcIgj3gg5Apx7e9H1yIJfEJ4psvcsdnkrnxAhLEw==',
         }
 
     return is_token
@@ -26,5 +27,7 @@ def verify_token(token):
 
 @auth.error_handler
 def auth_error(status):
-    return {'message': 'Unauthorized Access', 'status': 403}, 403
-
+    if status == 401:
+        return {'message': 'Unauthorized Access', 'status': status}, status
+    else:
+        return {'message': 'Insufficient access rights', 'status': status}, status

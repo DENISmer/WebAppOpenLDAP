@@ -1,5 +1,6 @@
 from flask_restful import Resource, request, abort
 
+from backend.api.common.crypt_passwd import CryptPasswd
 from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
@@ -8,6 +9,7 @@ from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.token_manager import TokenManagerDB
 from backend.api.common.managers_ldap.authentication_ldap_manager import AuthenticationManagerLDAP
 from backend.api.common.user_manager import UserLdap
+from backend.api.config import settings
 from backend.api.resources.schema import AuthUserSchemaLdap, TokenSchemaLdap
 
 
@@ -32,25 +34,26 @@ class AuthOpenLDAP(Resource):
         response = ldap_auth.authenticate()
 
         if response.status.value == 1:
-            abort(401, message='Invalid username or password.', status=401)
+            abort(401, message='Invalid username or password', status=401)
 
         user.dn = response.user_dn
         user.uid = response.user_id
 
         connection = ConnectionManagerLDAP(user)
-        # connection.show_connections()
-        connection.create_connection()
         connection.connect()
-        # connection.show_connections()
 
-        groups = GroupManagerLDAP(connection=connection).get_webadmins_groups()
+        group = GroupManagerLDAP(connection=connection).get_webadmins_group()
+        user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, group)
 
-        user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, groups)
         if user.is_webadmin: user.role = Role.WEBADMIN
         else: user.role = Role.SIMPLE_USER
 
         connection.close()
 
+        user.userPassword = CryptPasswd(
+            password=deserialized_data['userPassword'].encode(),
+            secret_key=bytes(settings.SECRET_KEY.encode())
+        ).crypt()
         token = TokenManagerDB(user=user).create_token()
         if not token:
             abort(400, message='Try again now or later', status=400)

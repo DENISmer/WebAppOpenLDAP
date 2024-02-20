@@ -44,24 +44,34 @@ def validate_required_fields(data, errors, declared_field):
                         if not errors.get(key):
                             errors[key] = {}
                         errors[key].update(
-                         {f"{index}": ['Missing data for required field.']}
+                            {f"{index}": ['Missing data for required field.']}
                         )
 
 
 def validate_uid_dn(data, errors):
-
     uid, dn = data.get('uid'), data.get('dn')
-    if uid and dn and (data['uid'] not in data['dn']):
+
+    dn_dict = {}
+    if dn:
+        dn_dict = {item[0]: item[1] for item in map(lambda i: i.split('='), dn.split(',')) if 1 < len(item) < 3}
+
+    if dn and not dn_dict.get('uid'):
+        errors['dn'] = ['The uid parameter is missing']
+
+    if uid and dn and (uid != dn_dict.get('uid')):
         errors['uid'] = ['The uid does not match the one specified in the dn field']
 
 
 def validate_uid_gid_number_to_unique(ids, uid_number=None, gid_number=None):
+    fields = {}
     if uid_number in ids or gid_number in ids:
+        if uid_number:
+            fields['uidNumber'] = ['An element with such a uidNumber already exists']
+        if gid_number:
+            fields['gidNumber'] = ['An element with such a gidNumber already exists']
+
         abort(
             400,
-            fields={
-                'uidNumber': ['An element with such a uidNumber already exists'],
-                'gidNumber': ['An element with such a gidNumber already exists'],
-            },
+            fields=fields,
             status=400,
         )

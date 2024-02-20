@@ -44,7 +44,7 @@ config['LDAP_BIND_USER_DN'] = None
 config['LDAP_BIND_USER_PASSWORD'] = None
 
 # The SSL to use the crypt data
-config['LDAP_USE_SSL'] = False
+config['LDAP_USE_SSL'] = settings.LDAP_USE_SSL
 
 # The path to certificate
 config['CERT_PATH'] = settings.CERT_FILE_LDAP

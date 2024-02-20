@@ -1,28 +1,41 @@
 import pprint
 from abc import ABC
 
+from backend.api.common.exceptions import InputFieldKeysIsNone
+
 
 class UserCnAbstract(ABC):
     def __init__(self, *args, **kwargs):
         self.__username = kwargs.get('username')
-        self.dn = kwargs.get('dn')
+        self.__dn = kwargs.get('dn')
+
         self.cn = kwargs.get('cn') #or []
         self.objectClass = kwargs.get('objectClass') #or []
 
         self.gidNumber = kwargs.get('gidNumber')
         if self.gidNumber and type(self.gidNumber) == list:
             self.gidNumber = self.gidNumber[0]
-
+        self.input_field_keys = kwargs.get('input_field_keys') or {}
         self.fields = kwargs.get('fields') #or []
 
+    @property
+    def dn(self):
+        return self.__dn.lower()
+
+    @dn.setter
+    def dn(self, value: str):
+        self.__dn = value.lower()
+
     def serialize_data(self, operation) -> dict:
+        if not self.input_field_keys:
+            raise InputFieldKeysIsNone('input_field_keys is {}')
 
         res = {
             key: getattr(self, key)
             for key, value in self.fields.items()
             if operation in value['operation'] \
                and hasattr(self, key) \
-               and getattr(self, key) is not None
+               and key in self.input_field_keys
         }
 
         if not operation == 'read' and res.get('dn'):
@@ -70,11 +83,10 @@ class UserLdap(UserCnAbstract):
             self.homeDirectory = self.homeDirectory[0]
 
         self.loginShell = kwargs.get('loginShell')
-        if self.loginShell and type(self.loginShell):
-            self.loginShell = self.loginShell[0]
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')
+        self.jpegPhotoPath = kwargs.get('jpegPhotoPath')
 
     def __repr__(self):
         return f'DN {self.dn}'

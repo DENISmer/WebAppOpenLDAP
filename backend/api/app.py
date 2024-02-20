@@ -6,11 +6,13 @@ from werkzeug.exceptions import HTTPException
 
 from backend.api.celery.celery_app import celery_init_app
 from backend.api.common.regex_converter import RegexConverter
+from backend.api.redis.redis_storage import RedisStorage
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
 from backend.api.resources.group_open_ldap import GroupOpenLDAPResource, GroupListOpenLDAPResource
 from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
                                                   UserListOpenLDAPResource,
                                                   UserMeOpenLDAPResource)
+from backend.api.resources.free_id_open_ldap import FreeIdsOpenLDAPResource
 from backend.api.db.database import db
 from backend.api.config import settings
 
@@ -23,6 +25,11 @@ api = Api(app)
 
 # Cross Origin Resource Sharing
 cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
+# cors = CORS(
+#     app,
+#     resources={r'/api/*': {"origins": "*"}},
+#     allow_header=['Content-Type', 'Authorization']
+# )
 
 route = '/api/v1'
 regex = 'regex("[a-zA-Z0-9_-]+")'
@@ -32,8 +39,10 @@ api.add_resource(UserMeOpenLDAPResource,  f'{route}/users/me/')
 api.add_resource(UserOpenLDAPResource,  f'{route}/users/<{regex}:username_uid>')
 api.add_resource(UserListOpenLDAPResource, f'{route}/users')
 
+api.add_resource(FreeIdsOpenLDAPResource, f'{route}/free-ids')
+
 # Group resource
-api.add_resource(GroupOpenLDAPResource, f'{route}/groups/<{regex}:type_group>/<{regex}:username_cn>')
+api.add_resource(GroupOpenLDAPResource, f'{route}/groups/<{regex}:type_group>/<{regex}:username_uid>')
 api.add_resource(GroupListOpenLDAPResource, f'{route}/groups/<{regex}:type_group>')
 
 # Auth resource
@@ -65,7 +74,9 @@ def handle_exception(e):
 
 celery_app = celery_init_app(app)
 
-if settings.DEVELOPMENT and  __name__ == '__main__':  # Comment when prod
+RedisStorage().remove_all()
+
+if settings.DEVELOPMENT and __name__ == '__main__':  # Comment when prod
     app.run(debug=settings.DEBUG)  # Comment when prod
 
 

@@ -1,13 +1,12 @@
 dn: olcDatabase={1}mdb,cn=config
 changetype: modify
 replace: olcAccess
-olcAccess: to attrs=userPassword
+olcAccess: {0}to attrs=userPassword
   by self write
   by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
   by anonymous auth
   by * none
-
-olcAccess: to *
+olcAccess: {1}to *
   by self write
   by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
   by * read

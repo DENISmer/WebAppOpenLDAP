@@ -5,8 +5,20 @@ from marshmallow import Schema, fields, ValidationError, validates, validates_sc
 from marshmallow.schema import SchemaMeta
 from flask_restful import abort
 
+from backend.api.common.groups import Group
+from backend.api.common.roles import Role
 from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn
 from backend.api.config import fields as conf_fields
+
+
+class TrimmedString(fields.String):
+    def _deserialize(self, value, *args, **kwargs):
+        if hasattr(value, 'strip'):
+            value = value.strip()
+        return super()._deserialize(value, *args, **kwargs)
+
+
+fields.Str = TrimmedString
 
 
 class OuterFields:
@@ -19,7 +31,7 @@ class MissingFieldsValidation:
     @post_load
     def is_empty_data(self, in_data, **kwargs):
         if not in_data:
-            abort(400, fields_error='Fields are missing', status=400)
+            abort(400, message='Fields are missing', status=400)
         return in_data
 
 
@@ -94,7 +106,6 @@ class Meta(SchemaMeta):
                             setattr(cls._declared_fields[key].inner, 'required', True)
 
                     if 'create' not in value['required'] and type_required_fields == 'update':
-
                         setattr(cls._declared_fields[key], 'allow_none', True)
                         if hasattr(cls._declared_fields[key], 'inner'):
                             setattr(cls._declared_fields[key].inner, 'allow_none', True)
@@ -120,10 +131,11 @@ class BaseSchema(Schema,
     displayName = fields.Str()
     givenName = fields.Str()
     sn = fields.Str()
-    userPassword = fields.Str(load_only=True)
+    userPassword = fields.Str(load_only=True, allow_none=False)
     postalCode = fields.Int()
     homeDirectory = fields.Str()
-    loginShell = fields.List(fields.Str())
+    loginShell = fields.Str()
+    jpegPhotoPath = fields.Str()
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -173,21 +185,22 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
-        
+
         uid_number = data.get('uidNumber')
         gid_number = data.get('gidNumber')
         if uid_number and not gid_number:
             errors['gidNumber'] = ['The gidNumber attribute is required']
-            raise ValidationError(errors)
+            # raise ValidationError(errors)
         elif gid_number and not uid_number:
             errors['uidNumber'] = ['The uidNumber attribute is required']
-            raise ValidationError(errors)
+            # raise ValidationError(errors)
 
         errors.update({
             key: ['Missing data for attribute']
             for key, value in data.items()
             if not value or value == ''
         })
+        # validate_required_fields(data, errors, self._declared_fields)
         validate_uid_dn(data, errors)
         validate_uid_gid_number(data, errors)
 
@@ -216,6 +229,13 @@ class AuthUserSchemaLdap(Schema):
     username = fields.Str(required=True, load_only=True)
     userPassword = fields.Str(required=True, load_only=True)
 
+    @validates_schema
+    def validate_object(self, data, **kwargs):
+        errors = {}
+        validate_required_fields(data, errors, self._declared_fields)
+        if errors:
+            raise ValidationError(errors)
+
     def __repr__(self):
         return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'
 
@@ -241,7 +261,7 @@ class GroupBaseSchema(Schema,
     @validates('gidNumber')
     def validate_gid_number(self, value):
         if value < 10000:
-            raise ValidationError('gidNumber must be greater than or equal to 10000')
+            raise ValidationError('GidNumber must be greater than or equal to 10000')
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -324,3 +344,55 @@ class BaseCnGroupOutSchemaToList(GroupBaseSchema,
 class CnGroupOutSchemaToList(BaseCnGroupOutSchemaToList,
                              metaclass=MetaToList):
     pass
+
+
+schema = {
+    Role.SIMPLE_USER.value: {
+        'fields': conf_fields.simple_user_fields,
+        'get': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+        'patch': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+        'put': {
+            'schema': SimpleUserSchemaLdapModify.__name__,
+        },
+    },
+    Role.WEBADMIN.value: {
+        'fields': conf_fields.webadmins_fields,
+        'get': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'patch': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'put': {
+            'schema': WebAdminsSchemaLdapModify.__name__,
+        },
+        'post': {
+            'schema': WebAdminsSchemaLdapCreate.__name__,
+        },
+        'list': {
+            'schema': WebAdminsSchemaLdapList.__name__,
+        }
+    },
+    Group.POSIXGROUP.value.lower(): {
+        'fields': conf_fields.webadmins_cn_posixgroup_fields,
+        'get': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'patch': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'put': {
+            'schema': CnGroupSchemaModify.__name__,
+        },
+        'post': {
+            'schema': CnGroupSchemaCreate.__name__,
+        },
+        'list': {
+            'schema': CnGroupSchemaList.__name__,
+        }
+    }
+}
