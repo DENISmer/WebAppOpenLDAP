@@ -391,10 +391,14 @@
   }
 
   .button_group{
+    margin-right: auto;
+    margin-left: auto;
+    right: 0;
+    left: 0;
     position: absolute;
     width: max-content;
     bottom: 8%;
-    left: 40%;
+    //left: 40%;
 
 
     .submitButton {
@@ -445,12 +449,14 @@
     align-items: center;
 
     .button_group{
+      justify-content: center;
       flex-direction: column;
       display: flex;
       position: absolute;
       width: max-content;
-      bottom: 10%;
-      left: 38%;
+      bottom: 2%;
+      //left: 50%;
+
 
       .submitButton{
         margin-bottom: 10px;
@@ -550,7 +556,7 @@
       justify-content: center;
       position: absolute;
       top: 70px;
-      left: 0px;
+      left: 0;
       margin: 1rem 1.5rem 1rem 1rem;
       overflow-x: hidden;
       overflow-y: auto;

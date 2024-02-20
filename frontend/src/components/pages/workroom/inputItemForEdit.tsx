@@ -4,6 +4,8 @@ import delete_object from "@/assets/icons/delete_object.png"
 import {Modal} from "@/components/Modal_Window/modalWindow";
 import add_object from "@/assets/icons/add_item_v2.svg"
 import full_view from "@/assets/icons/openInModal_v2.svg"
+import expand_more from "@/assets/icons/expand_more.png"
+
 export interface userDataForEdit {
     dn?: string,
     uidNumber?: number,
@@ -33,6 +35,8 @@ interface Props {
 export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange, role}) => {
 
     const [isModalActive, setIsModalActive] = useState({acive: false, text: null})
+    const [expandMoreActive, setExpandMoreActive] = useState({mail: false, sshPublicKey: false, objectClass: false})
+
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
         let updatedValue: any = value;
@@ -94,6 +98,30 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
         })
     }
 
+    const expand = (key: string) => {
+        if(key === 'objectClass'){
+            setExpandMoreActive({
+                mail: expandMoreActive.mail,
+                objectClass: !expandMoreActive.objectClass,
+                sshPublicKey: expandMoreActive.sshPublicKey
+            })
+        }
+        if(key === 'mail') {
+            setExpandMoreActive({
+                mail: !expandMoreActive.mail,
+                objectClass: expandMoreActive.objectClass,
+                sshPublicKey: expandMoreActive.sshPublicKey
+            })
+        }
+        if (key === 'sshPublicKey') {
+            setExpandMoreActive({
+                mail: expandMoreActive.mail,
+                objectClass: expandMoreActive.objectClass,
+                sshPublicKey: !expandMoreActive.sshPublicKey
+            })
+        }
+    }
+
     const renderInput = (key: string, value: any, index?: number) => {
         const isValueArray = Array.isArray(value);
         const inputName = isValueArray ? `${key}[${index}]` : key;
@@ -128,6 +156,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                         />
                         {/*button group*/}
                         <div className={FFE_S.button_group}>
+
 
                             {isValueArray && index === value.length - 1 && <button
                                 className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
@@ -177,8 +206,18 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
                     return (
-                        <div className={FFE_S.objects_div} key={key}>
+                        <div className={expandMoreActive[key] ? FFE_S.objects_div_expand_more : FFE_S.objects_div} key={key}>
+                                <button    className={value.length === 0 ? FFE_S.Expand_more_disabled : FFE_S.Expand_more}
+                                           onClick={()=> {
+                                               expand(key)
+                                           }}
+                                           type={"button"}
+                                           disabled={value.length === 0}
+                                           title={"Развернуть для просмотра"}>
+                                    <img className={expandMoreActive[key] ? FFE_S.Expand_more_img : FFE_S.Expand_more_img_def} src={expand_more} alt="Развернуть для просмотра" width={20}/>
+                                </button>
                             <div className={FFE_S.objects_element}>
+                                {value.length === 0 && <label style={{fontWeight: "bold"}}>{key}</label>}
                                 {inputs}
                                 {value.length === 0 && <button
                                     className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
@@ -187,7 +226,6 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                     title={"Добавить новое поле"}
                                     onClick={() => handleAddArrayItem(key)}>
                                     <img src={add_object} alt="add field" width={20}/>
-                                    {key}
                                 </button>}
                             </div>
                         </div>
