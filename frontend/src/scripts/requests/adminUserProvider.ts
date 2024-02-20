@@ -56,8 +56,8 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
     }).then((response) => {
         //console.log(response,'anywayh')
         return response.data
-    }).catch((e) => {
-        console.log(e.message)
+    }).catch((e: any) => {
+        return {error: e.response}
     })
 }
 

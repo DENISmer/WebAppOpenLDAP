@@ -52,7 +52,7 @@ const Login = () => {
                     setLoading(true)
                     const userData: UserAuth | undefined = await sendParams(username, password)
                     if(userData.status === 200){
-                        setUserAuthCookie('userAuth', userData, {maxAge: 1330})
+                        setUserAuthCookie('userAuth', userData, {maxAge: 3600 * 6})
                         setAuthError(false)
                         setLoading(false)
                         navigate("/")
@@ -72,7 +72,7 @@ const Login = () => {
                 setLoading(false)
             }
         } else {
-            setUserAuthCookie('userAttempt', false, {maxAge: 10})
+            setUserAuthCookie('userAttempt', false, {maxAge: 120})
         }
     }
 
@@ -121,7 +121,7 @@ const Login = () => {
                         id={"submit"}
                         value={"Login"}
                         type={"submit"}
-                />{loading && <img src={loadingGif}/>}
+                />{loading && <img src={loadingGif} alt={"loading.."}/>}
                 {userAuthCookies['userAttempt'] !== undefined && !userAuthCookies['userAttempt'] && <p style={{color: 'red', marginBottom: '10px'}}>Слишком много попыток. Перезайгрузите страницу и попробуйте позже</p>}
                 </form>
 
