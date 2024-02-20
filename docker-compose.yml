@@ -11,6 +11,7 @@ services:
       - "8082:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+    profiles: ["nginx"]
 
 #  web-client:
 #    profiles:
@@ -21,7 +22,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: unless-stopped
-    container_name: web-server
+    container_name: web-server-container
 
     depends_on:
       - redis
@@ -32,13 +33,14 @@ services:
       REDIS_PORT: 6379
     volumes:
       - proj-db-volume:/usr/src/app/instance
+    profiles: ["web-server"]
 
   web-celery:
     build:
       context: .
       dockerfile: backend/api/celery/Dockerfile
     restart: unless-stopped
-    container_name: web-celery
+    container_name: web-celery-container
     depends_on:
       - web-server
     env_file:
@@ -48,6 +50,7 @@ services:
       CELERY_RESULT_BACKED: "redis://redis:6379/1"
     volumes:
       - proj-db-volume:/usr/src/app/instance
+    profiles: ["web-celery"]
 
   redis:
     image: redis
@@ -55,18 +58,31 @@ services:
     command: redis-server
     expose:
       - "6379"
+    profiles: ["redis"]
 
-  ldap:
+  ldap-server:
     build:
       context: .
-      dockerfile: backend/ldap-conf/Dockerfile
+      dockerfile: backend/ldap/Dockerfile
+    container_name: ldap-server-container
     environment:
       LDAP_ORGANISATION: "People"
       LDAP_ADMIN_PASSWORD: "1234"
       LDAP_DOMAIN: "example.com"
-    ports:
-      - "0.0.0.0:389:389"
-    profiles: ['ldap']
+#    ports:
+#      - "0.0.0.0:389:389"
+    profiles: ["ldap-server"]
+
+  ldap-load-data-conf:
+    build:
+      context: .
+      dockerfile: backend/ldap/ldap-load-data-conf/Dockerfile
+    container_name: ldap-load-data-container
+    depends_on:
+      - ldap-server
+    environment:
+      LDAP_HOST: "ldap-server"
+    profiles: ["ldap-load-data-conf"]
 
 volumes:
   proj-db-volume:

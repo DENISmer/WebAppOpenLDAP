@@ -13,7 +13,7 @@ class TestGetFreeId(unittest.TestCase):
     pass
 
 
-class TestPaginator(unittest.TestCase):
+class TestPaginator(unittest.TestCase): # free
     pass
 
 
