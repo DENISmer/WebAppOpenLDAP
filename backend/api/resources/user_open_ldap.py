@@ -245,14 +245,16 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             'page': page,
         }, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
-    @connection_ldap
-    @permission_user()
-    @define_schema
+    # @auth.login_required(role=[Role.WEBADMIN])
+    # @connection_ldap
+    # @permission_user()
+    # @define_schema
     def post(self, *args, **kwargs):
+        print('FILES')
+        print('request.files')
+        pprint.pprint(request.files)
+        print('FILES')
         json_data = request.get_json()
-        pprint.pprint('request.files')
-        print(request.files)
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
 

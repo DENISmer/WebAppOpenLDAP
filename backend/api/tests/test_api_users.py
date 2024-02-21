@@ -5,6 +5,8 @@ import functools
 from backend.api.common.groups import Group
 from backend.api.tests import datatest as dt
 
+from werkzeug.datastructures import FileStorage
+
 
 def authorize_user(client, user_data):
     data = orjson.dumps(user_data)
@@ -216,6 +218,60 @@ def test_post_user_201(client):
 
     assert response_group_data['memberUid'] == response_data["uid"] \
         and response_group_data['gidNumber'] == response_data["gidNumber"]
+
+
+@auth
+def test_post_user_201_with_photo(client, **kwargs):
+    headers = kwargs['headers']
+    headers['Content-Type'] += '; multipart/form-data'
+
+    file = FileStorage(
+        stream=open('/home/grigoriy/Изображения/flat/1.png', 'rb'),
+        filename='flat.png',
+        content_type='image/png'
+    )
+
+    dt.data_user_post_margo_simple_user.update(
+        {'userPassword': 'margo123'}
+    )
+    # dt.data_user_post_margo_simple_user.update(
+    #     {'file_image': file}
+    # )
+    payload = orjson.dumps(dt.data_user_post_margo_simple_user)
+    del dt.data_user_post_margo_simple_user['userPassword']
+
+    response = client.post(
+        dt.Route.USERS.value,
+        headers=headers,
+        # data=payload,
+        files={'my_file': file}
+    )
+    response_data = orjson.loads(response.data)
+    print(response_data)
+    expected_data = dt.data_user_post_margo_simple_user
+
+    response_group = client.get(
+        f'{dt.Route.GROUPS.value}/posixGroup/'
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
+        headers=headers,
+    )
+
+    client.delete(
+        f'{dt.Route.USERS.value}/'
+        f'{response_data["uid"]}',
+        headers=headers,
+    )
+
+    response_group_data = orjson.loads(response_group.data)
+
+    assert response.status_code == 201
+
+    assert response_data == expected_data
+
+    assert response_group.status_code == 200
+
+    assert response_group_data['memberUid'] == response_data["uid"] \
+           and response_group_data['gidNumber'] == response_data["gidNumber"]
 
 
 def test_post_user_data_not_required_field_is_null_400(client):

@@ -16,6 +16,8 @@ NOT_AUTH = bool(int(os.environ.get('NOT_AUTH', 1)))
 
 ITEMS_PER_PAGE = 20
 
+UPLOAD_FOLDER = 'files'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 FILE_DB_NAME = os.getenv('FILE_DB_NAME')
 # DATABASE URI
