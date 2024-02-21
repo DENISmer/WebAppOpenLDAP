@@ -97,13 +97,15 @@ class TokenManagerDB(TokenManagerAbstract):
         '''
 
         instance = self.db_queries.get_instance(TokenModel, dn=self.user.dn)
-        # self.db_queries.bulk_delete(TokenModel)
+
         token = uuid.uuid4().hex
         if instance:
             res = self.db_queries.update_instance(
                 instance,
                 token=token,
                 datetime_create=datetime.utcnow(),
+                role=self.user.role.value,
+                userPassword=self.user.userPassword
             )
         else:
             res = self.db_queries.create_instance(
@@ -112,6 +114,7 @@ class TokenManagerDB(TokenManagerAbstract):
                 token=token,
                 uid=self.user.uid,
                 role=self.user.role.value,
+                userPassword=self.user.userPassword
             )
 
         if not res:
@@ -134,7 +137,8 @@ class TokenManagerDB(TokenManagerAbstract):
         return {
             'dn': instance.dn,
             'uid': instance.uid,
-            'role': instance.role
+            'role': instance.role,
+            'userPassword': instance.userPassword
         }
 
 

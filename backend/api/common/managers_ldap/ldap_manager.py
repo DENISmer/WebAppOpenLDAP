@@ -14,7 +14,6 @@ class ManagerLDAP(LDAP3LoginManager):  # Singleton
         self.init_config(config)
         self.tls_ctx = None
         self._add_tls_ctx()
-
         for host in config['LDAP_HOSTS']:
             self.add_server(
                 hostname=host,
@@ -33,6 +32,6 @@ class ManagerLDAP(LDAP3LoginManager):  # Singleton
         if config['LDAP_USE_SSL']:
             self.tls_ctx = Tls(
                 validate=ssl.CERT_REQUIRED,
-                version=ssl.PROTOCOL_TLSv1,
+                version=ssl.PROTOCOL_TLS,
                 ca_certs_file=config['CERT_PATH']
             )

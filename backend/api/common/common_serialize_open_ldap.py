@@ -16,7 +16,12 @@ class CommonSerializer:
                 schema, user_schema
             )().load(json_data, partial=partial)
         except ValidationError as e:
-            abort(400, message='Invalid attributes', fields=e.messages)
+            abort(
+                400,
+                message='Invalid attributes',
+                fields=e.messages,
+                status=400
+            )
 
         return deserialized_data
 

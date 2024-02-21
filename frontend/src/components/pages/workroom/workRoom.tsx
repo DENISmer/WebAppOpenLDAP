@@ -86,6 +86,8 @@ const WorkRoom: React.FC = () => {
     const [userForEditAdmin, setUserForEditAdmin] = useState<userDataForEdit>(null)
     const [editedUser, setEditedUser] = useState<userDataForEdit>(null)
     const [listLoading, setListLoading] = useState<boolean>(false)
+
+    const [adminUserEdit, setAdminUserEdit] = useState(false)
     // const [currentUser, setCurrentUser] = useState({})
     const [addUserIsActive, setAddUserIsActive] = useState(false)
     const fillUsersList = async (props: Params) => {
@@ -290,6 +292,18 @@ const WorkRoom: React.FC = () => {
         }
 
     };
+    const unLogin = () => {
+        if(userIsChanged){
+            const askForUnLogin = confirm("Есть не сохраненные изменения. Все равно выйти?")
+            if (askForUnLogin) {
+                removeCookie('userAuth')
+                navigate('/login');
+            }
+        } else {
+            removeCookie('userAuth')
+            navigate('/login');
+        }
+    }
 
     const deleteUserFromList = async ()  => {
         const confirmForDelete = confirm(`Вы уверены? \nПользователь ${isEditing.uid} будет удален`)
@@ -314,12 +328,22 @@ const WorkRoom: React.FC = () => {
         }
     }
 
+    const setCurrentAdminProfileEdit = () => {
+        setIsEditing(
+            {
+                isEditing: true,
+                uid: currentEditor.uid
+            }
+        )
+        setAdminUserEdit(true)
+    }
+
     const onCloseModalAddUser = (data: boolean) => {
         if(data){
             setAddUserIsActive(false)
         }
         else {
-            const confirmClose = confirm('Введенные данные не сохранятся, вы уверены, что хотите выйти?')
+            const confirmClose = confirm('Введенные данные не сохранятся. Продолжить?')
             if(confirmClose){
                 setAddUserIsActive(false)
             }
@@ -340,14 +364,19 @@ const WorkRoom: React.FC = () => {
             }
 
             <div className={WR_S.menu}>
-                <div className={WR_S.logout} onClick={() => {
-                    removeCookie('userAuth')
-                    navigate('/login')
-                }}>Выйти
+
+                <div className={WR_S.logout}
+                     onClick={() => unLogin()}>
+                    Выйти
                 </div>
+
                 <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user')
                     || (currentEditor && currentEditor.role === 'simple_user')
-                    ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}>Профиль</div>
+                    ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}
+                    onClick={() => setCurrentAdminProfileEdit()}>
+                    Профиль
+                </div>
+
             </div>
 
             {currentEditor && currentEditor.role === 'webadmins' &&
@@ -422,9 +451,10 @@ const WorkRoom: React.FC = () => {
                     </div>
                 </div>}
 
-            {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+            {/*simple and admin editing*/}
+            {(adminUserEdit || currentEditor) && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
                 <ProfileView data={editedUser}/>
-                {/*{userIsChanged && <div>Есть изменения</div>}*/}
+
                 <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>
 
             </div>}
@@ -439,6 +469,7 @@ const WorkRoom: React.FC = () => {
                         onClick={() => discardChanges()}>
                     сбросить изменения
                 </button>
+
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
                             (currentEditor.role === 'simple_user') ?

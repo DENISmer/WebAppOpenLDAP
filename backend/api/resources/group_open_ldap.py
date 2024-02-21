@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-import pprint
-
-from flask_restful import Resource, request
+from flask_restful import Resource, request, abort
 
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
-from backend.api.common.decorators import connection_ldap, permission_group
+from backend.api.common.decorators import connection_ldap, permission_group, define_schema
 from backend.api.common.auth_http_token import auth
+from backend.api.common.groups import Group
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
-from backend.api.common.user_manager import CnGroupLdap
+from backend.api.common.user_manager import CnGroupLdap, UserLdap
+from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
-from backend.api.config.fields import webadmins_cn_posixgroup_fields, search_posixgroup_fields
+from backend.api.config.fields import search_posixgroup_fields
 from backend.api.resources import schema
-from backend.api.resources.schema import CnGroupOutSchemaToList
 
 
 class GroupOpenLDAPResource(Resource):
@@ -26,7 +25,7 @@ class GroupOpenLDAPResource(Resource):
 
     def __modify_group(
         self,
-        username_cn,
+        username_uid,
         deserialized_data,
         group_fields,
         user_fields,
@@ -35,47 +34,61 @@ class GroupOpenLDAPResource(Resource):
         group_obj = GroupManagerLDAP(connection=self.connection)
         user_obj = UserManagerLDAP(connection=self.connection)
 
-        group = group_obj.get_group_info_posix_group(username_cn)
+        group = group_obj.get_group_info_posix_group(username_uid)
+        if not group:
+            abort(404, message='Group not found', status=404)
 
         updated_group = CnGroupLdap(
-            username=username_cn,
+            username=username_uid,
             dn=group.dn,
+            input_field_keys=deserialized_data.keys(),
             **deserialized_data,
             fields=group_fields['fields']
         )
 
         if updated_group.gidNumber and group.gidNumber != updated_group.gidNumber and update_gid_number_user:
-            user = user_obj.item(username_cn, [], abort_raise=False)
-            user.fields = user_fields['fields']
-            user.gidNumber = user.uidNumber = updated_group.gidNumber
-            user_obj.modify(item=user, operation='update')
+            user = user_obj.item(username_uid)
+            if user:
+                updated_users = UserLdap(
+                    dn=user.dn,
+                    fields=user_fields['fields'],
+                    input_field_keys=['gidNumber', 'uidNumber'],
+                    gidNumber=updated_group.gidNumber,
+                    uidNumber=updated_group.gidNumber,
+                )
+                user_obj.modify(item=updated_users, operation='update', not_modify_item=user)
 
-        updated_group = group_obj.modify(item=updated_group, operation='update')
+        group_obj.modify(item=updated_group, operation='update', not_modify_item=group)
         group.__dict__.update(deserialized_data)
         return group
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    def get(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
+    @define_schema
+    def get(self, username_uid, type_group, *args, **kwargs):
         group = GroupManagerLDAP(connection=self.connection) \
-            .get_group_info_posix_group(username_cn)
+            .get_group_info_posix_group(username_uid)
+        if not group:
+            abort(404, message='Group not found', status=404)
+
+        group_schema = kwargs['schema']
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)
         return serialized_data, 200
 
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    def put(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
-        group_fields = kwargs['group_fields']
-        webadmins_user_fields = kwargs['webadmins_user_fields']
+    @define_schema
+    def put(self, username_uid, type_group, *args, **kwargs):
+        group_schema = kwargs['schema']
+        group_fields = kwargs['fields']
+        webadmins_user_fields = kwargs['webadmins_fields']
         json_data = request.get_json()
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=False)
         updated_group = self.__modify_group(
-            username_cn, deserialized_data, group_fields,
+            username_uid, deserialized_data, group_fields,
             webadmins_user_fields, True
         )
         serialized_user = self.serializer.serialize_data(group_schema, item=updated_group)
@@ -85,15 +98,16 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    def patch(self, username_cn, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
-        group_fields = kwargs['group_fields']
-        webadmins_user_fields = kwargs['webadmins_user_fields']
+    @define_schema
+    def patch(self, username_uid, type_group, *args, **kwargs):
+        group_schema = kwargs['schema']
+        group_fields = kwargs['fields']
+        webadmins_user_fields = kwargs['webadmins_fields']
         json_data = request.get_json()
 
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data, partial=True)
         updated_group = self.__modify_group(
-            username_cn, deserialized_data,
+            username_uid, deserialized_data,
             group_fields, webadmins_user_fields,
             True
         )
@@ -104,9 +118,13 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    def delete(self, username_cn, type_group, *args, **kwargs):
+    def delete(self, username_uid, type_group, *args, **kwargs):
         group_obj = GroupManagerLDAP(connection=self.connection)
-        group = group_obj.get_group_info_posix_group(username_cn)
+        group = group_obj.get_group_info_posix_group(username_uid)
+
+        if not group:
+            abort(404, message='Group not found', status=404)
+
         group_obj.delete(item=group, operation='delete')
         return None, 204
 
@@ -121,8 +139,9 @@ class GroupListOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def get(self, type_group, *args, **kwargs):
-        group_schema = kwargs['group_schema']
+        group_schema = kwargs['schema']
         search = request.args.get('search', type=str)
         page = request.args.get('page', type=int, default=1) or 1
 
@@ -150,17 +169,26 @@ class GroupListOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
+    @define_schema
     def post(self, *args, **kwargs):
         json_data = request.get_json()
-        group_schema = kwargs['group_schema']
-        group_field = kwargs['group_fields']
+        group_schema = kwargs['schema']
+        group_field = kwargs['fields']
+        group_obj = GroupManagerLDAP(connection=self.connection)
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data)
 
         group = CnGroupLdap(
             **deserialized_data,
-            fields=group_field['fields']
+            fields=group_field['fields'],
+            input_field_keys=deserialized_data.keys(),
         )
-        new_group = GroupManagerLDAP(connection=self.connection).create(item=group, operation='create')
+
+        found_group_ids = group_obj.get_id_numbers(
+            required_fields={'objectClass': Group.POSIXGROUP.value}
+        )
+        validate_uid_gid_number_to_unique(found_group_ids, gid_number=group.gidNumber)
+
+        new_group = group_obj.create(item=group, operation='create')
 
         serialized_data = self.serializer.serialize_data(group_schema, new_group, many=False)
         return serialized_data, 201

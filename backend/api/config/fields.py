@@ -5,6 +5,7 @@ TYPE_INT = int
 
 # Fields for simple user
 simple_user_fields = {
+    'name': 'simple_user_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,
@@ -85,7 +86,7 @@ simple_user_fields = {
             'required': [],
         },
         'loginShell': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['read', ],
             'required': [],
@@ -105,7 +106,13 @@ simple_user_fields = {
         'postalCode': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
-            'operation': ['read',],
+            'operation': ['read', ],
+            'required': [],
+        },
+        'jpegPhotoPath': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['read', ],
             'required': [],
         }
     },
@@ -113,6 +120,7 @@ simple_user_fields = {
 
 # Fields for admin
 webadmins_fields = {
+    'name': 'webadmins_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,
@@ -187,7 +195,7 @@ webadmins_fields = {
             'required': ['create', 'update'],
         },
         'loginShell': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_STR,
             'operation': ['create', 'read', 'update'],
             'required': ['update'],
@@ -213,13 +221,20 @@ webadmins_fields = {
         'postalCode': {
             'type': TYPE_INT,
             'element_type': TYPE_INT,
-            'operation': ['read', 'update',],
+            'operation': ['create', 'read', 'update',],
             'required': ['update'],
+        },
+        'jpegPhotoPath': {
+            'type': TYPE_STR,
+            'element_type': TYPE_STR,
+            'operation': ['read', ],
+            'required': [],
         }
     },
 }
 
 webadmins_cn_posixgroup_fields = {
+    'name': 'webadmins_cn_posixgroup_fields',
     'fields': {
         'dn': {
             'type': TYPE_STR,

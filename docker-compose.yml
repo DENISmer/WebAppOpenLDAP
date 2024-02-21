@@ -1,28 +1,87 @@
-version: "3.8"
-
-#services:
-#  nginx:
-#
-#  web-client:
-#
-#  web-server:
-#
-#  celery:
-#
-#  redis:
-#
-#volumes:
-#
+version: "3"
 
 services:
-  backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+  nginx:
+    image: nginx
     restart: always
-  #redis:
-  #  image: redis:6.2-alpine
+    depends_on:
+      - web-client
+      - web-server
+    ports:
+      - "80:8080"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
 
+  web-client:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: web-client-container
+    ports:
+      - "3000:3000"
 
+  web-server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    container_name: web-server-container
+    depends_on:
+      - redis
+    env_file:
+      - backend/.env
+    environment:
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+    ports:
+      - "8000:8000"
+    volumes:
+      - proj-db-volume:/usr/src/app/instance
+
+  web-celery:
+    build:
+      context: .
+      dockerfile: backend/api/celery/Dockerfile
+    restart: unless-stopped
+    container_name: web-celery-container
+    depends_on:
+      - web-server
+    env_file:
+      - backend/.env
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/1"
+      CELERY_RESULT_BACKED: "redis://redis:6379/1"
+    volumes:
+      - proj-db-volume:/usr/src/app/instance
+
+  redis:
+    image: redis
+    restart: always
+    command: redis-server
+    expose:
+      - "6379"
+
+  ldap-server:
+    build:
+      context: .
+      dockerfile: backend/ldap/Dockerfile
+    container_name: ldap-server-container
+    environment:
+      LDAP_ORGANISATION: "People"
+      LDAP_ADMIN_PASSWORD: "1234"
+      LDAP_DOMAIN: "example.com"
+    profiles: ["ldap-server"]
+
+  ldap-load-data-conf:
+    build:
+      context: .
+      dockerfile: backend/ldap/ldap-load-data-conf/Dockerfile
+    container_name: ldap-load-data-container
+    depends_on:
+      - ldap-server
+    environment:
+      LDAP_HOST: "ldap-server"
+    profiles: ["ldap-load-data-conf"]
+
+volumes:
+  proj-db-volume:

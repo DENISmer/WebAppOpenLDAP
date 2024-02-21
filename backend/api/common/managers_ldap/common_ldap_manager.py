@@ -1,11 +1,13 @@
+import logging
 import pprint
 from typing import Dict
 
 from flask_restful import abort
 from ldap3 import ALL_ATTRIBUTES, MODIFY_REPLACE, MODIFY_DELETE
+from ldap3.core.exceptions import LDAPNoSuchObjectResult
 
 from backend.api.common.decorators import error_operation_ldap
-from backend.api.common.exceptions import ItemFieldsIsNone
+from backend.api.common.exceptions import ItemFieldsIsNone, NotModifyItemIsNone
 from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
 from backend.api.config.ldap import config
 from backend.api.config.fields import search_fields
@@ -64,7 +66,6 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             required_filter
         )
         # print(common_filter)
-        # exception connection is open!!!!!
         status_search = self._connection.search(
             search_base=config['LDAP_BASE_DN'],
             search_filter=common_filter,
@@ -88,16 +89,21 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
 
-        print(res)
+        # print(res)
         # abort(400, message=res['message'])
         if 'success' not in res['description']:
-            abort(400, message=res['message'])
-        print('Success')
+            # abort(400, message=res['message'])
+            return None
+
+        logging.log(logging.INFO, 'SUCCESS CREATE')
 
         return item
 
     @error_operation_ldap
     def modify(self,  item, operation, not_modify_item=None):
+
+        if not not_modify_item:
+            raise NotModifyItemIsNone('not_modify_item is None')
 
         serialized_data_modify = item.serialize_data(
             operation=operation,
@@ -106,35 +112,35 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         modify_dict = dict()
 
         for key, value in serialized_data_modify.items():
-            if (value is None or ((isinstance(value, list)
-                                  or isinstance(value, str))
-                                  and (len(value) == 0
-                                  or len(str(value)) == 0))) \
+            modify_dict_value = None
+            if (value is None or ((isinstance(value, list) or isinstance(value, str))
+                    and (len(value) == 0 or len(str(value)) == 0)))  \
                     and getattr(not_modify_item, key) \
                     and 'create' not in item.fields[key]['required']:
-                tmp_modify = MODIFY_DELETE
-                tmp_value = []
-            else:
-                tmp_modify = MODIFY_REPLACE
-                tmp_value = value if type(value) == list else [value]
-
-            modify_dict.update({
-                key: [(
-                    tmp_modify,
-                    tmp_value
-                )]
-            })
+                modify_dict_value = (MODIFY_DELETE, [])
+            elif value:
+                modify_dict_value = (
+                    MODIFY_REPLACE,
+                    value if isinstance(value, list) else [value]
+                )
+            if modify_dict_value:
+                modify_dict.update({
+                    key: [modify_dict_value]
+                })
 
         self._connection.modify(
             item.dn,
             modify_dict
         )
 
-        print('result modify:', self._connection.result)
+        # print('result modify:', self._connection.result)
 
         res = self._connection.result
         if 'success' not in res['description']:
-            abort(400, message=res['description'])
+            # abort(400, message=res['description'])
+            return None
+
+        logging.log(logging.INFO, 'SUCCESS MODIFY')
 
         return item
 
@@ -143,29 +149,40 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         if item.dn:
             self._connection.delete(item.dn)
 
-        print('result delete:', self._connection.result)
+        # print('result delete:', self._connection.result)
 
         res = self._connection.result
         if 'success' not in res['description']:
-            abort(400, message=f'Error deletion {item.dn}')
+            return None
+            # abort(400, message=f'Error deleting {item.dn}')
 
+        logging.log(logging.INFO, 'SUCCESS DELETE')
+
+    @error_operation_ldap
     def search_by_dn(self, dn, filters, attributes=ALL_ATTRIBUTES):
-        status_search = self._connection.search(
-            search_base=dn,
-            search_filter=filters,
-            attributes=attributes,
-        )
+        try:
+            status_search = self._connection.search(
+                search_base=dn,
+                search_filter=filters,
+                attributes=attributes,
+            )
+        except LDAPNoSuchObjectResult:
+            return None
+
         if not status_search:
             return None
 
         return self._connection.response[0]
 
-    def get_id_numbers(self):
+    def get_id_numbers(self, required_fields=None):
+        if required_fields is None:
+            required_fields = {'objectClass': 'person'}
+
         data = self.list(
             value=None,
             fields=search_fields,
             attributes=['gidNumber'],
-            required_fields={'objectClass': 'person'},
+            required_fields=required_fields,
         )
 
         ids = []

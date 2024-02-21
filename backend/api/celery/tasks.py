@@ -3,8 +3,7 @@ from datetime import datetime, timedelta
 
 from celery import shared_task
 
-from backend.api.app import db
-from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
+from backend.api.db.database import db
 from backend.api.db.models import TokenModel
 from backend.api.db.database_queries import DbQueries
 
