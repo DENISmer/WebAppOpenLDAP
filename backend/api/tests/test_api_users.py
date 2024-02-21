@@ -69,7 +69,7 @@ def test_get_user_200(client):
     assert response.status_code == 200
 
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_get_bob_webadmins
+    expected_data = dt.data_user_get_bob_webadmins_response
 
     assert response_data == expected_data
 
@@ -149,7 +149,7 @@ def test_get_user_not_webadmins_own_profile_200(client):
     assert response.status_code == 200
 
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_get_john_simple_user
+    expected_data = dt.data_user_get_john_simple_user_response
 
     assert response_data == expected_data
 
@@ -185,36 +185,41 @@ def test_post_user_201(client):
         {'userPassword': 'margo123'}
     )
     payload = orjson.dumps(dt.data_user_post_margo_simple_user)
-    del dt.data_user_post_margo_simple_user['userPassword']
 
     response = client.post(
         dt.Route.USERS.value,
         headers=headers,
         data=payload
     )
-
-    assert response.status_code == 201
-
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_post_margo_simple_user
 
-    assert response_data == expected_data
+    response_get = client.get(
+        f'{dt.Route.USERS.value}/'
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
+        headers=headers,
+    )
+    response_get_data = orjson.loads(response.data)
 
     response_group = client.get(
         f'{dt.Route.GROUPS.value}/posixGroup/'
         f'{dt.data_user_post_margo_simple_user["uid"]}',
         headers=headers,
     )
-
-    assert response_group.status_code == 200
+    response_group_data = orjson.loads(response_group.data)
 
     client.delete(
         f'{dt.Route.USERS.value}/'
-        f'{response_data["uid"]}',
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
         headers=headers,
     )
 
-    response_group_data = orjson.loads(response_group.data)
+    assert response.status_code == 201
+
+    assert response_get.status_code == 200
+
+    assert response_data == response_get_data
+
+    assert response_group.status_code == 200
 
     assert response_group_data['memberUid'] == response_data["uid"] \
         and response_group_data['gidNumber'] == response_data["gidNumber"]
@@ -454,7 +459,16 @@ def test_post_user_data_only_required_field_201(client):
     expected_data = dt.data_user_post_james_data_required_fields_simple_user_response
     expected_data['uidNumber'] = expected_data['gidNumber'] = response_free_id
 
-    assert response_data == expected_data
+    response_get = client.get(
+        f'{dt.Route.USERS.value}/'
+        f'{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
+        headers=headers,
+    )
+    response_get_data = orjson.loads(response_get.data)
+
+    assert response_get.status_code == 200
+
+    assert response_get_data == response_data
 
     response_group = client.get(
         f'{dt.Route.GROUPS.value}/posixGroup/'
@@ -469,7 +483,6 @@ def test_post_user_data_only_required_field_201(client):
         f'{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
         headers=headers,
     )
-
     response_group_data = orjson.loads(response_group.data)
 
     assert response_group_data['memberUid'] == response_data["uid"] \

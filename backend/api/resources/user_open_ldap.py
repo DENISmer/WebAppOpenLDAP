@@ -245,15 +245,11 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             'page': page,
         }, 200
 
-    # @auth.login_required(role=[Role.WEBADMIN])
-    # @connection_ldap
-    # @permission_user()
-    # @define_schema
+    @auth.login_required(role=[Role.WEBADMIN])
+    @connection_ldap
+    @permission_user()
+    @define_schema
     def post(self, *args, **kwargs):
-        print('FILES')
-        print('request.files')
-        pprint.pprint(request.files)
-        print('FILES')
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
@@ -288,11 +284,6 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             user.uid,
             str(group_obj.ldap_manager.full_group_search_dn)
         )
-
-        # found_user = user_obj.get_user_info_by_dn(user.dn, [])
-        #
-        # if found_user:
-        #     abort(400, fields={'dn': 'The user already exists'}, status=400)
 
         #create objects
         user_obj.create(

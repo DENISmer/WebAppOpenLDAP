@@ -65,6 +65,28 @@ data_user_get_bob_webadmins = {
     'uid': 'bob',
     'uidNumber': 10001
 }
+data_user_get_bob_webadmins_response = {
+    'cn': 'Bob Bondy',
+    'displayName': 'Bob Bondy',
+    'dn': 'uid=bob,ou=people,dc=example,dc=com',
+    'gidNumber': 10001,
+    'givenName': 'bob',
+    'homeDirectory': '/home/bob',
+    'loginShell': '/bin/bash',
+    'mail': [],
+    'objectClass': ['inetOrgPerson',
+                 'posixAccount',
+                 'shadowAccount',
+                 'ldapPublicKey'],
+    'postalCode': None,
+    'sn': 'Bondy',
+    'sshPublicKey': [],
+    'st': None,
+    'street': None,
+    'uid': 'bob',
+    'uidNumber': 10001,
+    'jpegPhotoPath': None
+}
 data_user_get_john_simple_user = {
     'cn': 'John Doe',
     'displayName': 'John Doe',
@@ -82,6 +104,25 @@ data_user_get_john_simple_user = {
     'street': None,
     'uid': 'john',
     'uidNumber': 10000
+}
+data_user_get_john_simple_user_response = {
+    'cn': 'John Doe',
+    'displayName': 'John Doe',
+    'dn': 'uid=john,ou=people,dc=example,dc=com',
+    'gidNumber': 10000,
+    'givenName': 'John',
+    'homeDirectory': '/home/john',
+    'loginShell': '/bin/bash',
+    'mail': [],
+    'objectClass': ['inetOrgPerson', 'posixAccount', 'shadowAccount'],
+    'postalCode': None,
+    'sn': 'Doe',
+    'sshPublicKey': [],
+    'st': None,
+    'street': None,
+    'uid': 'john',
+    'uidNumber': 10000,
+    'jpegPhotoPath': None
 }
 data_user_get_not_found = {
     'uid': 'boboob'
