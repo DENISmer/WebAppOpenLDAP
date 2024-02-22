@@ -13,25 +13,24 @@ print(result)  # Вывод: 123de, регулярные выражения – 
 
 url_auth = 'http://127.0.0.1:5000/api/v1/auth/token'
 r_auth = requests.post(url_auth,
-                       data=orjson.dumps({'username': 'tom', 'userPassword': 'tom'}),
+                       data=orjson.dumps({'username': 'bob', 'userPassword': 'bob'}),
                        headers={'Content-Type': 'application/json'})
 data = orjson.loads(r_auth.text)
 
 print(data)
 headers = {
     'Authorization': f'Bearer {data["token"]}',
-    'Content-Type': 'multipart/form-data; boundary=8f3131c59f53f0b362f01b64f052a3db',
+    # 'Content-Type': 'multipart/form-data;',
 }
-url = 'http://127.0.0.1:5000/api/v1/users'
+url = 'http://127.0.0.1:5000/api/v1/files/john'
 
-fin = open('/home/grig/Изображения/test.png', 'rb')
+fin = open('/home/grigoriy/Изображения/flat/1.png', 'rb')
 from io import BytesIO
 file_buffer = BytesIO(fin.read())
-files = {'file': ('file.png', file_buffer)}
-files1 = {'file': fin}
-data1 = {"asda": "dasdasd", "dasd": "dasdasd"}
+files = {'jpegPhoto': ('file.png', file_buffer, 'image/png')}
+files1 = {'jpegPhoto': fin}
 # print(files)
 # r = requests.post(url,  files=files, headers=headers)
-r = requests.post(url,  files=files, data=data1)
+r = requests.patch(url, files=files, headers=headers)
 pprint.pprint(r.__dict__)
 print(r.text)

@@ -11,6 +11,7 @@ services:
       - "80:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - files-volume:/usr/src/app/files
 
   web-client:
     build:
@@ -37,6 +38,7 @@ services:
       - "8000:8000"
     volumes:
       - proj-db-volume:/usr/src/app/instance
+      - files-volume:/usr/src/app/backend/files
 
   web-celery:
     build:
@@ -88,3 +90,4 @@ services:
 
 volumes:
   proj-db-volume:
+  files-volume:

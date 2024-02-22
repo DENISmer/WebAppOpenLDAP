@@ -1,5 +1,4 @@
 import copy
-import pprint
 
 from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load, pre_dump
 from marshmallow.schema import SchemaMeta
@@ -7,7 +6,9 @@ from flask_restful import abort
 
 from backend.api.common.groups import Group
 from backend.api.common.roles import Role
-from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn
+from backend.api.common.route import Route
+from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn, \
+    validate_allowed_file
 from backend.api.config import fields as conf_fields
 
 
@@ -88,6 +89,10 @@ class Meta(SchemaMeta):
             _fields = getattr(conf_fields, user_fields)
 
             for key, value in _fields['fields'].items():
+
+                if not hasattr(cls._declared_fields, key):
+                    continue
+
                 # deep copy
                 value_copy = copy.deepcopy(cls._declared_fields[key])
                 cls._declared_fields[key] = value_copy
@@ -346,6 +351,38 @@ class CnGroupOutSchemaToList(BaseCnGroupOutSchemaToList,
     pass
 
 
+class BaseFilesSchema(Schema):
+    jpegPhoto = fields.Raw(metadata={'type': 'string', 'format': 'binary'})
+
+    @validates('jpegPhoto')
+    def validate_jpegPhoto(self, value):
+        print('JPEGPHTO', value)
+
+    @validates_schema
+    def validate_object(self, data, **kwargs):
+        errors = {}
+        validate_required_fields(data, errors, self._declared_fields)
+        for key, value in data.items():
+            file = value
+            if not (file and validate_allowed_file(file.filename)):
+                if not errors.get(key):
+                    errors[key] = []
+                errors[key].append('File is not allowed')
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class FilesSchema(BaseFilesSchema,
+                  metaclass=Meta):
+    class Meta:
+        user_fields = 'files_webadmins_fields'
+        type_required_fields = 'update'
+
+    def __repr__(self):
+        return f'<{FilesSchema.__name__} {id(self)}>'
+
+
 schema = {
     Role.SIMPLE_USER.value: {
         'fields': conf_fields.simple_user_fields,
@@ -394,5 +431,11 @@ schema = {
         'list': {
             'schema': CnGroupSchemaList.__name__,
         }
+    },
+    Route.FILES.value.lower(): {
+        'fields': conf_fields.files_webadmins_fields,
+        'patch': {
+            'schema': FilesSchema.__name__,
+        },
     }
 }

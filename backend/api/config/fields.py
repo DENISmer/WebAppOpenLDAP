@@ -2,6 +2,7 @@
 TYPE_LIST = list
 TYPE_STR = str
 TYPE_INT = int
+TYPE_BYTES = bytes
 
 # Fields for simple user
 simple_user_fields = {
@@ -231,6 +232,18 @@ webadmins_fields = {
             'required': [],
         }
     },
+}
+
+files_webadmins_fields = {
+    'name': 'files_webadmins_fields',
+    'fields': {
+        'jpegPhoto': {
+            'type': TYPE_BYTES,
+            'element_type': TYPE_BYTES,
+            'operation': ['read', 'update'],
+            'required': [],
+        }
+    }
 }
 
 webadmins_cn_posixgroup_fields = {

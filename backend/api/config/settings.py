@@ -16,7 +16,8 @@ NOT_AUTH = bool(int(os.environ.get('NOT_AUTH', 1)))
 
 ITEMS_PER_PAGE = 20
 
-UPLOAD_FOLDER = 'files'
+UPLOAD_FOLDER = os.path.join(os.path.abspath('.'), 'files')
+FOLDER_PHOTOS = 'photos'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 FILE_DB_NAME = os.getenv('FILE_DB_NAME')

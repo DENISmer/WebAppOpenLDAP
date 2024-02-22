@@ -124,7 +124,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @connection_ldap
     @permission_user()
     @define_schema
-    def get(self, username_uid, *args, **kwargs):
+    def get(self, user_username_uid, *args, **kwargs):
+        username_uid = user_username_uid
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         if not user:
             abort(404, message='User not found', status=404)
@@ -138,7 +139,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @connection_ldap
     @permission_user()
     @define_schema
-    def put(self, username_uid, *args, **kwargs):
+    def put(self, user_username_uid, *args, **kwargs):
+        username_uid = user_username_uid
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
@@ -159,7 +161,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @connection_ldap
     @permission_user()
     @define_schema
-    def patch(self, username_uid, *args, **kwargs):
+    def patch(self, user_username_uid, *args, **kwargs):
+        username_uid = user_username_uid
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
@@ -179,7 +182,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_user()
-    def delete(self, username_uid):
+    def delete(self, user_username_uid):
+        username_uid = user_username_uid
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
         user = user_obj.item(username_uid, [])

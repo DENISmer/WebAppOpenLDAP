@@ -10,6 +10,7 @@ from backend.api.common.exceptions import form_dict_field_error, get_attribute_e
 from backend.api.common.getting_free_id import GetFreeId
 from backend.api.common.groups import Group
 from backend.api.common.roles import Role
+from backend.api.common.route import Route
 from backend.api.common.user_manager import UserLdap
 from backend.api.config import settings
 from backend.api.resources.schema import schema
@@ -101,7 +102,6 @@ def permission_user(miss=False):
 
 
 def permission_group(func):
-
     @functools.wraps(func)
     def wraps(*args, **kwargs):
         current_user = auth.current_user()
@@ -118,7 +118,6 @@ def permission_group(func):
 
 
 def error_operation_ldap(func):
-
     @functools.wraps(func)
     def wraps(*args, **kwargs):
         operation = kwargs.get('operation') or func.__name__
@@ -261,7 +260,6 @@ def error_operation_ldap(func):
 
 
 def error_auth_ldap(func):
-
     @functools.wraps(func)
     def wraps(*args, **kwargs):
 
@@ -288,13 +286,22 @@ def error_auth_ldap(func):
 
 
 def define_schema(func):
-
     @functools.wraps(func)
     def wraps(*args, **kwargs):
         username_uid = kwargs.get('username_uid')
         current_user = auth.current_user()
         role = current_user['role']
         func_name = func.__name__ if username_uid or func.__name__ == 'post' else 'list'
+        print('route', kwargs.get('route'))
+
+        if not (route := kwargs.get('route')) and Route(route.lower()):
+            abort(
+                404,
+                error='Not Found',
+                message='The requested URL was not found on the server.'
+                        ' If you entered the URL manually please check your spelling and try again',
+                status=404
+            )
 
         try:
             type_group = kwargs.get('type_group')
@@ -311,5 +318,3 @@ def define_schema(func):
         return res
 
     return wraps
-
-

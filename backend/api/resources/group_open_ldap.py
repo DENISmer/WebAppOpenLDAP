@@ -66,7 +66,8 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def get(self, username_uid, type_group, *args, **kwargs):
+    def get(self, group_username_uid, type_group, *args, **kwargs):
+        username_uid = group_username_uid
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_uid)
         if not group:
@@ -80,7 +81,8 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def put(self, username_uid, type_group, *args, **kwargs):
+    def put(self, group_username_uid, type_group, *args, **kwargs):
+        username_uid = group_username_uid
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -99,7 +101,8 @@ class GroupOpenLDAPResource(Resource):
     @connection_ldap
     @permission_group
     @define_schema
-    def patch(self, username_uid, type_group, *args, **kwargs):
+    def patch(self, group_username_uid, type_group, *args, **kwargs):
+        username_uid = group_username_uid
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -118,7 +121,8 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEBADMIN])
     @connection_ldap
     @permission_group
-    def delete(self, username_uid, type_group, *args, **kwargs):
+    def delete(self, group_username_uid, type_group, *args, **kwargs):
+        username_uid = group_username_uid
         group_obj = GroupManagerLDAP(connection=self.connection)
         group = group_obj.get_group_info_posix_group(username_uid)
 
