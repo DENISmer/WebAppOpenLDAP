@@ -13,6 +13,7 @@ from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLD
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
+from backend.api.common.route import Route
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
@@ -36,6 +37,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
     def __modify_user_group(
         self,
@@ -120,12 +122,11 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         user.__dict__.update(deserialized_data)
         return user
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
-    def get(self, user_username_uid, *args, **kwargs):
-        username_uid = user_username_uid
+    def get(self, username_uid, *args, **kwargs):
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         if not user:
             abort(404, message='User not found', status=404)
@@ -135,12 +136,11 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         serialized_user = self.serialize_data(user_schema, user)
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
-    def put(self, user_username_uid, *args, **kwargs):
-        username_uid = user_username_uid
+    def put(self, username_uid, *args, **kwargs):
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
@@ -157,15 +157,16 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         serialized_user = self.serialize_data(user_schema, item=user)
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
-    def patch(self, user_username_uid, *args, **kwargs):
-        username_uid = user_username_uid
+    def patch(self, username_uid, *args, **kwargs):
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
+        pprint.pprint(user_schema)
+        pprint.pprint(user_fields)
 
         deserialized_data = self.deserialize_data(user_schema, json_data, partial=True)
 
@@ -179,7 +180,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         serialized_data = self.serialize_data(user_schema, user)
         return serialized_data, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     def delete(self, user_username_uid):
@@ -210,8 +211,9 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -249,7 +251,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             'page': page,
         }, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -314,8 +316,9 @@ class UserMeOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user(miss=True)
     @define_schema

@@ -61,7 +61,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
 
     def get_webadmins_group(self) -> GroupWebAdmins:
         groups = self.search(
-            value=Role.WEBADMIN.value,
+            value=Group.WEBADMINS.value,
             fields={'cn': '%s'},
             required_fields={'objectClass': 'groupOfNames'}
         )

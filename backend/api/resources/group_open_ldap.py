@@ -10,6 +10,7 @@ from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
+from backend.api.common.route import Route
 from backend.api.common.user_manager import CnGroupLdap, UserLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
@@ -21,6 +22,7 @@ class GroupOpenLDAPResource(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.GROUPS
         self.serializer = CommonSerializer()
 
     def __modify_group(
@@ -62,12 +64,11 @@ class GroupOpenLDAPResource(Resource):
         group.__dict__.update(deserialized_data)
         return group
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     @define_schema
-    def get(self, group_username_uid, type_group, *args, **kwargs):
-        username_uid = group_username_uid
+    def get(self, username_uid, type_group, *args, **kwargs):
         group = GroupManagerLDAP(connection=self.connection) \
             .get_group_info_posix_group(username_uid)
         if not group:
@@ -77,12 +78,11 @@ class GroupOpenLDAPResource(Resource):
         serialized_data = self.serializer.serialize_data(group_schema, group, many=False)
         return serialized_data, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     @define_schema
-    def put(self, group_username_uid, type_group, *args, **kwargs):
-        username_uid = group_username_uid
+    def put(self, username_uid, type_group, *args, **kwargs):
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -97,12 +97,11 @@ class GroupOpenLDAPResource(Resource):
 
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     @define_schema
-    def patch(self, group_username_uid, type_group, *args, **kwargs):
-        username_uid = group_username_uid
+    def patch(self, username_uid, type_group, *args, **kwargs):
         group_schema = kwargs['schema']
         group_fields = kwargs['fields']
         webadmins_user_fields = kwargs['webadmins_fields']
@@ -118,7 +117,7 @@ class GroupOpenLDAPResource(Resource):
 
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     def delete(self, group_username_uid, type_group, *args, **kwargs):
@@ -140,7 +139,7 @@ class GroupListOpenLDAPResource(Resource):
         self.connection = None
         self.serializer = CommonSerializer()
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     @define_schema
@@ -170,7 +169,7 @@ class GroupListOpenLDAPResource(Resource):
             'page': page,
         }, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
     @define_schema

@@ -38,17 +38,17 @@ regex = 'regex("[a-zA-Z0-9_-]+")'
 
 # Users resource
 api.add_resource(UserMeOpenLDAPResource,  f'{route}/{Route.USERS.value}/me/')
-api.add_resource(UserOpenLDAPResource,  f'{route}/{Route.USERS.value}/<{regex}:user_username_uid>')
+api.add_resource(UserOpenLDAPResource,  f'{route}/{Route.USERS.value}/<{regex}:username_uid>')
 api.add_resource(UserListOpenLDAPResource, f'{route}/{Route.USERS.value}')
 
 # Files resource
-api.add_resource(FileOpenLDAPResource,  f'{route}/{Route.FILES.value}/<{regex}:file_username_uid>')
+api.add_resource(FileOpenLDAPResource,  f'{route}/{Route.FILES.value}/<{regex}:username_uid>')
 
 # Free ids
 api.add_resource(FreeIdsOpenLDAPResource, f'{route}/free-ids')
 
 # Group resource
-api.add_resource(GroupOpenLDAPResource, f'{route}/{Route.GROUPS.value}/<{regex}:type_group>/<{regex}:group_username_uid>')
+api.add_resource(GroupOpenLDAPResource, f'{route}/{Route.GROUPS.value}/<{regex}:type_group>/<{regex}:username_uid>')
 api.add_resource(GroupListOpenLDAPResource, f'{route}/{Route.GROUPS.value}/<{regex}:type_group>')
 
 # Auth resource

@@ -1,19 +1,18 @@
 import functools
 import logging
+import pprint
 import time
 
 from flask_restful import abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.crypt_passwd import CryptPasswd
-from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message
+from backend.api.common.exceptions import form_dict_field_error, get_attribute_error_message, RouteIsNotDefine
 from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.groups import Group
 from backend.api.common.roles import Role
-from backend.api.common.route import Route
 from backend.api.common.user_manager import UserLdap
-from backend.api.config import settings
-from backend.api.resources.schema import schema
+from backend.api.config import settings, fields as fields_module
+from backend.api.resources import schema as schema_module
 
 from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPAttributeError,
@@ -89,7 +88,7 @@ def permission_user(miss=False):
             username_uid = kwargs.get('username_uid')
 
             if not miss:
-                if current_user['uid'] != username_uid and not current_user['role'] == Role.WEBADMIN.value:
+                if current_user['uid'] != username_uid and not current_user['role'] == Role.WEB_ADMIN.value:
                     abort(403, message='Insufficient access rights', status=403)
 
             res = func(*args, **kwargs)
@@ -107,7 +106,7 @@ def permission_group(func):
         current_user = auth.current_user()
 
         # username_cn = kwargs.get('username_cn')
-        if not current_user['role'] == Role.WEBADMIN.value:
+        if not current_user['role'] == Role.WEB_ADMIN.value:
             abort(403, message='Insufficient access rights', status=403)
 
         res = func(*args, **kwargs)
@@ -289,12 +288,33 @@ def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
         username_uid = kwargs.get('username_uid')
-        current_user = auth.current_user()
-        role = current_user['role']
+        if username_uid:
+            del kwargs['username_uid']
+        current_user = auth.current_user() or {}
+        role = current_user.get('role') or ''
         func_name = func.__name__ if username_uid or func.__name__ == 'post' else 'list'
-        print('route', kwargs.get('route'))
+        operation_name = schema_module.operation[func_name]
 
-        if not (route := kwargs.get('route')) and Route(route.lower()):
+        route = getattr(args[0], 'route', None)
+        if not route:
+            raise RouteIsNotDefine("'route' attr is not define.")
+
+        intermediate_arguments = list(kwargs.values())
+
+        schema_name = ''.join(map(
+            lambda item: item.lower().capitalize(),
+            [
+                role,
+                route.value,
+                *intermediate_arguments,
+                'schema',
+                'ldap',
+                operation_name
+            ]
+        ))
+        print('schema_name', schema_name)
+        schema_obj = getattr(schema_module, schema_name, None)
+        if not schema_obj:
             abort(
                 404,
                 error='Not Found',
@@ -303,16 +323,21 @@ def define_schema(func):
                 status=404
             )
 
-        try:
-            type_group = kwargs.get('type_group')
-            if type_group and Group(type_group := type_group.lower()) and schema.get(type_group):
-                kwargs['webadmins_fields'] = schema[role]['fields']
-                role = type_group
-        except ValueError:
-            abort(404, message=f'Type group not found', status=404)
+        schema_obj_meta = getattr(schema_obj, 'Meta', None)
 
-        kwargs['schema'] = schema[role][func_name]['schema']
-        kwargs['fields'] = schema[role]['fields']
+        fields = None
+        if schema_obj_meta:
+            fields = getattr(schema_obj_meta, 'user_fields', None)
+
+        if fields:
+            fields = getattr(fields_module, fields)
+
+        kwargs['schema'] = schema_name
+        kwargs['fields'] = fields
+
+        if not kwargs.get('username_uid'):
+            kwargs['username_uid'] = username_uid
+
         res = func(*args, **kwargs)
 
         return res

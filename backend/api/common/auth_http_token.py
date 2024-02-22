@@ -2,7 +2,7 @@ from flask_httpauth import HTTPTokenAuth
 
 from backend.api.common.token_manager import TokenManagerDB
 from backend.api.config import settings
-
+from backend.api.common.roles import Role
 
 auth = HTTPTokenAuth(scheme='Bearer')
 
@@ -18,7 +18,7 @@ def verify_token(token):
         is_token = {
             'dn': 'uid=bob,ou=People,dc=example,dc=com',
             'uid': 'bob',
-            'role': 'webadmins',
+            'role': Role.WEB_ADMIN.value,
             'userPassword': b'gAAAAABlyam-qUrcndMw05tw6sCpLvCVucmni3MKeZhEN7Be7Sqn7V2KlfWcIgj3gg5Apx7e9H1yIJfEJ4psvcsdnkrnxAhLEw==',
         }
 

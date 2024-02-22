@@ -13,7 +13,7 @@ print(result)  # Вывод: 123de, регулярные выражения – 
 
 url_auth = 'http://127.0.0.1:5000/api/v1/auth/token'
 r_auth = requests.post(url_auth,
-                       data=orjson.dumps({'username': 'bob', 'userPassword': 'bob'}),
+                       data=orjson.dumps({'username': 'tom', 'userPassword': 'tom'}),
                        headers={'Content-Type': 'application/json'})
 data = orjson.loads(r_auth.text)
 
@@ -24,7 +24,7 @@ headers = {
 }
 url = 'http://127.0.0.1:5000/api/v1/files/john'
 
-fin = open('/home/grigoriy/Изображения/flat/1.png', 'rb')
+fin = open('/home/grig/Изображения/test.png', 'rb')
 from io import BytesIO
 file_buffer = BytesIO(fin.read())
 files = {'jpegPhoto': ('file.png', file_buffer, 'image/png')}

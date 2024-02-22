@@ -1,4 +1,5 @@
 import copy
+import pprint
 
 from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load, pre_dump
 from marshmallow.schema import SchemaMeta
@@ -10,6 +11,11 @@ from backend.api.common.route import Route
 from backend.api.common.validators import validate_uid_gid_number, validate_required_fields, validate_uid_dn, \
     validate_allowed_file
 from backend.api.config import fields as conf_fields
+
+
+'''
+Schema name =  role + route + 'Schema' + 'Ldap' + operation 
+'''
 
 
 class TrimmedString(fields.String):
@@ -91,6 +97,8 @@ class Meta(SchemaMeta):
             for key, value in _fields['fields'].items():
 
                 if not hasattr(cls._declared_fields, key):
+                    print(cls._declared_fields)
+                    print('dasdasd', cls._declared_fields[key])
                     continue
 
                 # deep copy
@@ -158,34 +166,34 @@ class BaseSchema(Schema,
             raise ValidationError('The userPassword must be longer than 8 characters.')
 
 
-class SimpleUserSchemaLdapModify(BaseSchema,
-                                 metaclass=Meta):
+class SimpleuserUsersSchemaLdapModify(BaseSchema,
+                                      metaclass=Meta):
     class Meta:
         user_fields = 'simple_user_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
-        return f'<{SimpleUserSchemaLdapModify.__name__} {id(self)}>'
+        return f'<{SimpleuserUsersSchemaLdapModify.__name__} {id(self)}>'
 
 
-class WebAdminsSchemaLdapModify(BaseSchema,
-                                metaclass=Meta):
+class WebadminUsersSchemaLdapModify(BaseSchema,
+                                    metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
-        return f'<{WebAdminsSchemaLdapModify.__name__} {id(self)}>'
+        return f'<{WebadminUsersSchemaLdapModify.__name__} {id(self)}>'
 
 
-class WebAdminsSchemaLdapCreate(BaseSchema,
-                                metaclass=Meta):
+class WebadminUsersSchemaLdapCreate(BaseSchema,
+                                    metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_fields'
         type_required_fields = 'create'
 
     def __repr__(self):
-        return f'<{WebAdminsSchemaLdapCreate.__name__} {id(self)}>'
+        return f'<{WebadminUsersSchemaLdapCreate.__name__} {id(self)}>'
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -213,9 +221,9 @@ class WebAdminsSchemaLdapCreate(BaseSchema,
             raise ValidationError(errors)
 
 
-class WebAdminsSchemaLdapList(Schema,
-                              OuterFields,
-                              PreDumpFromList):
+class WebadminUsersSchemaLdapList(Schema,
+                                  OuterFields,
+                                  PreDumpFromList):
     dn = fields.Str(dump_only=True)
     uid = fields.Str(dump_only=True)
     cn = fields.Str(dump_only=True)
@@ -224,10 +232,10 @@ class WebAdminsSchemaLdapList(Schema,
     uidNumber = fields.Int(dump_only=True)
 
     def __repr__(self):
-        return f'<{WebAdminsSchemaLdapList.__name__} {id(self)}>'
+        return f'<{WebadminUsersSchemaLdapList.__name__} {id(self)}>'
 
 
-class AuthUserSchemaLdap(Schema):
+class AuthSchemaLdapCreate(Schema):
     '''
     Authentication schema is used to authenticate users
     '''
@@ -242,7 +250,7 @@ class AuthUserSchemaLdap(Schema):
             raise ValidationError(errors)
 
     def __repr__(self):
-        return f'<{AuthUserSchemaLdap.__name__} {id(self)}>'
+        return f'<{AuthSchemaLdapCreate.__name__} {id(self)}>'
 
 
 class TokenSchemaLdap(Schema):
@@ -254,9 +262,9 @@ class TokenSchemaLdap(Schema):
         return f'<{TokenSchemaLdap.__name__} {id(self)}>'
 
 
-class GroupBaseSchema(Schema,
-                      MissingFieldsValidation,
-                      PreDumpFromList):
+class GroupPosixgroupBaseSchema(Schema,
+                                MissingFieldsValidation,
+                                PreDumpFromList):
     dn = fields.Str()
     gidNumber = fields.Int()
     objectClass = fields.List(fields.Str())
@@ -277,29 +285,29 @@ class GroupBaseSchema(Schema,
             raise ValidationError(errors)
 
 
-class CnGroupSchemaModify(GroupBaseSchema,
-                          metaclass=Meta):
+class WebadminGroupsPosixgroupSchemaLdapModify(GroupPosixgroupBaseSchema,
+                                               metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_cn_posixgroup_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
-        return f'<{CnGroupSchemaModify.__name__} {id(self)}>'
+        return f'<{WebadminGroupsPosixgroupSchemaLdapModify.__name__} {id(self)}>'
 
 
-class CnGroupSchemaCreate(GroupBaseSchema,
-                          metaclass=Meta):
+class WebadminGroupsPosixgroupSchemaLdapCreate(GroupPosixgroupBaseSchema,
+                                               metaclass=Meta):
     class Meta:
         user_fields = 'webadmins_cn_posixgroup_fields'
         type_required_fields = 'create'
 
     def __repr__(self):
-        return f'<{CnGroupSchemaCreate.__name__} {id(self)}>'
+        return f'<{WebadminGroupsPosixgroupSchemaLdapCreate.__name__} {id(self)}>'
 
 
-class CnGroupSchemaList(Schema,
-                        OuterFields,
-                        PreDumpFromList):
+class WebadminGroupsPosixgroupSchemaLdapList(Schema,
+                                             OuterFields,
+                                             PreDumpFromList):
     dn = fields.Str(dump_only=True)
     gidNumber = fields.Int(dump_only=True)
     objectClass = fields.List(fields.Str(dump_only=True), dump_only=True)
@@ -307,10 +315,10 @@ class CnGroupSchemaList(Schema,
     memberUid = fields.Str(dump_only=True)
 
     def __repr__(self):
-        return f'<{CnGroupSchemaList.__name__} {id(self)}>'
+        return f'<{WebadminGroupsPosixgroupSchemaLdapList.__name__} {id(self)}>'
 
 
-class CnGroupOutSchema(CnGroupSchemaList,
+class CnGroupOutSchema(WebadminGroupsPosixgroupSchemaLdapList,
                        PreDumpToList):
     def __repr__(self):
         return f'<{CnGroupOutSchema.__name__} {id(self)}>'
@@ -341,7 +349,7 @@ class UserOutSchemaToList(BaseUserOutSchemaToList,
     pass
 
 
-class BaseCnGroupOutSchemaToList(GroupBaseSchema,
+class BaseCnGroupOutSchemaToList(GroupPosixgroupBaseSchema,
                                  PreDumpToList):
     pass
 
@@ -373,69 +381,20 @@ class BaseFilesSchema(Schema):
             raise ValidationError(errors)
 
 
-class FilesSchema(BaseFilesSchema,
-                  metaclass=Meta):
+class WebadminFilesSchemaLdapModify(BaseFilesSchema,
+                                    metaclass=Meta):
     class Meta:
         user_fields = 'files_webadmins_fields'
         type_required_fields = 'update'
 
     def __repr__(self):
-        return f'<{FilesSchema.__name__} {id(self)}>'
+        return f'<{WebadminFilesSchemaLdapModify.__name__} {id(self)}>'
 
 
-schema = {
-    Role.SIMPLE_USER.value: {
-        'fields': conf_fields.simple_user_fields,
-        'get': {
-            'schema': SimpleUserSchemaLdapModify.__name__,
-        },
-        'patch': {
-            'schema': SimpleUserSchemaLdapModify.__name__,
-        },
-        'put': {
-            'schema': SimpleUserSchemaLdapModify.__name__,
-        },
-    },
-    Role.WEBADMIN.value: {
-        'fields': conf_fields.webadmins_fields,
-        'get': {
-            'schema': WebAdminsSchemaLdapModify.__name__,
-        },
-        'patch': {
-            'schema': WebAdminsSchemaLdapModify.__name__,
-        },
-        'put': {
-            'schema': WebAdminsSchemaLdapModify.__name__,
-        },
-        'post': {
-            'schema': WebAdminsSchemaLdapCreate.__name__,
-        },
-        'list': {
-            'schema': WebAdminsSchemaLdapList.__name__,
-        }
-    },
-    Group.POSIXGROUP.value.lower(): {
-        'fields': conf_fields.webadmins_cn_posixgroup_fields,
-        'get': {
-            'schema': CnGroupSchemaModify.__name__,
-        },
-        'patch': {
-            'schema': CnGroupSchemaModify.__name__,
-        },
-        'put': {
-            'schema': CnGroupSchemaModify.__name__,
-        },
-        'post': {
-            'schema': CnGroupSchemaCreate.__name__,
-        },
-        'list': {
-            'schema': CnGroupSchemaList.__name__,
-        }
-    },
-    Route.FILES.value.lower(): {
-        'fields': conf_fields.files_webadmins_fields,
-        'patch': {
-            'schema': FilesSchema.__name__,
-        },
-    }
+operation = {
+    'post': 'create',
+    'get': 'modify',
+    'put': 'modify',
+    'patch': 'modify',
+    'list': 'list'
 }

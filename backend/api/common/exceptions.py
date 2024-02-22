@@ -20,6 +20,11 @@ class InputFieldKeysIsNone(Exception):
 class NotModifyItemIsNone(Exception):
     pass
 
+
+class RouteIsNotDefine(Exception):
+    pass
+
+
 # def get_attribute_error_message(fields: list, row: str) -> list:
 #     return list(set(re.findall("|".join(fields), row)))
 

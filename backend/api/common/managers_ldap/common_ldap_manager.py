@@ -108,7 +108,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
         serialized_data_modify = item.serialize_data(
             operation=operation,
         )
-
+        pprint.pprint(serialized_data_modify)
         modify_dict = dict()
 
         for key, value in serialized_data_modify.items():
@@ -127,7 +127,7 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
                 modify_dict.update({
                     key: [modify_dict_value]
                 })
-
+        pprint.pprint(modify_dict)
         self._connection.modify(
             item.dn,
             modify_dict

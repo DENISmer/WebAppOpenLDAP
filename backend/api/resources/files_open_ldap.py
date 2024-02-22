@@ -11,6 +11,7 @@ from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.roles import Role
+from backend.api.common.route import Route
 from backend.api.common.user_manager import UserLdap
 from backend.api.config import settings
 from backend.api.config.fields import files_webadmins_fields
@@ -21,19 +22,36 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.FILES
 
-    def allowed_file(self, filename):
-        return '.' in filename and \
-            filename.rsplit('.', 1)[1].lower() in settings.ALLOWED_EXTENSIONS
-
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
-    def patch(self, file_username_uid, *args, **kwargs):
+    def get(self, username_uid, *args, **kwargs):
+        user = UserManagerLDAP(connection=self.connection) \
+            .item(username_uid, ['jpegPhoto'])
+        if not user:
+            abort(404, message='User not found', status=404)
 
-        files_schema = 'FilesSchema' #kwargs['schema']
-        files_fields = files_webadmins_fields #kwargs['fields']
+        base64_data = user.jpegPhoto
+        path = os.path.join(
+            os.path.join(settings.UPLOAD_FOLDER, settings.FOLDER_PHOTOS),
+            f'{username_uid}.*'
+        )
+        from glob import glob
+        print(type(glob(path)))
+        abort(200, message='e')
+        # with open(,'rb') as f:
+        #     f.read()
+
+    @auth.login_required(role=[Role.WEB_ADMIN])
+    @connection_ldap
+    @permission_user()
+    @define_schema
+    def patch(self, username_uid, *args, **kwargs):
+        files_schema = kwargs['schema']
+        files_fields = kwargs['fields']
 
         user = UserManagerLDAP(connection=self.connection).item(username_uid)
         if not user:
@@ -72,17 +90,24 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
         # abort(400, message='exit', status=400)
 
         deserialize_data = self.deserialize_data(files_schema, request.files.to_dict(), partial=True)
-
+        response_data = {}
         for key, value in deserialize_data.items():
             chunks = b''.join(value.stream)
             file = value
             filename = secure_filename(file.filename)
+            saving_filename = f'{username_uid}.{filename.rsplit(".", 1)[1].lower()}'
+            response_data[key] = os.path.join(
+                '/', settings.UPLOAD_FOLDER, settings.FOLDER_PHOTOS, saving_filename
+            )
+            pprint.pprint(response_data)
             with open(
-                    os.path.join(
-                        os.path.join(settings.UPLOAD_FOLDER, settings.FOLDER_PHOTOS),
-                        f'{username_uid}.{filename.rsplit(".", 1)[1].lower()}'
-                    ),
-            'wb') as f:
+                os.path.join(
+                    settings.ABSPATH_UPLOAD_FOLDER,
+                    settings.FOLDER_PHOTOS,
+                    saving_filename
+                ),
+                'wb'
+            ) as f:
                 f.write(chunks)
                 base64_chunks = base64.b64encode(chunks)
                 deserialize_data[key] = base64_chunks
@@ -101,3 +126,5 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
             operation='update',  # deprecate
             not_modify_item=user
         )
+        # self.serialize_data(files_schema)
+        return response_data, 200
