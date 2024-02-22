@@ -290,6 +290,18 @@
   }
 }
 
+.Admin_form_for_groups{
+  //margin-left: 220px;
+  float: right;
+  justify-content: center;
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  //gap: 1em;
+  max-height: 100%;
+}
+
 @media screen and (width < 900px) {
   .Admin_form{
         justify-content: center;

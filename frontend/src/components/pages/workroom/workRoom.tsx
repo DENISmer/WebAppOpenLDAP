@@ -2,14 +2,22 @@ import WR_S from "@/components/pages/workroom/workRoom.module.scss"
 import React, {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router";
 import {useCookies} from "react-cookie";
-import {deleteUser, getUserDataByUid_Admin, getUsersList} from "@/scripts/requests/adminUserProvider";
+import {
+    deleteUser,
+    ErrorData,
+    getUserDataByUid_Admin,
+    getUserGroupData,
+    getUsersList
+} from "@/scripts/requests/adminUserProvider";
 import loadingGif from "@/assets/icons/h6viz.gif"
-import {UserEditForm} from "@/components/pages/workroom/inputItemForEdit";
+import {UserEditForm} from "@/components/pages/workroom/editor/userEditor/inputItemForEdit";
 import {sendChanges} from "@/scripts/requests/adminUserProvider";
 import ModalForAddUser from "@/components/Modal_Window/modalForAddUser";
 import pen from "@/assets/icons/pen_edit1.png"
 import delete_user from "@/assets/icons/delete_user.png"
-import {ProfileView} from "@/components/pages/workroom/ProfileView/ProfileView";
+import {ProfileView} from "@/components/pages/workroom/editor/ProfileView/ProfileView";
+import {UserGroupForm} from "@/components/pages/workroom/editor/userGroupEditor/userGroupForm";
+import {response} from "express";
 
 
 export interface userDataForEdit {
@@ -31,6 +39,14 @@ export interface userDataForEdit {
     objectClass?: string[],
     userPassword?: string,
     error?: any
+}
+export interface userGroupDataForEdit {
+    dn: string,
+    gidNumber: number,
+    cn: string,
+    objectClass: string[],
+    memberUid: string,
+    status?: number,
 }
 export interface SimpleUserDataForEdit {
     sshPublicKey: string[],
@@ -62,9 +78,13 @@ export interface Params {
     token: string
 }
 
-export interface IeEditing {
+export interface IsEditing {
     isEditing: boolean,
     uid: string
+}
+export interface Role {
+    simple: string,
+    admin: string,
 }
 const WorkRoom: React.FC = () => {
 
@@ -77,7 +97,8 @@ const WorkRoom: React.FC = () => {
     const [currentEditor, setCurrentEditor] = useState<CurrentEditor>()
 
     let optionRef = useRef<any>(null)
-    const [isEditing, setIsEditing] = useState<IeEditing>({isEditing: false, uid: undefined})
+    const [isEditing, setIsEditing] = useState<IsEditing>({isEditing: false, uid: undefined})
+    const [isEditingGroup, setIsEditingGroup] =useState(false)
     const [userIsChanged, setUserIsChanged] = useState(false)
 
     const [currentListPage, setCurrentListPage] = useState(1)
@@ -90,6 +111,12 @@ const WorkRoom: React.FC = () => {
     const [adminUserEdit, setAdminUserEdit] = useState(false)
     // const [currentUser, setCurrentUser] = useState({})
     const [addUserIsActive, setAddUserIsActive] = useState(false)
+
+    const role: Role = {
+        admin: 'webadmins',
+        simple: 'simple_user',
+    }
+
     const fillUsersList = async (props: Params) => {
         return await getUsersList(props)
     }
@@ -116,7 +143,7 @@ const WorkRoom: React.FC = () => {
     //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
-            if(userAuthCookies['userAuth'].role === 'simple_user') {
+            if(userAuthCookies['userAuth'].role === role.simple) {
                 setIsEditing({isEditing: true, uid: userAuthCookies['userAuth'].userName})
             }
             setCurrentEditor({
@@ -153,10 +180,25 @@ const WorkRoom: React.FC = () => {
         }
     }, [isEditing]);
 
+    //hooks for switch to the user group edit mode
+    useEffect( () => {
+        isEditingGroup && groups()
+            .then((response): userGroupDataForEdit | ErrorData => {
+                if(response.status){
+                       alert(`ERROR ${response.status}`)
+                } else {
+                    alert('Good')
+                }
+                return null
+            })
+    },[isEditingGroup])
+
+
     useEffect(() => {
         console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
         setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
     },[editedUser])
+
 
     const onUserListPageChange = () => {
         setListLoading(true)
@@ -182,6 +224,13 @@ const WorkRoom: React.FC = () => {
         } catch { (e) => {
             console.log(e)
         } }
+    }
+
+    const groups = async () : Promise<userGroupDataForEdit | ErrorData> => {
+        return await getUserGroupData(
+            {token: currentEditor.token,
+                uid: editedUser.uid
+            })
     }
 
     const quitForAdmin = () => {
@@ -261,7 +310,7 @@ const WorkRoom: React.FC = () => {
     // events for event Changes!
     const handleUserDataChange = (newData: userDataForEdit) => {
         setEditedUser(newData);
-        // Здесь вы можете также отправить изменения на сервер, если это необходимо.
+        // Здесь вы можете отправить изменения на сервер, если это необходимо.
     };
 
     // const serDefaultUserData
@@ -329,13 +378,25 @@ const WorkRoom: React.FC = () => {
     }
 
     const setCurrentAdminProfileEdit = () => {
-        setIsEditing(
-            {
-                isEditing: true,
-                uid: currentEditor.uid
+        if(isEditing.isEditing){
+            const askForClose = confirm('Текущие изменения не сохранятся. Продолжить?')
+            if (askForClose){
+                setIsEditing(
+                    {
+                        isEditing: true,
+                        uid: currentEditor.uid
+                    }
+                )
+                setAdminUserEdit(true)
             }
-        )
-        setAdminUserEdit(true)
+        } else {
+            setIsEditing(
+                {
+                    isEditing: true,
+                    uid: currentEditor.uid
+                }
+            )
+        }
     }
 
     const onCloseModalAddUser = (data: boolean) => {
@@ -351,6 +412,9 @@ const WorkRoom: React.FC = () => {
     }
 
 
+    const switchEditMode = () => {
+        setIsEditingGroup(!isEditingGroup)
+    }
 
     return (<>
         <div className={WR_S.Page}>
@@ -370,8 +434,8 @@ const WorkRoom: React.FC = () => {
                     Выйти
                 </div>
 
-                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user')
-                    || (currentEditor && currentEditor.role === 'simple_user')
+                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === role.simple)
+                    || (currentEditor && currentEditor.role === role.simple)
                     ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}
                     onClick={() => setCurrentAdminProfileEdit()}>
                     Профиль
@@ -379,7 +443,7 @@ const WorkRoom: React.FC = () => {
 
             </div>
 
-            {currentEditor && currentEditor.role === 'webadmins' &&
+            {currentEditor && currentEditor.role === role.admin &&
                 isEditing && !isEditing.isEditing && <div className={WR_S.Admin_Panel}>
                 {/*menu*/}
 
@@ -453,10 +517,28 @@ const WorkRoom: React.FC = () => {
 
             {/*simple and admin editing*/}
             {(adminUserEdit || currentEditor) && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+
+                {currentEditor.role === role.admin &&
+                    <button onClick={() => switchEditMode()}>
+                        edit group of this user
+                    </button>
+                }
+
                 <ProfileView data={editedUser}/>
 
-                <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange} fieldIsChange={isFieldChanged} role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>
+                {!isEditingGroup && <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange}
+                               fieldIsChange={isFieldChanged}
+                               role={currentEditor.role ?? userAuthCookies['userAuth'].role}/>}
 
+                {isEditingGroup && <UserGroupForm userData={
+                    {
+                        cn: 'test cn',
+                        dn: 'test dn',
+                        gidNumber: 100,
+                        objectClass: ['testOb1','testOb2'],
+                        memberUid: 'testmeber uid',
+                    }
+                } />}
             </div>}
 
             {currentEditor && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.button_group}>
@@ -472,10 +554,10 @@ const WorkRoom: React.FC = () => {
 
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            (currentEditor.role === 'simple_user') ?
+                            (currentEditor.role === role.simple) ?
                                 quitForSimpleUser() : quitForAdmin()
                         }}>
-                    выйти к {currentEditor.role === 'webadmins' ?
+                    выйти к {currentEditor.role === role.admin ?
                     <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}

@@ -1,10 +1,11 @@
 import {ChangeEvent, useState} from "react";
-import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
+import FFE_S from "@/components/pages/workroom/editor/userEditor/formForEdit.module.scss"
 import delete_object from "@/assets/icons/delete_object.png"
 import {Modal} from "@/components/Modal_Window/modalWindow";
 import add_object from "@/assets/icons/add_item_v2.svg"
 import full_view from "@/assets/icons/openInModal_v2.svg"
 import expand_more from "@/assets/icons/expand_more.png"
+import {Role} from "@/components/pages/workroom/workRoom";
 
 export interface userDataForEdit {
     dn?: string,
@@ -37,6 +38,10 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
     const [isModalActive, setIsModalActive] = useState({acive: false, text: null})
     const [expandMoreActive, setExpandMoreActive] = useState({mail: false, sshPublicKey: false, objectClass: false})
 
+    const uRole : Role = {
+        admin: 'webadmins',
+        simple: 'simple_user',
+    }
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
         let updatedValue: any = value;
@@ -148,7 +153,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             name={inputName}
                             placeholder={`Enter ${key}`}
                             value={inputValue || ''}
-                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === 'simple_user'}
+                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === uRole.simple}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 handleInputChange(key, e.target.value, index)
                             }
@@ -159,8 +164,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
 
                             {isValueArray && index === value.length - 1 && <button
-                                className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
+                                className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                 type="button"
                                 title={"Добавить новое поле"}
                                 onClick={() => handleAddArrayItem(key)}>
@@ -177,9 +182,9 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
                             {isValueArray &&
                                 typeof index === 'number' && value.length > 1 && (
-                                    <button className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Remove : FFE_S.button_disabled}
+                                    <button className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
                                             type="button"
-                                            disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
+                                            disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                             onClick={() => handleRemoveArrayItem(key, index)}
                                             title={"удалить текущее поле"}>
                                         <img src={delete_object} alt="Delete this field" width={20}/>
@@ -220,8 +225,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                 {value.length === 0 && <label style={{fontWeight: "bold"}}>{key}</label>}
                                 {inputs}
                                 {value.length === 0 && <button
-                                    className={role === 'simple_user' && (key === 'mail' || key === 'sshPublicKey') || role !== 'simple_user' ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                    disabled={role === 'simple_user' && (key !== 'mail' && key !== 'sshPublicKey')}
+                                    className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                    disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                     type="button"
                                     title={"Добавить новое поле"}
                                     onClick={() => handleAddArrayItem(key)}>
