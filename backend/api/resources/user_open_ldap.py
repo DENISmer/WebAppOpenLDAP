@@ -1,15 +1,15 @@
 import logging
+import os
 import pprint
 import time
-
+import glob
 import orjson
+
 from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
-from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
@@ -133,6 +133,20 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
 
         user_schema = kwargs['schema']
 
+        path = os.path.join(
+            settings.ABSPATH_UPLOAD_FOLDER,
+            f'{username_uid}*.*'
+        )
+        files = glob.glob(path)
+
+        user.jpegPhotoPath = []
+        for item in files:
+            user.jpegPhotoPath.append(
+                os.path.join(
+                    '/', settings.UPLOAD_FOLDER, os.path.basename(item)
+                )
+            )
+
         serialized_user = self.serialize_data(user_schema, user)
         return serialized_user, 200
 
@@ -165,8 +179,6 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         json_data = request.get_json()
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
-        pprint.pprint(user_schema)
-        pprint.pprint(user_fields)
 
         deserialized_data = self.deserialize_data(user_schema, json_data, partial=True)
 
@@ -183,8 +195,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
-    def delete(self, user_username_uid):
-        username_uid = user_username_uid
+    def delete(self, username_uid):
         user_obj = UserManagerLDAP(connection=self.connection)
         group_obj = GroupManagerLDAP(connection=self.connection)
         user = user_obj.item(username_uid, [])

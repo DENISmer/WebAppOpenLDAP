@@ -1,9 +1,13 @@
 import copy
 import pprint
+import mimetypes
+import magic
 
-from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load, pre_dump
+from marshmallow import Schema, fields, ValidationError, validates, validates_schema, post_dump, post_load, pre_dump, pre_load
 from marshmallow.schema import SchemaMeta
 from flask_restful import abort
+# from werkzeug.datastructures.file_storage import FileStorage
+from werkzeug.datastructures import FileStorage
 
 from backend.api.common.groups import Group
 from backend.api.common.roles import Role
@@ -96,9 +100,7 @@ class Meta(SchemaMeta):
 
             for key, value in _fields['fields'].items():
 
-                if not hasattr(cls._declared_fields, key):
-                    print(cls._declared_fields)
-                    print('dasdasd', cls._declared_fields[key])
+                if not cls._declared_fields.get(key):
                     continue
 
                 # deep copy
@@ -148,7 +150,7 @@ class BaseSchema(Schema,
     postalCode = fields.Int()
     homeDirectory = fields.Str()
     loginShell = fields.Str()
-    jpegPhotoPath = fields.Str()
+    jpegPhotoPath = fields.List(fields.Str())
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -359,23 +361,61 @@ class CnGroupOutSchemaToList(BaseCnGroupOutSchemaToList,
     pass
 
 
-class BaseFilesSchema(Schema):
-    jpegPhoto = fields.Raw(metadata={'type': 'string', 'format': 'binary'})
+class FileStorageField(fields.Field):
+    # default_error_messages = {
+    #     "invalid": "Not a valid image."
+    # }
 
-    @validates('jpegPhoto')
-    def validate_jpegPhoto(self, value):
-        print('JPEGPHTO', value)
+    def _deserialize(self, value, attr, data, **kwargs) -> FileStorage:
+        # if value is None:
+        #     return None
+        #
+        # if not isinstance(value, FileStorage):
+        #     self.fail("invalid")
+
+        return value
+
+
+class BaseFilesSchema(Schema):
+    jpegPhoto = fields.List(
+        FileStorageField()
+        # fields.Raw(metadata={'type': 'string', 'format': 'binary'})
+    )
+
+    @pre_load(pass_many=True)
+    def pre_load_data(self, in_data, many, **kwargs):
+        new_in_data = {}
+
+        for key in in_data:
+            new_in_data[key] = in_data.getlist(key)
+
+        return new_in_data
 
     @validates_schema
     def validate_object(self, data, **kwargs):
         errors = {}
+
         validate_required_fields(data, errors, self._declared_fields)
-        for key, value in data.items():
-            file = value
-            if not (file and validate_allowed_file(file.filename)):
-                if not errors.get(key):
-                    errors[key] = []
-                errors[key].append('File is not allowed')
+
+        for key, files in data.items():
+
+            if not files:
+                continue
+
+            for index, file in enumerate(files):
+
+                # mime_type = magic.from_buffer(b''.join(file.stream), mime=True)
+                # extension = mimetypes.guess_extension(mime_type)
+                # and validate_allowed_file(extension)
+                if not (file and validate_allowed_file(file.filename)
+                        ):
+                    if not errors.get(key):
+                        errors[key] = {}
+
+                    if not errors[key].get(str(index)):
+                        errors[key][str(index)] = []
+
+                    errors[key][str(index)].append('File is not allowed')
 
         if errors:
             raise ValidationError(errors)

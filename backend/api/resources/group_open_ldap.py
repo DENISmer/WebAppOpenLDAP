@@ -120,8 +120,7 @@ class GroupOpenLDAPResource(Resource):
     @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_group
-    def delete(self, group_username_uid, type_group, *args, **kwargs):
-        username_uid = group_username_uid
+    def delete(self, username_uid, type_group, *args, **kwargs):
         group_obj = GroupManagerLDAP(connection=self.connection)
         group = group_obj.get_group_info_posix_group(username_uid)
 

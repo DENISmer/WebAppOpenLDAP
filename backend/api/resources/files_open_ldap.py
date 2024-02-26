@@ -1,9 +1,14 @@
 import base64
+import mimetypes
+from io import BytesIO
+
+import magic
 import os
 import pprint
+import glob
 
 from flask_restful import Resource, request, abort
-
+from flask import send_from_directory
 from werkzeug.utils import secure_filename
 
 from backend.api.common.auth_http_token import auth
@@ -17,7 +22,16 @@ from backend.api.config import settings
 from backend.api.config.fields import files_webadmins_fields
 
 
-class FileOpenLDAPResource(Resource, CommonSerializer):
+class FileDownloadOpenLDAPResource(Resource):
+    # @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
+    # @permission_user()
+    def get(self, name, *args, **kwargs):
+        return send_from_directory(
+            os.path.join(settings.ABSPATH_UPLOAD_FOLDER), name
+        )
+
+
+class FileUploadOpenLDAPResource(Resource, CommonSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,13 +49,31 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
             abort(404, message='User not found', status=404)
 
         base64_data = user.jpegPhoto
-        path = os.path.join(
+        print(len(base64_data))
+        return {}, 200
+        route = os.path.join(
             os.path.join(settings.UPLOAD_FOLDER, settings.FOLDER_PHOTOS),
             f'{username_uid}.*'
         )
-        from glob import glob
-        print(type(glob(path)))
-        abort(200, message='e')
+
+        response_data = {}
+
+        import mimetypes
+
+        print(mimetypes.guess_extension('image/png'))
+        for path in glob(route):
+            with open(path, 'rb') as f:
+                # base64_encoded = base64.b64encode(f.read())
+                byte_data_file = f.read()
+                byte_data_base64_dec = base64.b64decode(base64_data)
+            if not byte_data_file == byte_data_base64_dec:
+                with open('asd') as f:
+                    pass
+            # if not response_data.get('jpegPhoto'):
+            #     response_data['jpegPhoto'] = []
+            # response_data['jpegPhoto'].append(path)
+
+        return response_data, 200
         # with open(,'rb') as f:
         #     f.read()
 
@@ -57,74 +89,60 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
         if not user:
             abort(404, message='User not found', status=404)
 
-        # print('files', request.files)
-        # print('files', request.files.to_dict())
-        # # pprint.pprint(request.__dict__)
-        # deserialize_data = self.deserialize_data(files_schema, request.files.to_dict(), partial=True)
-        # print('OUT')
-        # pprint.pprint(deserialize_data)
-        # data = deserialize_data['jpegPhoto'].stream
-        # # base64_data = b''
-        # byte_data = b''
-        # for item in data:
-        #     # base64_data += base64.b64encode(item)
-        #     byte_data += item
-        # # print('len', len(base64_data))
-        # print('OUT')
-        # base64_data = base64.b64encode(byte_data)
-        # with open(os.path.join(settings.UPLOAD_FOLDER, 'file1.png'), 'wb') as f:
-        #     base64_decode = base64.b64decode(base64_data)
-        #     print(base64_decode == byte_data)
-        #     f.write(base64_decode)
-        #
-        # file = deserialize_data['jpegPhoto']
-        # filename = secure_filename(file.filename)
-        # with open(os.path.join(settings.UPLOAD_FOLDER, f'{username_uid}.{filename.rsplit(".", 1)[1].lower()}'), 'wb') as f1:
-        #     f1.write(byte_data)
-        #
-        # print('filename', filename)
-        # file.save(os.path.join(
-        #     settings.UPLOAD_FOLDER, filename #f'{username_uid}.{filename.rsplit(".", 1)[1].lower()}'
-        # ))
-        #
-        # abort(400, message='exit', status=400)
+        deserialize_data = self.deserialize_data(files_schema, request.files, partial=True)
 
-        deserialize_data = self.deserialize_data(files_schema, request.files.to_dict(), partial=True)
         response_data = {}
-        for key, value in deserialize_data.items():
-            chunks = b''.join(value.stream)
-            file = value
-            filename = secure_filename(file.filename)
-            saving_filename = f'{username_uid}.{filename.rsplit(".", 1)[1].lower()}'
-            response_data[key] = os.path.join(
-                '/', settings.UPLOAD_FOLDER, settings.FOLDER_PHOTOS, saving_filename
-            )
-            pprint.pprint(response_data)
-            with open(
-                os.path.join(
+        save_deserialize_data = {}
+        for key, files in deserialize_data.items():
+            if not save_deserialize_data.get(key):
+                save_deserialize_data[key] = []
+
+            if not files:
+                path = os.path.join(
                     settings.ABSPATH_UPLOAD_FOLDER,
-                    settings.FOLDER_PHOTOS,
-                    saving_filename
-                ),
-                'wb'
-            ) as f:
-                f.write(chunks)
-                base64_chunks = base64.b64encode(chunks)
-                deserialize_data[key] = base64_chunks
+                    f'{username_uid}*.*'
+                )
+                files = glob.glob(path)
+                # must be done
 
-        updated_user = UserLdap(
-            dn=user.dn,
-            username=username_uid,
-            fields=files_fields['fields'],
-            input_field_keys=deserialize_data.keys(),
-            **deserialize_data,
-        )
-        user_obj = UserManagerLDAP(connection=self.connection)
+            for index, file in enumerate(files):
+                chunks = b''.join(file.stream)
+                filename_secure = secure_filename(file.filename)
+                saving_filename = f'{username_uid}_{key}_{index}.{filename_secure.rsplit(".", 1)[1].lower()}'
 
-        user_obj.modify(
-            item=updated_user,
-            operation='update',  # deprecate
-            not_modify_item=user
-        )
-        # self.serialize_data(files_schema)
+                if not response_data.get(key):
+                    response_data[key] = []
+                response_data[key].append(os.path.join(
+                    '/', settings.UPLOAD_FOLDER, saving_filename
+                ))
+
+                path_to_save = os.path.join(settings.ABSPATH_UPLOAD_FOLDER, saving_filename)
+
+                file_data_exists = b''
+                if os.path.exists(path_to_save):
+                    with open(path_to_save, 'rb') as f_r:
+                        file_data_exists = f_r.read()
+
+                if file_data_exists != chunks: # edit
+                    with open(path_to_save, 'wb') as f:
+                        f.write(chunks)
+                        save_deserialize_data[key].append(base64.b64encode(chunks))
+
+        if save_deserialize_data:
+
+            updated_user = UserLdap(
+                dn=user.dn,
+                username=username_uid,
+                fields=files_fields['fields'],
+                input_field_keys=save_deserialize_data.keys(),
+                **save_deserialize_data,
+            )
+            user_obj = UserManagerLDAP(connection=self.connection)
+
+            user_obj.modify(
+                item=updated_user,
+                operation='update',  # deprecate
+                not_modify_item=user
+            )
+
         return response_data, 200

@@ -28,7 +28,8 @@ from ldap3.core.exceptions import (LDAPInsufficientAccessRightsResult,
                                    LDAPNoSuchObjectResult,
                                    LDAPUnwillingToPerformResult,
                                    LDAPAttributeOrValueExistsResult,
-                                   LDAPNamingViolationResult)
+                                   LDAPNamingViolationResult,
+                                   LDAPChangeError)
 
 
 def connection_ldap(func):
@@ -238,11 +239,18 @@ def error_operation_ldap(func):
                 type=e.__dict__["type"],
                 status=400
             )
+        except LDAPChangeError as e:
+            logging.log(logging.ERROR, e)
+            abort(
+                400,
+                message=str(e),
+                status=400
+            )
         except LDAPException as e:
             logging.log(logging.ERROR, e)
             abort(
                 400,
-                message='Try again later1..',
+                message='Error is not processed. ' + str(e),
                 status=400
             )
         finally:
