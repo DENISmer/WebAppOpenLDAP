@@ -1,5 +1,5 @@
 import {ChangeEvent, useState} from "react";
-import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
+import FFE_S from "@/components/pages/workroom/editor/userEditor/formForEdit.module.scss"
 import delete_object from "@/assets/icons/delete_object.png"
 import {Modal} from "@/components/Modal_Window/modalWindow";
 import add_object from "@/assets/icons/add_item_v2.svg"
@@ -33,14 +33,15 @@ interface Props {
 }
 
 
+
 export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange, role}) => {
 
     const [isModalActive, setIsModalActive] = useState({acive: false, text: null})
     const [expandMoreActive, setExpandMoreActive] = useState({mail: false, sshPublicKey: false, objectClass: false})
 
-    const uRole: UserRole = {
-        admin: 'webadmin',
-        simple: 'simpleuser'
+    const uRole : UserRole = {
+        admin: 'webadmins',
+        simple: 'simple_user',
     }
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };

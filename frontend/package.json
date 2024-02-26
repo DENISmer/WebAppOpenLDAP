@@ -10,7 +10,7 @@
     "local-deploy": "npx serve -s build",
     "deploy": "gh-pages -d build",
     "clean": "rd /s /q build",
-    "cb-dep": "npm run clean && npm run build-prod && npm run deploy"
+    "cb-dep": "npm run clean && npm run build-prod"
   },
   "keywords": [],
   "author": "",

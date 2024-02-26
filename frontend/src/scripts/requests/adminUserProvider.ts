@@ -1,4 +1,4 @@
-import {Params, userDataForEdit} from "@/components/pages/workroom/workRoom";
+import {Params, userDataForEdit, userGroupDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
 import {APIS} from "@/scripts/constants";
 
@@ -31,6 +31,16 @@ export interface userAddDataForEdit {
     loginShell?: string,
     objectClass: string[],
     userPassword: string
+}
+
+export interface getUserGroupData {
+    token: string,
+    role?: string,
+    uid: string,
+}
+export interface ErrorData {
+    message: string,
+    status: number
 }
 
 export async function getUsersList(props: Params) {
@@ -158,7 +168,20 @@ export async function addUser(data: userAddDataForEdit, token: string) {
         })
         .catch((e) => {
             return e
-            //alert(`smth went wrong ${e}`)
+        })
+}
+
+export async function getUserGroupData(data: getUserGroupData): Promise<userGroupDataForEdit | ErrorData> {
+    return await axios.get(`${APIS.GROUPS}${data.uid}`,{
+        headers: {
+            Authorization: `Bearer ${data.token}`,
+        }
+    })
+        .then((response): userGroupDataForEdit => {
+            return response.data
+        })
+        .catch((e): ErrorData => {
+            return e.response.data
         })
 }
 

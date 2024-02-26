@@ -21,7 +21,7 @@
 .modal {
   background: #1e2a38;
   color: #fff;
-  width: 30%;
+  width: 40%;
   height: 90%;
   overflow-y: auto;
   border-radius: 8px;
@@ -98,3 +98,10 @@
   color: #ff6961;
   margin-top: 10px;
 }
+
+@media screen and (width < 900px) {
+  .modal{
+    width: 70%;
+  }
+}
+
