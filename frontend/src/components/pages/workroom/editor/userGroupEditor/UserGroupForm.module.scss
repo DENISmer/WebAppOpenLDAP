@@ -1,0 +1,65 @@
+.groupForm{
+  left: 15%;
+  position: relative;
+  display: flex;
+  width: 70%;
+  justify-content: center;
+  //align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  max-height: 100%;
+}
+
+
+.public_div_group {
+  height: max-content;
+  width: max-content;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  margin: 10px;
+  padding: 5px;
+
+
+  .element_group {
+    padding: 5px;
+    //border: 1px solid;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    label, textarea, input {
+      font-family: Roboto, sans-serif;
+      font-size: 17px;
+      margin: 15px 0 0 0;
+      transition: .25s all;
+    }
+
+    span {
+      margin: 0 0 0 5px;
+      padding: 0;
+    }
+
+
+    label {
+      font-weight: bold;
+    }
+
+    textarea {
+      resize: vertical;
+      max-height: 100px;
+    }
+
+    input {
+      border-radius: 5px;
+      padding: 3px;
+    }
+  }
+}

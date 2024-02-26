@@ -371,6 +371,28 @@
     padding: 10px;
   }
 
+  .Group_user_button{
+    z-index: 999;
+    position: fixed;
+    top: 14%;
+    left: 10%;
+    white-space: nowrap;
+    width: max-content;
+    height: max-content;
+    font-size: 16px;
+    border-radius: 10px;
+    padding: 5px;
+    background-color: rgba(0, 128, 0, 0.7);
+    color: white;
+    transition: .3s ease-in-out;
+
+    &:hover{
+      transition: .3s ease-in-out;
+      background-color: #FFF;
+      color: #008000;
+    }
+  }
+
   .button_back{
     font-size: 16px;
     position: relative;
@@ -448,6 +470,10 @@
     justify-content: center;
     align-items: center;
 
+    .menu{
+      right: 0;
+    }
+
     .button_group{
       justify-content: center;
       flex-direction: column;
@@ -491,56 +517,7 @@
         height: 30px;
         font-size: 15px;
       }
-      //.menu {
-      //  position: relative;
-      //  max-width: 150px;
-      //  width: auto;
-      //  min-width: 140px;
-      //  height: 30px;
-      //  background-color: #1e2e4b;
-      //  margin: 1rem 1rem 1rem 1rem;
-      //  display: flex;
-      //  flex-direction: row;
-      //  justify-content: space-between;
-      //  padding: 0.3rem;
-      //  border-radius: 6px;
-      //  .logout{
-      //    position: relative;
-      //    cursor: pointer;
-      //    color: white;
-      //    background-color: #a0bbd9;
-      //    padding: 0.3rem;
-      //    width: max-content;
-      //    border-radius: 3px;
-      //    margin-right: 10%;
-      //    &:hover {
-      //      background: #8299b4;
-      //      scale: 1.05;
-      //      transition: 0.3s ease-in-out;
-      //    }
-      //  }
-      //  .Admin_Profile {
-      //    position: relative;
-      //    cursor: pointer;
-      //    border-radius: 3px;
-      //    background-color: #a0bbd9;
-      //    color: white;
-      //    width: max-content;
-      //    padding: 0.3rem;
-      //    &:hover {
-      //      background: #8299b4;
-      //      scale: 1.05;
-      //      transition: 0.3s ease-in-out;
-      //    }
-      //  }
-      //  .currentUser {
-      //    margin: 3rem 0 0 1rem;
-      //    position: relative;
-      //    width: 300px;
-      //    height: 150px;
-      //    background-color: #a0bbd9;
-      //  }
-      //}
+
       .AdminCurrentUser {
         width: 70%;
         max-width: 300px;
@@ -566,6 +543,17 @@
       background-color: rgba(30, 46, 75, 0.38);
       border-radius: 20px;
       padding: 10px;
+
+
+      .Group_user_button{
+        z-index: 999;
+        position: fixed;
+        top: 2.8%;
+        left: 1%;
+        white-space: nowrap;
+        width: max-content;
+        height: max-content;
+      }
     }
   }
 }

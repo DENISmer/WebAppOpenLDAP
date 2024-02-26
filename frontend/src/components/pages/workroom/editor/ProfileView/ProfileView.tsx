@@ -1,4 +1,4 @@
-import PV_S from "@/components/pages/workroom/ProfileView/ProfileView.module.scss"
+import PV_S from "@/components/pages/workroom/editor/ProfileView/ProfileView.module.scss"
 import {userDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
 import {APIS} from "@/scripts/constants";

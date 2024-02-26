@@ -1,5 +1,5 @@
 import {ChangeEvent, useState} from "react";
-import FFE_S from "@/components/pages/workroom/formForEdit.module.scss"
+import FFE_S from "@/components/pages/workroom/editor/userEditor/formForEdit.module.scss"
 import delete_object from "@/assets/icons/delete_object.png"
 import {Modal} from "@/components/Modal_Window/modalWindow";
 import add_object from "@/assets/icons/add_item_v2.svg"
@@ -33,14 +33,15 @@ interface Props {
 }
 
 
+
 export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fieldIsChange, role}) => {
 
     const [isModalActive, setIsModalActive] = useState({acive: false, text: null})
     const [expandMoreActive, setExpandMoreActive] = useState({mail: false, sshPublicKey: false, objectClass: false})
 
-    const uRole: UserRole = {
-        admin: 'webadmin',
-        simple: 'simpleuser'
+    const uRole : UserRole = {
+        admin: 'webadmins',
+        simple: 'simple_user',
     }
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
@@ -144,54 +145,54 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             <span className={fieldIsChange(key) && !index ? FFE_S.isChanged : null}>изменено{' '}</span> : null
                         }
 
-                    </label>
+                        </label>
 
-                    <input
-                        className={fieldIsChange(key) && key !== 'objectClass' && key !== 'mail' && key !== 'sshPublicKey' &&  index !== 0 ? FFE_S.isChanged : FFE_S.default_input}
-                        type={key === 'mail' ? "email" : "text"}
-                        id={inputName}
-                        name={inputName}
-                        placeholder={`Enter ${key}`}
-                        value={inputValue || ''}
-                        disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === uRole.simple}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                            handleInputChange(key, e.target.value, index)
-                        }
-                        }
-                    />
-                    {/*button group*/}
-                    <div className={FFE_S.button_group}>
+                        <input
+                            className={fieldIsChange(key) && key !== 'objectClass' && key !== 'mail' && key !== 'sshPublicKey' &&  index !== 0 ? FFE_S.isChanged : FFE_S.default_input}
+                            type={key === 'mail' ? "email" : "text"}
+                            id={inputName}
+                            name={inputName}
+                            placeholder={`Enter ${key}`}
+                            value={inputValue || ''}
+                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === uRole.simple}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                handleInputChange(key, e.target.value, index)
+                            }
+                            }
+                        />
+                        {/*button group*/}
+                        <div className={FFE_S.button_group}>
 
 
-                        {isValueArray && index === value.length - 1 && <button
-                            className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
-                            disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
-                            type="button"
-                            title={"Добавить новое поле"}
-                            onClick={() => handleAddArrayItem(key)}>
-                            <img src={add_object} alt="add field" width={20}/>
-                        </button>}
-
-                        {key === 'sshPublicKey' &&
-                            <button className={FFE_S.Button_fullView}
-                                    onClick={() => modal(false, inputValue)}
-                                    type={"button"}
-                                    title={"открыть в окне для просмотра"}>
-                                <img src={full_view} alt="full view" width={20}/>
+                            {isValueArray && index === value.length - 1 && <button
+                                className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                type="button"
+                                title={"Добавить новое поле"}
+                                onClick={() => handleAddArrayItem(key)}>
+                                    <img src={add_object} alt="add field" width={20}/>
                             </button>}
 
-                        {isValueArray &&
-                            typeof index === 'number' && value.length > 1 && (
-                                <button className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
-                                        type="button"
-                                        disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
-                                        onClick={() => handleRemoveArrayItem(key, index)}
-                                        title={"удалить текущее поле"}>
-                                    <img src={delete_object} alt="Delete this field" width={20}/>
-                                </button>
-                            )}
+                            {key === 'sshPublicKey' &&
+                                <button className={FFE_S.Button_fullView}
+                                        onClick={() => modal(false, inputValue)}
+                                        type={"button"}
+                                        title={"открыть в окне для просмотра"}>
+                                    <img src={full_view} alt="full view" width={20}/>
+                                </button>}
 
-                    </div>
+                            {isValueArray &&
+                                typeof index === 'number' && value.length > 1 && (
+                                    <button className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
+                                            type="button"
+                                            disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                            onClick={() => handleRemoveArrayItem(key, index)}
+                                            title={"удалить текущее поле"}>
+                                        <img src={delete_object} alt="Delete this field" width={20}/>
+                                    </button>
+                                )}
+
+                        </div>
                 </div>
             </div>
         );
@@ -206,12 +207,12 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                 />
             }
 
-            <form className={FFE_S.Admin_form}>
-                {Object.entries(userData).sort().map(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        const inputs = value.map((val, index) => renderInput(key, value, index));
-                        return (
-                            <div className={expandMoreActive[key] ? FFE_S.objects_div_expand_more : FFE_S.objects_div} key={key}>
+        <form className={FFE_S.Admin_form}>
+            {Object.entries(userData).sort().map(([key, value]) => {
+                if (Array.isArray(value)) {
+                    const inputs = value.map((val, index) => renderInput(key, value, index));
+                    return (
+                        <div className={expandMoreActive[key] ? FFE_S.objects_div_expand_more : FFE_S.objects_div} key={key}>
                                 <button    className={value.length === 0 ? FFE_S.Expand_more_disabled : FFE_S.Expand_more}
                                            onClick={()=> {
                                                expand(key)
@@ -221,26 +222,26 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                            title={"Развернуть для просмотра"}>
                                     <img className={expandMoreActive[key] ? FFE_S.Expand_more_img : FFE_S.Expand_more_img_def} src={expand_more} alt="Развернуть для просмотра" width={20}/>
                                 </button>
-                                <div className={FFE_S.objects_element}>
-                                    {value.length === 0 && <label style={{fontWeight: "bold"}}>{key}</label>}
-                                    {inputs}
-                                    {value.length === 0 && <button
-                                        className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                        disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
-                                        type="button"
-                                        title={"Добавить новое поле"}
-                                        onClick={() => handleAddArrayItem(key)}>
-                                        <img src={add_object} alt="add field" width={20}/>
-                                    </button>}
-                                </div>
+                            <div className={FFE_S.objects_element}>
+                                {value.length === 0 && <label style={{fontWeight: "bold"}}>{key}</label>}
+                                {inputs}
+                                {value.length === 0 && <button
+                                    className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                    disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                    type="button"
+                                    title={"Добавить новое поле"}
+                                    onClick={() => handleAddArrayItem(key)}>
+                                    <img src={add_object} alt="add field" width={20}/>
+                                </button>}
                             </div>
-                        );
-                    } else {
-                        return renderInput(key, value);
-                    }
-                })}
-            </form>
-        </div>
+                        </div>
+                    );
+                } else {
+                    return renderInput(key, value);
+                }
+            })}
+    </form>
+    </div>
 
 
     );
