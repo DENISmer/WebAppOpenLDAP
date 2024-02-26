@@ -13,6 +13,7 @@ export interface PatchParams {
 }
 
 export interface userAddDataForEdit {
+    photoUrl? : string,
     dn: string,
     uidNumber?: number,
     gidNumber?: number,

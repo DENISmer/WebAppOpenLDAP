@@ -13,6 +13,7 @@ import {ProfileView} from "@/components/pages/workroom/ProfileView/ProfileView";
 
 
 export interface userDataForEdit {
+    jpegPhoto? : string,
     dn?: string,
     uidNumber?: number,
     gidNumber?: number,
