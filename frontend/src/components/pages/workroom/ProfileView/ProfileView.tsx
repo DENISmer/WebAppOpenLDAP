@@ -41,7 +41,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     },[file])
     const handleSubmit = async () => {
         if (!file) {
-            console.error('Please select a file');
+            //console.error('Please select a file');
             return;
         }
 
@@ -49,7 +49,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('data', JSON.stringify(jsonData));
-            console.log(JSON.stringify(jsonData))
+            //console.log(JSON.stringify(jsonData))
 
             await axios.post(`${APIS.USERS}`, formData, {
                 headers: {
@@ -58,7 +58,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                 },
             });
 
-            console.log('Data sent successfully');
+            //console.log('Data sent successfully');
         } catch (error) {
             console.error('Error while sending data:', error);
         }
@@ -70,8 +70,8 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             <div className={PV_S.Profile_Body}>
                 <div className={PV_S.Profile_Content}>
                     <div>
-                        <img src="https://www.dpstudio.ru/PhotoExaples/Visa_USA_0.jpg" alt=""/>
-                        <input type={"file"} accept={"image/*"} onChange={handleFileChange}/>
+                        <img src="https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg" alt="картинка профиля"/>
+                        {/*<input type={"file"} accept={"image/*"} onChange={handleFileChange}/>*/}
                     </div>
                     <br/>
                     <br/>

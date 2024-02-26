@@ -66,6 +66,11 @@ export interface IeEditing {
     isEditing: boolean,
     uid: string
 }
+
+export interface UserRole {
+    admin: string,
+    simple: string,
+}
 const WorkRoom: React.FC = () => {
 
     const [searchResult1, setSearchResult1] = useState<ListOfUsers[]>(null);
@@ -93,6 +98,11 @@ const WorkRoom: React.FC = () => {
     const fillUsersList = async (props: Params) => {
         return await getUsersList(props)
     }
+    
+    const role: UserRole = {
+        admin: 'webadmin',
+        simple: 'simpleuser'
+    }
 
     const getUserData = async (uid: string) => {
         return await getUserDataByUid_Admin(uid, userAuthCookies['userAuth'])
@@ -116,7 +126,7 @@ const WorkRoom: React.FC = () => {
     //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
-            if(userAuthCookies['userAuth'].role === 'simple_user') {
+            if(userAuthCookies['userAuth'].role === role.simple) {
                 setIsEditing({isEditing: true, uid: userAuthCookies['userAuth'].userName})
             }
             setCurrentEditor({
@@ -128,13 +138,13 @@ const WorkRoom: React.FC = () => {
         } else {
             navigate("/login")
         }
-        console.log(userAuthCookies['userAuth'])
+        //console.log(userAuthCookies['userAuth'])
     }, []);
 
 
     // hook works after editing trigger
     useEffect(() => {
-        console.log(isEditing)
+        //console.log(isEditing)
         if(isEditing.isEditing && isEditing.uid){
             getUserData(isEditing.uid)
                 .then((response: userDataForEdit ) => {
@@ -154,7 +164,7 @@ const WorkRoom: React.FC = () => {
     }, [isEditing]);
 
     useEffect(() => {
-        console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
+        //console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
         setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
     },[editedUser])
 
@@ -224,9 +234,9 @@ const WorkRoom: React.FC = () => {
         else {
             if(!editedUser.objectClass.includes('ldapPublicKey')){
                 delete editedUser['sshPublicKey']
-                console.log(editedUser)
+                //console.log(editedUser)
             }
-            console.log(currentEditor.token)
+            //console.log(currentEditor.token)
             await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role)
                 .then((response: any) => {
                     if (response.status === 200){
@@ -310,7 +320,7 @@ const WorkRoom: React.FC = () => {
         if(confirmForDelete){
             await deleteUser(isEditing.uid, currentEditor.token)
                 .then((response: any) => {
-                    console.log('delete_response',response)
+                    //console.log('delete_response',response)
                     if(response.status === 204) {
                         setCurrentListPage(currentListPage + 1)
                         setCurrentListPage(currentListPage - 1)
@@ -329,12 +339,24 @@ const WorkRoom: React.FC = () => {
     }
 
     const setCurrentAdminProfileEdit = () => {
-        setIsEditing(
-            {
-                isEditing: true,
-                uid: currentEditor.uid
+        if(isEditing.isEditing){
+            const askForQuit = confirm('Изменения не будут сохранены. Продолжить?')
+            if(askForQuit){
+                setIsEditing(
+                    {
+                        isEditing: true,
+                        uid: currentEditor.uid
+                    }
+                )
             }
-        )
+        } else {
+            setIsEditing(
+                {
+                    isEditing: true,
+                    uid: currentEditor.uid
+                }
+            )
+        }
         setAdminUserEdit(true)
     }
 
@@ -370,8 +392,8 @@ const WorkRoom: React.FC = () => {
                     Выйти
                 </div>
 
-                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === 'simple_user')
-                    || (currentEditor && currentEditor.role === 'simple_user')
+                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === role.simple)
+                    || (currentEditor && currentEditor.role === role.simple)
                     ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}
                     onClick={() => setCurrentAdminProfileEdit()}>
                     Профиль
@@ -379,7 +401,7 @@ const WorkRoom: React.FC = () => {
 
             </div>
 
-            {currentEditor && currentEditor.role === 'webadmins' &&
+            {currentEditor && currentEditor.role === role.admin &&
                 isEditing && !isEditing.isEditing && <div className={WR_S.Admin_Panel}>
                 {/*menu*/}
 
@@ -472,10 +494,10 @@ const WorkRoom: React.FC = () => {
 
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            (currentEditor.role === 'simple_user') ?
+                            (currentEditor.role === role.simple) ?
                                 quitForSimpleUser() : quitForAdmin()
                         }}>
-                    выйти к {currentEditor.role === 'webadmins' ?
+                    выйти к {currentEditor.role === role.admin ?
                     <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}
