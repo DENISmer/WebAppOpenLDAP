@@ -309,6 +309,9 @@ def define_schema(func):
 
         intermediate_arguments = list(kwargs.values())
 
+        if kwargs.get('type_group'):
+            kwargs['webadmins_fields'] = fields_module.webadmins_fields
+
         schema_name = ''.join(map(
             lambda item: item.lower().capitalize(),
             [

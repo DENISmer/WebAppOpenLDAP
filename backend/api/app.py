@@ -9,8 +9,8 @@ from backend.api.common.regex_converter import RegexConverter
 from backend.api.common.route import Route
 from backend.api.redis.redis_storage import RedisStorage
 from backend.api.resources.auth_open_ldap import AuthOpenLDAP
-from backend.api.resources.files_open_ldap import (FileDownloadOpenLDAPResource,
-                                                   FileUploadOpenLDAPResource)
+from backend.api.resources.files_open_ldap import (FileOpenLDAPResource,
+                                                   FileUploadsOpenLDAPResource)
 from backend.api.resources.group_open_ldap import (GroupOpenLDAPResource,
                                                    GroupListOpenLDAPResource)
 from backend.api.resources.user_open_ldap import (UserOpenLDAPResource,
@@ -45,8 +45,8 @@ api.add_resource(UserOpenLDAPResource,  f'{route}/{Route.USERS.value}/<{regex}:u
 api.add_resource(UserListOpenLDAPResource, f'{route}/{Route.USERS.value}')
 
 # Files resource
-api.add_resource(FileUploadOpenLDAPResource,  f'{route}/{Route.FILES.value}/upload/<{regex}:username_uid>')
-api.add_resource(FileDownloadOpenLDAPResource,  f'{route}/{Route.FILES.value}/download/<{regex_files}:name>')
+api.add_resource(FileOpenLDAPResource,  f'{route}/{Route.FILES.value}/<{regex}:username_uid>')
+api.add_resource(FileUploadsOpenLDAPResource,  f'{route}/{Route.FILES.value}/uploads/<{regex_files}:name>')
 
 # Free ids
 api.add_resource(FreeIdsOpenLDAPResource, f'{route}/free-ids')

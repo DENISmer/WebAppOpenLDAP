@@ -110,7 +110,7 @@ simple_user_fields = {
             'operation': ['read', ],
             'required': [],
         },
-        'jpegPhotoPath': {
+        'jpegPhoto': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['read', ],
@@ -225,7 +225,7 @@ webadmins_fields = {
             'operation': ['create', 'read', 'update',],
             'required': ['update'],
         },
-        'jpegPhotoPath': {
+        'jpegPhoto': {
             'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['read', ],
@@ -238,7 +238,7 @@ files_webadmins_fields = {
     'name': 'files_webadmins_fields',
     'fields': {
         'jpegPhoto': {
-            'type': TYPE_LIST,
+            'type': TYPE_STR,
             'element_type': TYPE_BYTES,
             'operation': ['read', 'update'],
             'required': [],

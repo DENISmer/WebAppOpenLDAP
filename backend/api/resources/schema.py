@@ -150,7 +150,7 @@ class BaseSchema(Schema,
     postalCode = fields.Int()
     homeDirectory = fields.Str()
     loginShell = fields.Str()
-    jpegPhotoPath = fields.List(fields.Str())
+    jpegPhoto = fields.List(fields.Str())
 
     @validates_schema
     def validate_object(self, data, **kwargs):
@@ -377,10 +377,8 @@ class FileStorageField(fields.Field):
 
 
 class BaseFilesSchema(Schema):
-    jpegPhoto = fields.List(
-        FileStorageField()
+    jpegPhoto = FileStorageField()
         # fields.Raw(metadata={'type': 'string', 'format': 'binary'})
-    )
 
     @pre_load(pass_many=True)
     def pre_load_data(self, in_data, many, **kwargs):
@@ -388,6 +386,8 @@ class BaseFilesSchema(Schema):
 
         for key in in_data:
             new_in_data[key] = in_data.getlist(key)
+            # if not isinstance(self._declared_fields[key], fields.List):
+            #     new_in_data[key] = new_in_data[key][:1]
 
         return new_in_data
 
@@ -408,7 +408,7 @@ class BaseFilesSchema(Schema):
                 # extension = mimetypes.guess_extension(mime_type)
                 # and validate_allowed_file(extension)
                 if not (file and validate_allowed_file(file.filename)
-                        ):
+                ):
                     if not errors.get(key):
                         errors[key] = {}
 
@@ -419,6 +419,14 @@ class BaseFilesSchema(Schema):
 
         if errors:
             raise ValidationError(errors)
+
+    @post_load(pass_many=True)
+    def post_load_data(self, in_data, many, **kwargs):
+        for key in in_data:
+            if not isinstance(self._declared_fields[key], fields.List):
+                in_data[key] = in_data[key][:1]
+
+        return in_data
 
 
 class WebadminFilesSchemaLdapModify(BaseFilesSchema,

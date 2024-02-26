@@ -136,6 +136,7 @@ class GroupListOpenLDAPResource(Resource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.GROUPS
         self.serializer = CommonSerializer()
 
     @auth.login_required(role=[Role.WEB_ADMIN])

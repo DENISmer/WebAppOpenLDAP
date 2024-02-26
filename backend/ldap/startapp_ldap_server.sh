@@ -34,7 +34,7 @@ DOCKER_NAME_CONTAINER=ldap-name-server
 PATH_TO_LDAP_FILES_DOCKER=/opt/ldap/files
 
 # Building docker image
-sudo docker build -f backend/ldap-conf/Dockerfile -t $DOCKER_TAG_IMAGE .
+sudo docker build -f backend/ldap/Dockerfile -t $DOCKER_TAG_IMAGE .
 
 # Run docker container
 sudo docker run --name $DOCKER_NAME_CONTAINER -p 0.0.0.0:8389:389 --rm -d $DOCKER_TAG_IMAGE

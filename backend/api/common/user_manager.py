@@ -86,8 +86,7 @@ class UserLdap(UserCnAbstract):
 
         self.is_webadmin = is_webadmin
         self.role = kwargs.get('role')
-        self.jpegPhotoPath = kwargs.get('jpegPhotoPath')
-        self.jpegPhoto = kwargs.get('jpegPhoto')
+        self.jpegPhoto = kwargs.get('jpegPhoto') or []
 
     def __repr__(self):
         return f'DN {self.dn}'

@@ -10,6 +10,7 @@ from flask_restful import Resource, request, abort
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
+from backend.api.common.file_rewritter import rewrite_file
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
@@ -18,7 +19,7 @@ from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import (search_fields,
-                                       webadmins_cn_posixgroup_fields)
+                                       webadmins_cn_posixgroup_fields, files_webadmins_fields)
 
 from backend.api.common.roles import Role
 from backend.api.db.database import db
@@ -133,19 +134,8 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
 
         user_schema = kwargs['schema']
 
-        path = os.path.join(
-            settings.ABSPATH_UPLOAD_FOLDER,
-            f'{username_uid}*.*'
-        )
-        files = glob.glob(path)
-
-        user.jpegPhotoPath = []
-        for item in files:
-            user.jpegPhotoPath.append(
-                os.path.join(
-                    '/', settings.UPLOAD_FOLDER, os.path.basename(item)
-                )
-            )
+        out_path = rewrite_file(user, files_webadmins_fields['fields'])
+        user.__dict__.update(out_path)
 
         serialized_user = self.serialize_data(user_schema, user)
         return serialized_user, 200
