@@ -18,6 +18,7 @@ COPY ../../../backend/__init__.py backend/__init__.py
 RUN mv backend/api/celery/startapp_celery.sh .
 
 RUN python -m venv backend/venv
+RUN python -m pip install -U pip
 RUN python -m pip install -r backend/requirements.txt
 
 RUN chmod u+x startapp_celery.sh

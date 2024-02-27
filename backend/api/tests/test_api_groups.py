@@ -81,7 +81,13 @@ def test_get_group_type_group_not_found_404(client, **kwargs):
         headers=headers
     )
     response_data = orjson.loads(response.data)
-    expected_data = {'message': 'Type group not found', 'status': 404}
+    expected_data = {
+        'error': 'Not Found',
+        'message': 'The requested URL was not found on the server. '
+                   'If you entered the URL manually please check your spelling and try again',
+        'status': 404
+    }
+
 
     assert response.status_code == 404
 

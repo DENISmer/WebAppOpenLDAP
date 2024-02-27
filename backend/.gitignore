@@ -13,3 +13,4 @@ rabbish.txt
 *.db
 .pytest_cache
 
+**/backend/files/

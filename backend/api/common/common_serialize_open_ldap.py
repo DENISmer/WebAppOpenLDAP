@@ -8,13 +8,13 @@ from backend.api.resources import schema
 
 class CommonSerializer:
     def deserialize_data(
-        self, user_schema, json_data, partial=False
+        self, user_schema, data, partial=False
     ) -> dict:
         deserialized_data = {}
         try:
             deserialized_data = getattr(
                 schema, user_schema
-            )().load(json_data, partial=partial)
+            )().load(data, partial=partial)
         except ValidationError as e:
             abort(
                 400,

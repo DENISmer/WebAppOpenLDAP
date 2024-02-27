@@ -8,9 +8,10 @@ services:
       - web-client
       - web-server
     ports:
-      - "80:8080"
+      - "8080:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - files-volume:/usr/src/app/files
 
   web-client:
     build:
@@ -37,6 +38,7 @@ services:
       - "8000:8000"
     volumes:
       - proj-db-volume:/usr/src/app/instance
+      - files-volume:/usr/src/app/backend/files
 
   web-celery:
     build:
@@ -45,19 +47,22 @@ services:
     restart: unless-stopped
     container_name: web-celery-container
     depends_on:
-      - web-server
+#      - web-server
+      - redis
     env_file:
-      - backend/.env
+      - ./backend/.env
     environment:
-      CELERY_BROKER_URL: "redis://redis:6379/1"
-      CELERY_RESULT_BACKED: "redis://redis:6379/1"
+      CELERY_BROKER_URL: "redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@redis:6379/1"
+      CELERY_RESULT_BACKED: "redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@redis:6379/1"
     volumes:
       - proj-db-volume:/usr/src/app/instance
 
   redis:
     image: redis
     restart: always
-    command: redis-server
+    env_file:
+      - backend/.env
+    command: bash -c  "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     expose:
       - "6379"
 
@@ -85,3 +90,4 @@ services:
 
 volumes:
   proj-db-volume:
+  files-volume:

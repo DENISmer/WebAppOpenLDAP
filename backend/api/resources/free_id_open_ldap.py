@@ -12,7 +12,7 @@ class FreeIdsOpenLDAPResource(Resource):
         super().__init__(*args, **kwargs)
         self.connection = None
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     def get(self, *args, **kwargs):
         conn_ldap = UserManagerLDAP(connection=self.connection)

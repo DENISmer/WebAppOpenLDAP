@@ -1,23 +1,19 @@
-import logging
-import pprint
-import time
 
-import orjson
 from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
-from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
+from backend.api.common.file_rewritter import rewrite_file
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
+from backend.api.common.route import Route
 from backend.api.common.user_manager import UserLdap, CnGroupLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import (search_fields,
-                                       webadmins_cn_posixgroup_fields)
+                                       webadmins_cn_posixgroup_fields, files_webadmins_fields)
 
 from backend.api.common.roles import Role
 from backend.api.db.database import db
@@ -36,6 +32,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
     def __modify_user_group(
         self,
@@ -120,7 +117,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         user.__dict__.update(deserialized_data)
         return user
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -131,10 +128,13 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
 
         user_schema = kwargs['schema']
 
+        out_path = rewrite_file(user, files_webadmins_fields['fields'])
+        user.__dict__.update(out_path)
+
         serialized_user = self.serialize_data(user_schema, user)
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -155,7 +155,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         serialized_user = self.serialize_data(user_schema, item=user)
         return serialized_user, 200
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -176,7 +176,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         serialized_data = self.serialize_data(user_schema, user)
         return serialized_data, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     def delete(self, username_uid):
@@ -206,8 +206,9 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     @define_schema
@@ -245,14 +246,12 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             'page': page,
         }, 200
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     @permission_user()
     @define_schema
     def post(self, *args, **kwargs):
         json_data = request.get_json()
-        pprint.pprint('request.files')
-        print(request.files)
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
 
@@ -287,11 +286,6 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             str(group_obj.ldap_manager.full_group_search_dn)
         )
 
-        # found_user = user_obj.get_user_info_by_dn(user.dn, [])
-        #
-        # if found_user:
-        #     abort(400, fields={'dn': 'The user already exists'}, status=400)
-
         #create objects
         user_obj.create(
             item=user,
@@ -317,8 +311,9 @@ class UserMeOpenLDAPResource(Resource, CommonSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.connection = None
+        self.route = Route.USERS
 
-    @auth.login_required(role=[Role.WEBADMIN, Role.SIMPLE_USER])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user(miss=True)
     @define_schema

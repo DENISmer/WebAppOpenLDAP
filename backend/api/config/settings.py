@@ -1,4 +1,6 @@
 import os
+import pathlib
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,6 +18,12 @@ NOT_AUTH = bool(int(os.environ.get('NOT_AUTH', 1)))
 
 ITEMS_PER_PAGE = 20
 
+UPLOAD_FOLDER = 'files/uploads'
+GLOBAL_UPLOAD_FOLDER = f'/api/v1/{UPLOAD_FOLDER}'
+ABSPATH_UPLOAD_FOLDER = os.path.join(os.path.abspath('.'), UPLOAD_FOLDER)
+pathlib.Path(ABSPATH_UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg', 'webp', 'bmp'}
 
 FILE_DB_NAME = os.getenv('FILE_DB_NAME')
 # DATABASE URI

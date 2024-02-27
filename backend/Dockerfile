@@ -19,6 +19,7 @@ COPY ../backend/api/ backend/api
 COPY ../backend/startapp_server.sh startapp_server.sh
 
 RUN python -m venv backend/venv
+RUN python -m pip install -U pip
 RUN python -m pip install -r backend/requirements.txt
 
 RUN chmod u+x startapp_server.sh
