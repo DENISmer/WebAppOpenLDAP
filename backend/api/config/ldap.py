@@ -15,7 +15,7 @@ config['LDAP_HOSTS'] = settings.HOSTS
 config['LDAP_PORT'] = settings.LDAP_PORT
 
 # Base DN of your directory
-config['LDAP_BASE_DN'] = 'dc=example,dc=com'
+config['LDAP_BASE_DN'] = 'dc=example,dc=com' if settings.DEVELOPMENT else 'dc=local,dc=net'
 
 # Users DN to be prepended to the Base DN
 config['LDAP_USER_DN'] = 'ou=People'

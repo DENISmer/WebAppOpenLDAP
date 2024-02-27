@@ -89,8 +89,6 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         res = self._connection.result
 
-        # print(res)
-        # abort(400, message=res['message'])
         if 'success' not in res['description']:
             # abort(400, message=res['message'])
             return None
@@ -133,8 +131,6 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
             modify_dict
         )
 
-        # print('result modify:', self._connection.result)
-
         res = self._connection.result
         if 'success' not in res['description']:
             # abort(400, message=res['description'])
@@ -146,10 +142,12 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
     @error_operation_ldap
     def delete(self, item, operation='delete'):
-        if item.dn:
-            self._connection.delete(item.dn)
+        if not isinstance(item, list):
+            item = [item]
 
-        # print('result delete:', self._connection.result)
+        for i in item:
+            if i.dn:
+                self._connection.delete(i.dn)
 
         res = self._connection.result
         if 'success' not in res['description']:

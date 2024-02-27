@@ -9,23 +9,27 @@ from backend.api.config import settings
 
 def rewrite_file(user, fields):
     out_path = {}
+
     for field in fields:
         attr = getattr(user, field)
 
         if not attr:
-            continue
+            tmp_filename = f'{user.get_username()}_{field}_*.*'
+            del_files(filename=tmp_filename)
 
         for index, file_base64 in enumerate(attr):
-
             file_base64_decode = base64.b64decode(file_base64)
             format_file = magic.from_buffer(file_base64_decode, mime=True)
+            print('file_rewritter format_file', format_file)
             extension = mimetypes.guess_extension(format_file)
+            print('file_rewritter format_file', extension)
             name = f'{user.get_username()}_{field}_{index}{extension}'
-            tmp_filename = f'{user.get_username()}_{field}_{index}.*'
+
             path_to_file = os.path.join(settings.ABSPATH_UPLOAD_FOLDER, name)
             global_path_to_file = os.path.join(settings.GLOBAL_UPLOAD_FOLDER, name)
 
-            del_files(path_to_file, tmp_filename)
+            tmp_filename = f'{user.get_username()}_{field}_{index}*'
+            del_files(path_to_save=path_to_file, filename=tmp_filename)
 
             if not out_path.get(field):
                 out_path[field] = []
@@ -44,7 +48,7 @@ def rewrite_file(user, fields):
     return out_path
 
 
-def del_files(path_to_save, filename):
+def del_files(path_to_save=None, filename=None):
     path = glob.glob(os.path.join(settings.ABSPATH_UPLOAD_FOLDER, filename))
 
     if path_to_save in path:

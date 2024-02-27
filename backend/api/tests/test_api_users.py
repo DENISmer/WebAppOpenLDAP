@@ -1030,4 +1030,23 @@ def test_get_list_user_200(client, **kwargs):
 
 
 
+@auth
+def test_create_user_delete_groups(client, **kwargs):
+    headers = kwargs['headers']
+
+    # create groups
+    response_gr = client.post(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+        headers=headers,
+        data=orjson.dumps(dt.data_group_post_margo)
+    )
+
+    response_gr2 = client.post(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+        headers=headers,
+        data=orjson.dumps(dt.data_group_post_margo)
+    )
+
+
+
 # THATS ALL

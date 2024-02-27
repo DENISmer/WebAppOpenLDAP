@@ -407,8 +407,10 @@ class BaseFilesSchema(Schema):
                 # mime_type = magic.from_buffer(b''.join(file.stream), mime=True)
                 # extension = mimetypes.guess_extension(mime_type)
                 # and validate_allowed_file(extension)
+                print(file, file.filename)
                 if not (file and validate_allowed_file(file.filename)
                 ):
+                    print(file)
                     if not errors.get(key):
                         errors[key] = {}
 

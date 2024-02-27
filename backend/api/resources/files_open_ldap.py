@@ -74,20 +74,26 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
 
             for index, file in enumerate(files):
                 chunks = b''.join(file.stream)
-                filename_secure = secure_filename(file.filename)
-                saving_filename = f'{username_uid}_{key}_{index}.{filename_secure.rsplit(".", 1)[1].lower()}'
 
                 if not response_data.get(key):
                     response_data[key] = []
+
+                format_file = magic.from_buffer(chunks, mime=True)
+                print('format_file', format_file)
+                extension_tmp = mimetypes.guess_extension(format_file)
+                print('extension', extension_tmp)
+                print('file.filename', file.filename)
+
+                extension = file.filename.rsplit('.', 1)[1].lower()
+                saving_filename = f'{username_uid}_{key}_{index}.{extension}'
+                print('saving_filename', saving_filename)
                 response_data[key].append(os.path.join(
                     settings.GLOBAL_UPLOAD_FOLDER, saving_filename
                 ))
-
                 path_to_save = os.path.join(settings.ABSPATH_UPLOAD_FOLDER, saving_filename)
+                tmp_filename = f'{username_uid}_{key}_{index}*'
 
-                tmp_filename = f'{username_uid}_{key}_{index}.*'
-
-                del_files(path_to_save, tmp_filename)
+                del_files(path_to_save=path_to_save, filename=tmp_filename)
 
                 file_data_exists = b''
                 if os.path.exists(path_to_save):

@@ -73,7 +73,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
             dn=group['dn'], **group['attributes']
         )
 
-    def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES, abort_raise: bool = True):
+    def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES):
         return self.item(
             username_cn, ['posixGroup'],
             webadmins_cn_posixgroup_fields,

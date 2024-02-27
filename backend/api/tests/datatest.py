@@ -455,6 +455,13 @@ data_group_post_rambo = {
     'memberUid': 'rambo',
     'objectClass': ['posixGroup']
 }
+data_group_post_margo = {
+    'cn': 'margo',
+    'dn': 'cn=margo,ou=groups,dc=example,dc=com',
+    'gidNumber': 10005,
+    'memberUid': 'margo',
+    'objectClass': ['posixGroup']
+}
 data_group_post_rambo_incorrect_data = {
     'cn': 'rambodd',
     'dn': 'cn=rambo,ou=groups,dc=example,dc=com',

@@ -23,7 +23,7 @@ GLOBAL_UPLOAD_FOLDER = f'/api/v1/{UPLOAD_FOLDER}'
 ABSPATH_UPLOAD_FOLDER = os.path.join(os.path.abspath('.'), UPLOAD_FOLDER)
 pathlib.Path(ABSPATH_UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg', 'webp', 'bmp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg', 'webp', 'bmp', 'gif'}
 
 FILE_DB_NAME = os.getenv('FILE_DB_NAME')
 # DATABASE URI
