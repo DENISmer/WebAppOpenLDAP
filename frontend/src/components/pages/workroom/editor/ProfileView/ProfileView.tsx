@@ -18,12 +18,16 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     const [jsonData, setJsonData] = useState<object>({dn: 'asd', sn: 'sn'});
 
     const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0])
+    const [imgError, setImgError] = useState<boolean>(false)
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0 && event.target.files[0].size < 2000000) {
+        if (event.target.files && event.target.files[0] && event.target.files.length > 0 && event.target.files[0].size < 2000000) {
             setFile(event.target.files[0]);
 
-        }else {
-            alert(`File is too big! + ${event.target.files[0].size}`)
+        } else if(event.target.files && event.target.files[0]){
+                alert(`File is too big! + ${event.target.files[0].size}`)
+                event.target.value = null
+        } else {
+            event.target.value = null
         }
     };
 
@@ -60,22 +64,22 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                     Authorization: `Bearer ${userAuthCookies.userAuth.token}`,
                     'Content-Type': 'multipart/form-data',
                 },
-            }).then((response) => {
+            }).then(async (response) => {
                 if(response.status === 200){
                     console.log('new: ', homeUrl + response.data.jpegPhoto[0])
                     const timestamp = new Date().getTime();
-                    setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
+                    await setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
+                    await setImgError(false)
                     alert(`Фото успешно изменено!`)
                 } else {
                     alert('somth went wrong')
                 }
-                // setProfilePhoto(response)
             })
-            //console.log('Data sent successfully');
         } catch (error) {
-            console.error('Error while sending data:', error);
+            alert(error.message)
         }
     };
+
 
 
     return (
@@ -83,11 +87,15 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             <div className={PV_S.Profile_Body}>
                 <div className={PV_S.Profile_Content}>
                     <div className={PV_S.profile_img}>
-                        <img src={profilePhoto ?? defaultPhoto} alt="картинка профиля" />
+                        <img src={imgError ? defaultPhoto : profilePhoto}
+                             alt="картинка профиля"
+                             onError={() => setImgError(true)}
+                        />
                         {currentEditor && currentEditor.role === gRole.admin && <input
                             type={"file"}
-                            accept={"image/jpeg, image/jpg, image/png"}
+                            accept={"image/jpeg, image/jpg, image/png, image/webp, image/bmp, image/svg, image/gif"}
                             onChange={handleFileChange}
+                            className={PV_S.input_for_photo}
                         />}
                     </div>
                     <div className={PV_S.Profile_Information}>

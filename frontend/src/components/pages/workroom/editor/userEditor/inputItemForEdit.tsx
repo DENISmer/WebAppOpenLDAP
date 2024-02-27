@@ -210,6 +210,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
         <form className={FFE_S.Admin_form}>
             {Object.entries(userData).sort().map(([key, value]) => {
+                if(key === 'jpegPhoto') return null
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
                     return (

@@ -136,7 +136,7 @@ export async function deleteUser(uid: string,token: string) {
     }
 }
 
-export async function addUser(data: userAddDataForEdit, token: string) {
+export async function addUser(data: userAddDataForEdit, token: string): Promise<userGroupDataForEdit | ErrorData> {
     console.log("REQuest data: ",data)
     return await axios.post(`${APIS.USERS}`,
         {
@@ -162,12 +162,12 @@ export async function addUser(data: userAddDataForEdit, token: string) {
             }
         }
         )
-        .then((response) => {
+        .then((response): userGroupDataForEdit => {
             alert("Данные успешно сохранены")
-            return response
+            return response.data
         })
-        .catch((e) => {
-            return e
+        .catch((e): ErrorData  => {
+            return e.response.data
         })
 }
 
