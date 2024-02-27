@@ -15,7 +15,7 @@
 }
 .Profile_Content {
   height: max-content;
-  min-height: 500px;
+  min-height: 550px;
   max-height: 70%;
   background-color: #dae1ec;
   padding: 10px;
@@ -24,30 +24,50 @@
   align-items: center;
   flex-direction: column;
   border-radius: 10px;
-  div {
-    //border: 1px solid crimson;
-    border-radius: 10px;
-    width: 200px;
-    height: 200px;
+  .profile_img{
+    input{
+      margin: 10px 0;
+      overflow: hidden;
+      max-width: 250px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
     img {
-      max-width: 100%;
+      max-height: 200px;
+      height: 100%;
+      max-width: 200px;
+      width: 100%;
       border-radius: 10px;
     }
-  }
-  p{
-    min-width: 250px;
-    width: max-content;
-    max-width: 250px;
-    word-wrap: break-word;
-    padding: 5px;
-    border-radius: 7px;
-    margin-top: 10px;
-    border: 1px solid #050517;
-    font-size: medium;
-    font-weight: bold;
-    font-family: "Roboto", sans-serif;
+    p{
+      min-width: 250px;
+      width: max-content;
+      max-width: 250px;
+      word-wrap: break-word;
+      padding: 5px;
+      border-radius: 7px;
+      margin-top: 10px;
+      border: 1px solid #050517;
+      font-size: medium;
+      font-weight: bold;
+      font-family: "Roboto", sans-serif;
+    }
+  .Profile_Information{
+    //margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: max-content;
+    width: 100%;
   }
 }
+
 
 @media screen and (width < 900px) {
   .Profile_Module{

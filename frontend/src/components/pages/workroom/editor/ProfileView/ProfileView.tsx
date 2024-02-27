@@ -19,8 +19,11 @@ export const ProfileView: React.FC<Props> = ({data}) => {
 
     const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0])
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0) {
+        if (event.target.files && event.target.files.length > 0 && event.target.files[0].size < 2000000) {
             setFile(event.target.files[0]);
+
+        }else {
+            alert(`File is too big! + ${event.target.files[0].size}`)
         }
     };
 
@@ -62,6 +65,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                     console.log('new: ', homeUrl + response.data.jpegPhoto[0])
                     const timestamp = new Date().getTime();
                     setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
+                    alert(`Фото успешно изменено!`)
                 } else {
                     alert('somth went wrong')
                 }
@@ -78,23 +82,23 @@ export const ProfileView: React.FC<Props> = ({data}) => {
         <div className={PV_S.Profile_Module}>
             <div className={PV_S.Profile_Body}>
                 <div className={PV_S.Profile_Content}>
-                    <div>
-                        <img src={profilePhoto ?? defaultPhoto} alt="картинка профиля"/>
+                    <div className={PV_S.profile_img}>
+                        <img src={profilePhoto ?? defaultPhoto} alt="картинка профиля" />
                         {currentEditor && currentEditor.role === gRole.admin && <input
                             type={"file"}
                             accept={"image/jpeg, image/jpg, image/png"}
                             onChange={handleFileChange}
                         />}
                     </div>
-                    <br/>
-                    <br/>
-                    <p>{data.displayName ?? data.uid}</p>
-                    <p>{data.dn}</p>
-                    <p>{data.uidNumber}</p>
-                    {data.mail && data.mail.length > 0 && <p>{data.mail && data.mail[0]}</p>}
-                    <p>{data.homeDirectory}</p>
-                    {data.street && <p>{data.street}</p>}
-                    {data.postalCode && <p>{data.postalCode}</p>}
+                    <div className={PV_S.Profile_Information}>
+                        <p>{data.displayName ?? data.uid}</p>
+                        <p>{data.dn}</p>
+                        <p>{data.uidNumber}</p>
+                        {data.mail && data.mail.length > 0 && <p>{data.mail && data.mail[0]}</p>}
+                        <p>{data.homeDirectory}</p>
+                        {data.street && <p>{data.street}</p>}
+                        {data.postalCode && <p>{data.postalCode}</p>}
+                    </div>
                 </div>
             </div>
         </div>
