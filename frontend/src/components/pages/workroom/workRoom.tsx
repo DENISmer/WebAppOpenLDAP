@@ -17,7 +17,7 @@ import pen from "@/assets/icons/pen_edit1.png"
 import delete_user from "@/assets/icons/delete_user.png"
 import {ProfileView} from "@/components/pages/workroom/editor/ProfileView/ProfileView";
 import {UserGroupForm} from "@/components/pages/workroom/editor/userGroupEditor/userGroupForm";
-import {response} from "express";
+import {gRole} from "@/scripts/constants";
 
 
 export interface userDataForEdit {
@@ -53,7 +53,7 @@ export interface SimpleUserDataForEdit {
     sshPublicKey: string[],
     mail: string
 }
-interface CurrentEditor {
+export interface CurrentEditor {
     token: string,
     role: string,
     uid: string,
@@ -115,7 +115,7 @@ const WorkRoom: React.FC = () => {
 
     const role: UserRole = {
         admin: 'webadmin',
-        simple: 'simple_user',
+        simple: 'simpleuser',
     }
 
     const fillUsersList = async (props: Params) => {
@@ -144,7 +144,7 @@ const WorkRoom: React.FC = () => {
     //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
-            if(userAuthCookies['userAuth'].role === role.simple) {
+            if(userAuthCookies['userAuth'].role === gRole.simple) {
                 setIsEditing({isEditing: true, uid: userAuthCookies['userAuth'].userName})
             }
             setCurrentEditor({
@@ -435,8 +435,8 @@ const WorkRoom: React.FC = () => {
                     Выйти
                 </div>
 
-                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === role.simple)
-                    || (currentEditor && currentEditor.role === role.simple)
+                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === gRole.simple)
+                    || (currentEditor && currentEditor.role === gRole.simple)
                     ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}
                     onClick={() => setCurrentAdminProfileEdit()}>
                     Профиль
@@ -444,7 +444,7 @@ const WorkRoom: React.FC = () => {
 
             </div>
 
-            {currentEditor && currentEditor.role === role.admin &&
+            {currentEditor && currentEditor.role === gRole.admin &&
                 isEditing && !isEditing.isEditing && <div className={WR_S.Admin_Panel}>
                 {/*menu*/}
 
@@ -519,11 +519,11 @@ const WorkRoom: React.FC = () => {
             {/*simple and admin editing*/}
             {(adminUserEdit || currentEditor) && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
 
-                {currentEditor.role === role.admin &&
-                    <button onClick={() => switchEditMode()} className={WR_S.Group_user_button}>
-                        edit group of this user
-                    </button>
-                }
+                {/*{currentEditor.role === gRole.admin &&*/}
+                {/*    <button onClick={() => switchEditMode()} className={WR_S.Group_user_button}>*/}
+                {/*        edit group of this user*/}
+                {/*    </button>*/}
+                {/*}*/}
 
                 <ProfileView data={editedUser}/>
 
@@ -555,10 +555,10 @@ const WorkRoom: React.FC = () => {
 
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            (currentEditor.role === role.simple) ?
+                            (currentEditor.role === gRole.simple) ?
                                 quitForSimpleUser() : quitForAdmin()
                         }}>
-                    выйти к {currentEditor.role === role.admin ?
+                    выйти к {currentEditor.role === gRole.admin ?
                     <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}

@@ -1,7 +1,7 @@
 import PV_S from "@/components/pages/workroom/editor/ProfileView/ProfileView.module.scss"
-import {userDataForEdit} from "@/components/pages/workroom/workRoom";
+import {CurrentEditor, userDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
-import {APIS, homeUrl} from "@/scripts/constants";
+import {APIS, homeUrl, gRole} from "@/scripts/constants";
 import {useCookies} from "react-cookie";
 import {useEffect, useState} from "react";
 
@@ -11,7 +11,7 @@ interface Props {
 
 export const ProfileView: React.FC<Props> = ({data}) => {
     const [userAuthCookies, setUserAuthCookie, removeCookie] = useCookies(['userAuth', 'userAttempt'])
-
+    const [currentEditor, serCurrentEditor] = useState<CurrentEditor>()
     const defaultPhoto = 'https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg'
 
     const [file, setFile] = useState<File | null>(null);
@@ -23,6 +23,17 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             setFile(event.target.files[0]);
         }
     };
+
+    useEffect(() => {
+        if(userAuthCookies.userAuth){
+            serCurrentEditor(
+                {
+                    role: userAuthCookies.userAuth.role,
+                    token: userAuthCookies.userAuth.token,
+                    uid: userAuthCookies.userAuth.uid
+                })
+        }
+    },[])
 
     useEffect(() =>{
         handleSubmit(data.uid)
@@ -68,7 +79,11 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                 <div className={PV_S.Profile_Content}>
                     <div>
                         <img src={profilePhoto ?? defaultPhoto} alt="картинка профиля"/>
-                        <input type={"file"} accept={"image/jpeg, image/jpg, image/png"} onChange={handleFileChange}/>
+                        {currentEditor && currentEditor.role === gRole.admin && <input
+                            type={"file"}
+                            accept={"image/jpeg, image/jpg, image/png"}
+                            onChange={handleFileChange}
+                        />}
                     </div>
                     <br/>
                     <br/>
