@@ -86,10 +86,14 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
         if (!Array.isArray(newData[key])) {
             return;
         }
-        newData[key] = [
-            ...newData[key].slice(0, index),
-            ...newData[key].slice(index + 1),
-        ];
+        if (index === 0){
+            newData[key] = []
+        } else {
+            newData[key] = [
+                ...newData[key].slice(0, index),
+                ...newData[key].slice(index + 1),
+            ];
+        }
         onUserDataChange(newData);
     };
 
@@ -150,7 +154,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             name={inputName}
                             placeholder={`Enter ${key}`}
                             value={inputValue || ''}
-                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === gRole.simple}
+                            disabled={(key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === gRole.simple)
+                                || key === 'uid' || key === 'jpegPhoto'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 handleInputChange(key, e.target.value, index)
                             }
@@ -178,7 +183,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                 </button>}
 
                             {isValueArray &&
-                                typeof index === 'number' && value.length > 1 && (
+                                typeof index === 'number' && value.length >= 0 && (
                                     <button className={role === gRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== gRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
                                             type="button"
                                             disabled={role === gRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}

@@ -60,7 +60,8 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             }).then((response) => {
                 if(response.status === 200){
                     console.log('new: ', homeUrl + response.data.jpegPhoto[0])
-                    setProfilePhoto(homeUrl + response.data.jpegPhoto[0])
+                    const timestamp = new Date().getTime();
+                    setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
                 } else {
                     alert('somth went wrong')
                 }

@@ -273,11 +273,11 @@ const WorkRoom: React.FC = () => {
 
         else {
             if(!editedUser.objectClass.includes('ldapPublicKey')){
-                delete editedUser['sshPublicKey']
+                editedUser['sshPublicKey'] = []
                 console.log(editedUser)
             }
             console.log(currentEditor.token)
-            await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role)
+            await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role, userForEditAdmin.uid)
                 .then((response: any) => {
                     if (response.status === 200){
                         setEditedUser(response.userData)

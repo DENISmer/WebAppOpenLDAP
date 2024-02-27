@@ -72,9 +72,9 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
     })
 }
 
-export async function sendChanges(data: PatchParams['userData'], token: string, role: string): Promise<ReturnThenPatch> {
+export async function sendChanges(data: PatchParams['userData'], token: string, role: string, uid: string): Promise<ReturnThenPatch> {
     if (role === 'simple_user'){
-        return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+        return await axios.patch(`${APIS.USERS}/${uid}`,{
             mail: data.mail,
         }, {
             headers: {
@@ -89,7 +89,7 @@ export async function sendChanges(data: PatchParams['userData'], token: string, 
             .catch((e) => {
                 return e.response.data
             })
-    } else return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+    } else return await axios.patch(`${APIS.USERS}/${uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
