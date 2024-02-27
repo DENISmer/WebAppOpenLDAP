@@ -119,7 +119,7 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
 
         return response_data, 200
 
-    @auth.login_required(role=[Role.WEB_ADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])
     @connection_ldap
     @permission_user()
     def delete(self, username_uid, *args, **kwargs):

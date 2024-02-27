@@ -13,7 +13,7 @@ print(result)  # Вывод: 123de, регулярные выражения – 
 
 url_auth = 'http://127.0.0.1:5000/api/v1/auth/token'
 r_auth = requests.post(url_auth,
-                       data=orjson.dumps({'username': 'tom', 'userPassword': 'tom'}),
+                       data=orjson.dumps({'username': 'john', 'userPassword': 'john'}),
                        headers={'Content-Type': 'application/json'})
 data = orjson.loads(r_auth.text)
 
@@ -22,7 +22,7 @@ headers = {
     'Authorization': f'Bearer {data["token"]}',
     # 'Content-Type': 'multipart/form-data;',
 }
-url = 'http://127.0.0.1:5000/api/v1/files/john'
+url = 'http://127.0.0.1:5000/api/v1/files/bob'
 
 fin = open('/home/grig/Изображения/test.png', 'rb')
 fin1 = open('/home/grig/Изображения/test1.png', 'rb')

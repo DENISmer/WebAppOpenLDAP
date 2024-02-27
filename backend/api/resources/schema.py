@@ -439,6 +439,16 @@ class WebadminFilesSchemaLdapModify(BaseFilesSchema,
         return f'<{WebadminFilesSchemaLdapModify.__name__} {id(self)}>'
 
 
+class SimpleuserFilesSchemaLdapModify(BaseFilesSchema,
+                                      metaclass=Meta):
+    class Meta:
+        user_fields = 'files_webadmins_fields'
+        type_required_fields = 'update'
+
+    def __repr__(self):
+        return f'<{WebadminFilesSchemaLdapModify.__name__} {id(self)}>'
+
+
 operation = {
     'post': 'create',
     'get': 'modify',
