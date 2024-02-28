@@ -40,13 +40,13 @@ regex = 'regex("[a-zA-Z0-9_-]+")'
 regex_files = 'regex("[a-zA-Z0-9_-]+\.[a-zA-Z]+")'
 
 # Users resource
-api.add_resource(UserMeOpenLDAPResource,  f'{route}/{Route.USERS.value}/me/')
-api.add_resource(UserOpenLDAPResource,  f'{route}/{Route.USERS.value}/<{regex}:username_uid>')
+api.add_resource(UserMeOpenLDAPResource, f'{route}/{Route.USERS.value}/me/')
+api.add_resource(UserOpenLDAPResource, f'{route}/{Route.USERS.value}/<{regex}:username_uid>')
 api.add_resource(UserListOpenLDAPResource, f'{route}/{Route.USERS.value}')
 
 # Files resource
-api.add_resource(FileOpenLDAPResource,  f'{route}/{Route.FILES.value}/<{regex}:username_uid>')
-api.add_resource(FileUploadsOpenLDAPResource,  f'{route}/{Route.FILES.value}/uploads/<{regex_files}:name>')
+api.add_resource(FileOpenLDAPResource, f'{route}/{Route.FILES.value}/<{regex}:username_uid>')
+api.add_resource(FileUploadsOpenLDAPResource, f'{route}/{Route.FILES.value}/uploads/<{regex_files}:name>')
 
 # Free ids
 api.add_resource(FreeIdsOpenLDAPResource, f'{route}/free-ids')
@@ -58,9 +58,6 @@ api.add_resource(GroupListOpenLDAPResource, f'{route}/{Route.GROUPS.value}/<{reg
 # Auth resource
 api.add_resource(AuthOpenLDAP, f'{route}/{Route.AUTH.value}/token')
 
-# Error
-
-
 # Database init
 db.init_app(app)
 
@@ -69,6 +66,7 @@ with app.app_context():
     db.create_all()
 
 
+# Error
 @app.errorhandler(HTTPException)
 def handle_exception(e):
     """Return JSON instead of HTML for HTTP errors."""
@@ -82,15 +80,9 @@ def handle_exception(e):
     return response
 
 
-celery_app = celery_init_app(app)
+# celery_app = celery_init_app(app)
 
 RedisStorage().remove_all()
 
 if settings.DEVELOPMENT and __name__ == '__main__':  # Comment when prod
     app.run(debug=settings.DEBUG)  # Comment when prod
-
-
-'''
-If token is expired database will cleaned
-database orm flask_sqlachemy
-'''

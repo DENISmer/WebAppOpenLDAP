@@ -5,11 +5,11 @@ from backend.api.redis import settings
 
 class RedisStorage:
     def __init__(self):
-        self.__redis = redis.Redis(
+        self.__redis = redis.StrictRedis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
-            username=settings.REDIS_USERNAME,
             password=settings.REDIS_PASSWORD,
+            db=0,
             ssl=settings.REDIS_SSL,
             ssl_certfile=settings.REDIS_SSL_CERTFILE,
             ssl_keyfile=settings.REDIS_SSLKEYFILE,

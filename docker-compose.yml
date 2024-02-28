@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     container_name: web-celery-container
     depends_on:
-#      - web-server
+      - web-server
       - redis
     env_file:
       - ./backend/.env

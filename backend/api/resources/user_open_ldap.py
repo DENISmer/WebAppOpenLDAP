@@ -292,7 +292,8 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             operation='create',
         )
 
-        found_group = group_obj.get_group_info_posix_group(user.uid, [])
+        # found_group = group_obj.get_group_info_posix_group(user.uid, [])
+        found_group = group_obj.list(value=user.gidNumber, fields={'gidNumber': '%d'}, attributes=[])
         if found_group:
             group_obj.delete(found_group)
 

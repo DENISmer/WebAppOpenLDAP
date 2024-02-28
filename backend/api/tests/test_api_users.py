@@ -40,6 +40,25 @@ def delete_user(client, uid, headers):
     return response
 
 
+def delete_group(client, uid, headers):
+    response = client.delete(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{uid}',
+        headers=headers,
+    )
+    return response
+
+
+def create_group(client, user_data, headers):
+    data = orjson.dumps(user_data)
+    response = client.post(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+        headers=headers,
+        data=data,
+    )
+
+    return response
+
+
 def auth(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
@@ -1029,24 +1048,51 @@ def test_get_list_user_200(client, **kwargs):
     assert response_data['page'] == 1 and isinstance(response_data['items'], list)
 
 
-
 @auth
 def test_create_user_delete_groups(client, **kwargs):
     headers = kwargs['headers']
 
     # create groups
-    response_gr = client.post(
-        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+    # response_gr = client.post(
+    #     f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+    #     headers=headers,
+    #     data=orjson.dumps(dt.data_group_post_margo)
+    # )
+    #
+    # response_gr2 = client.post(
+    #     f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+    #     headers=headers,
+    #     data=orjson.dumps(dt.data_group_post_tom)
+    # )
+
+    dt.data_user_patch_rambo_for_create.update(
+        {'userPassword': 'margo123'}
+    )
+    del dt.data_user_post_margo_simple_user['jpegPhoto']
+    payload = orjson.dumps(dt.data_user_patch_rambo_for_create)
+
+    response_user = client.post(
+        dt.Route.USERS.value,
         headers=headers,
-        data=orjson.dumps(dt.data_group_post_margo)
+        data=payload
     )
 
-    response_gr2 = client.post(
-        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
-        headers=headers,
-        data=orjson.dumps(dt.data_group_post_margo)
+    response_get_gr = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{dt.data_group_post_margo["memberUid"]}',
+        headers=headers
+    )
+    response_get_gr2 = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{dt.data_group_post_tom["memberUid"]}',
+        headers=headers
     )
 
+    delete_group(client, dt.data_group_post_margo["memberUid"], headers)
+    delete_group(client, dt.data_group_post_tom["memberUid"], headers)
+    delete_user(client, dt.data_user_patch_rambo_for_create["uid"], headers)
+
+    # assert response_gr.status_code == response_gr2.status_code == 201
+    assert response_user.status_code == 201
+    assert response_get_gr.status_code == response_get_gr2.status_code == 404
 
 
 # THATS ALL

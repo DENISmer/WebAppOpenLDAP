@@ -4,26 +4,8 @@ import orjson
 
 from backend.api.common.groups import Group
 from backend.api.tests import datatest as dt
-from backend.api.tests.test_api_users import auth, create_user, delete_user, authorize_user
+from backend.api.tests.test_api_users import auth, create_user, delete_user, authorize_user, delete_group, create_group
 
-
-def delete_group(client, uid, headers):
-    response = client.delete(
-        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{uid}',
-        headers=headers,
-    )
-    return response
-
-
-def create_group(client, user_data, headers):
-    data = orjson.dumps(user_data)
-    response = client.post(
-        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
-        headers=headers,
-        data=data,
-    )
-
-    return response
 
 @auth
 def test_get_group_200(client, **kwargs):
