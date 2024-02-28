@@ -5,6 +5,12 @@ import {APIS, homeUrl, gRole} from "@/scripts/constants";
 import {useCookies} from "react-cookie";
 import {ChangeEvent, useEffect, useState} from "react";
 import {changePassword} from "@/scripts/requests/adminUserProvider";
+import done from "@/assets/icons/done.svg"
+import cancel from "@/assets/icons/cancel.svg"
+import openEye from "@/assets/icons/openEyePass.png";
+import closeEye from "@/assets/icons/closedEyePass.png";
+import password from "@/assets/icons/password.svg"
+import group from "@/assets/icons/group.svg"
 
 interface Props {
     data: userDataForEdit
@@ -20,6 +26,7 @@ interface PasswordError {
 
 export const ProfileView: React.FC<Props> = ({data}) => {
 
+    const [showPass,setShowPass] = useState(true)
     const [userAuthCookies, setUserAuthCookie, removeCookie] = useCookies(['userAuth', 'userAttempt'])
     const [currentEditor, serCurrentEditor] = useState<CurrentEditor>()
     const defaultPhoto = 'https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg'
@@ -145,6 +152,10 @@ export const ProfileView: React.FC<Props> = ({data}) => {
         }
     }
 
+    const passVisibility = () => {
+        setShowPass(!showPass);
+    }
+
     return (
         <div className={PV_S.Profile_Module}>
             <div className={PV_S.Profile_Body}>
@@ -170,48 +181,54 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                         {data.street && <p>{data.street}</p>}
                         {data.postalCode && <p>{data.postalCode}</p>}
                     </div>
-                    <div style={{display: "flex", flexDirection: "column"}}>
-                        {!passwordChanging.active && <button onClick={() => setChangePassword()}>
-                            Изменить пароль
-                        </button>}
 
-                        {passwordChanging.active && <div>
-                            <input type={"password"}
-                                   value={passwordChanging.password}
-                                   onChange={(e) => {
-                                       passwordInputHandler(e)
-                                   }}/>
-                            <br/>
-                            {passwordError.isError &&
-                                <span style={{width: "20%",
-                                    maxWidth: '50px',
-                                    wordWrap: "break-word",
-                                    color: 'red',
-                                    fontWeight: 'bold'}}>
+
+                    <div className={PV_S.Changes_div}>
+
+                        {!passwordChanging.active ? <button className={PV_S.Change_button} title={"Изменить параметры групп"}><img src={group} alt=""/></button> : null}
+
+                        <div className={PV_S.Password_changes_div}>
+                            {!passwordChanging.active && <button className={PV_S.Change_button} onClick={() => setChangePassword()} title={"Сменить пароль"}>
+                                <img src={password} alt="Изменить пароль"/>
+                            </button>}
+
+                            {passwordChanging.active && <div className={PV_S.passwordChanging_elements}>
+                                <div className={PV_S.passField}>
+                                    <input type={showPass ? "password" : "text"}
+                                           className={PV_S.inputPass}
+                                           placeholder={"Введите новый пароль"}
+                                           value={passwordChanging.password}
+                                           onChange={(e) => {
+                                               passwordInputHandler(e)
+                                           }}/>
+                                    <img className={PV_S.passSwitch} onClick={() => passVisibility()} src={showPass ? openEye : closeEye} alt={"show"}/>
+                                </div>
+                                {passwordError.isError &&
+                                    <span>
                                     {passwordError.message}
                                 </span>}
-                        </div>}
-
-                        {passwordChanging.active &&
-                            <div>
-                                <button onClick={() => validateNewPassword()}>
-                                    сохранить пароль
-                                </button>
-
-                                <button onClick={() => {
-                                    setPasswordChanging({
-                                        active: false,
-                                        password: '',
-                                    })
-                                    setPasswordError({
-                                        isError: false,
-                                        message: '',
-                                    })
-                                }}>
-                                    отмена
-                                </button>
                             </div>}
 
+                            {passwordChanging.active &&
+                                <div className={PV_S.Password_button_group}>
+                                    <button onClick={() => validateNewPassword()} >
+                                        <img src={done} alt="Сохранить"/>
+                                    </button>
+
+                                    <button onClick={() => {
+                                        setPasswordChanging({
+                                            active: false,
+                                            password: '',
+                                        })
+                                        setPasswordError({
+                                            isError: false,
+                                            message: '',
+                                        })
+                                    }}>
+                                        <img src={cancel} alt="Отменить"/>
+                                    </button>
+                                </div>}
+                        </div>
                     </div>
                 </div>
             </div>
