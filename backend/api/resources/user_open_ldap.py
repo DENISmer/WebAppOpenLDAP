@@ -3,6 +3,7 @@ from flask_restful import Resource, request, abort
 
 from backend.api.common.auth_http_token import auth
 from backend.api.common.common_serialize_open_ldap import CommonSerializer
+from backend.api.common.crypt_passwd import CryptPasswd
 from backend.api.common.decorators import connection_ldap, permission_user, define_schema
 from backend.api.common.file_rewritter import rewrite_file
 from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
@@ -93,7 +94,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
                 item=updated_user,
                 operation=operation,
                 not_modify_item=group
-            )  # must be test
+            )
 
         elif not group:
             new_group = CnGroupLdap(
@@ -113,8 +114,21 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
                 operation='create',
             )
 
+        if deserialized_data.get('userPassword'):
+            user_password = CryptPasswd(
+                password=deserialized_data['userPassword'].encode(),
+                secret_key=bytes(settings.SECRET_KEY.encode())
+            ).crypt()
+            db_queries = DbQueries(db.session)
+            db_queries.update_instance_by_dn(
+                TokenModel, user.dn, {'userPassword': user_password}
+            )
+
         # update info user
         user.__dict__.update(deserialized_data)
+        out_path = rewrite_file(user, files_webadmins_fields['fields'])
+        user.__dict__.update(out_path)
+
         return user
 
     @auth.login_required(role=[Role.WEB_ADMIN, Role.SIMPLE_USER])

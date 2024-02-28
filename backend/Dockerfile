@@ -5,10 +5,12 @@ ENV PYTHONUNBUFFERED 1
 
 ENV PATH=/usr/src/app/backend/venv/bin:$PATH
 
-EXPOSE 8000
+#EXPOSE 8000
 
 RUN mkdir -p /usr/src/app/
 RUN apt-get update && apt-get install -y --no-install-recommends libmagic1 && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -ms /bin/bash web-server-user
 
 WORKDIR /usr/src/app/
 
@@ -17,6 +19,7 @@ RUN mkdir backend
 COPY ../backend/requirements.txt backend/.
 
 COPY ../backend/api/ backend/api
+COPY ../backend/ldap-cert/ ldap-cert
 COPY ../backend/startapp_server.sh startapp_server.sh
 
 RUN python -m venv backend/venv

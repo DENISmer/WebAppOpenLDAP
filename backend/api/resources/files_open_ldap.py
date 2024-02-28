@@ -79,14 +79,16 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
                     response_data[key] = []
 
                 format_file = magic.from_buffer(chunks, mime=True)
+                print('FILESOPENLDAP')
                 print('format_file', format_file)
                 extension_tmp = mimetypes.guess_extension(format_file)
                 print('extension', extension_tmp)
                 print('file.filename', file.filename)
 
                 extension = file.filename.rsplit('.', 1)[1].lower()
-                saving_filename = f'{username_uid}_{key}_{index}.{extension}'
+                saving_filename = f'{username_uid}_{key}_{index}{extension_tmp}' # .{extension}
                 print('saving_filename', saving_filename)
+                print('FILESOPENLDAP')
                 response_data[key].append(os.path.join(
                     settings.GLOBAL_UPLOAD_FOLDER, saving_filename
                 ))

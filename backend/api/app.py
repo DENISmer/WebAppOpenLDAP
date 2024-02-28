@@ -4,7 +4,6 @@ from flask_cors import CORS
 
 from werkzeug.exceptions import HTTPException
 
-from backend.api.celery.celery_app import celery_init_app
 from backend.api.common.regex_converter import RegexConverter
 from backend.api.common.route import Route
 from backend.api.redis.redis_storage import RedisStorage
@@ -23,12 +22,11 @@ from backend.api.config import settings
 app = Flask(__name__)
 app.url_map.converters['regex'] = RegexConverter
 app.config.from_object('backend.api.config.settings')  # or this
-# app.config.from_envvar('APPLICATION_SETTINGS') # or this - export APPLICATION_SETTINGS=$PWD/config/settings.py
 
 api = Api(app)
 
 # Cross Origin Resource Sharing
-cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
+# cors = CORS(app, resources={r'/api/*': {"origins": "http://0.0.0.0:3000"}})
 # cors = CORS(
 #     app,
 #     resources={r'/api/*': {"origins": "*"}},
@@ -79,8 +77,6 @@ def handle_exception(e):
     response.content_type = "application/json"
     return response
 
-
-# celery_app = celery_init_app(app)
 
 RedisStorage().remove_all()
 

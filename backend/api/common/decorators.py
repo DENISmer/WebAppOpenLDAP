@@ -200,9 +200,9 @@ def error_operation_ldap(func):
         except LDAPInvalidCredentialsResult as e:
             logging.log(logging.ERROR, e.__dict__)
             abort(
-                400,
+                401,
                 message='Invalid credentials',
-                status=400,
+                status=401,
             )
         except LDAPObjectClassViolationResult as e:
             logging.log(logging.ERROR, e.__dict__)
