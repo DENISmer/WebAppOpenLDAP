@@ -335,7 +335,7 @@ class UserMeOpenLDAPResource(Resource, CommonSerializer):
     def get(self, *args, **kwargs):
         current_user = auth.current_user()
         user_schema = kwargs['schema']
-
+        return None, 200
         user = UserManagerLDAP(connection=self.connection).item(current_user['uid'])
         serialized_data = self.serialize_data(user_schema, user)
 

@@ -8,7 +8,7 @@ services:
       - web-client
       - web-server
     ports:
-      - "8083:8080"
+      - "8080:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - files-volume:/usr/src/app/files
@@ -36,7 +36,7 @@ services:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - proj-db-volume:/usr/src/app/instance
       - files-volume:/usr/src/app/backend/files

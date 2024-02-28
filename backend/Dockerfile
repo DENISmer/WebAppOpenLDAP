@@ -14,10 +14,9 @@ RUN useradd -ms /bin/bash web-server-user
 
 WORKDIR /usr/src/app/
 
-RUN mkdir backend
+RUN mkdir backend files instance
 
 COPY ../backend/requirements.txt backend/.
-
 COPY ../backend/api/ backend/api
 COPY ../backend/ldap-cert/ ldap-cert
 COPY ../backend/startapp_server.sh startapp_server.sh
@@ -27,5 +26,9 @@ RUN python -m pip install -U pip
 RUN python -m pip install -r backend/requirements.txt
 
 RUN chmod u+x startapp_server.sh
+
+RUN chown -R web-server-user:web-server-user startapp_server.sh files instance
+
+USER web-server-user
 
 CMD sh ./startapp_server.sh
