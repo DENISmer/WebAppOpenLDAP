@@ -4,7 +4,7 @@
   padding: 10px;
   width: 20%;
   min-width: 302px;
-  top: 152px;
+  top: 115px;
   left: 80px;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
 }
 .Profile_Content {
   height: max-content;
-  min-height: 500px;
+  min-height: 550px;
   max-height: 70%;
   background-color: #dae1ec;
   padding: 10px;
@@ -24,30 +24,138 @@
   align-items: center;
   flex-direction: column;
   border-radius: 10px;
-  div {
-    //border: 1px solid crimson;
-    border-radius: 10px;
-    width: 200px;
-    height: 200px;
+  .profile_img{
+    .input_for_photo{
+      margin: 10px 0;
+      overflow: hidden;
+      max-width: 250px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
     img {
-      max-width: 100%;
+      max-height: 200px;
+      height: 100%;
+      max-width: 200px;
+      width: 100%;
       border-radius: 10px;
     }
+    p{
+      min-width: 250px;
+      width: max-content;
+      max-width: 250px;
+      word-wrap: break-word;
+      padding: 5px;
+      border-radius: 7px;
+      margin-top: 10px;
+      border: 1px solid #050517;
+      font-size: medium;
+      font-weight: bold;
+      font-family: "Roboto", sans-serif;
+    }
+  .Profile_Information{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: max-content;
+    width: 100%;
   }
-  p{
-    min-width: 250px;
-    width: max-content;
-    max-width: 250px;
-    word-wrap: break-word;
-    padding: 5px;
-    border-radius: 7px;
-    margin-top: 10px;
-    border: 1px solid #050517;
-    font-size: medium;
-    font-weight: bold;
-    font-family: "Roboto", sans-serif;
+
+  .Changes_div{
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+
+    .Password_changes_div{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .passwordChanging_elements{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .passField {
+        margin: 10px 0;
+        width: 250px;
+        display: flex;
+        align-items: center;
+      }
+
+      .passSwitch {
+        width: 24px;
+        position: relative;
+        right: 13px;
+        margin: -15px;
+        background-color: white;
+        &:hover {
+        }
+      }
+
+      .inputPass {
+        border: none;
+        border-radius: 5px;
+        width: 100%;
+        font-size: 16px;
+        padding: 5px 15% 5px 5px;
+        &:focus{
+          outline: none !important;
+          box-shadow: 0 0 3px #a0bbd9;
+        }
+      }
+
+      span{
+        color: red;
+      }
+    }
+
+    .Change_button{
+      margin: 10px 5px;
+      border-radius: 5px;
+      font-size: 16px;
+      padding: 3px;
+      background: inherit;
+      border: none;
+      color: rgb(0, 0, 0);
+      transition: .3s ease-in-out;
+
+      &:hover{
+        scale: 1.05;
+        transition: .3s ease-in-out;
+        background-color: rgb(255, 255, 255);
+        color: rgb(0, 0, 0);
+      }
+
+    }
+
+    .Password_button_group{
+      button{
+        padding: 2px;
+        margin: 3px 5px;
+        border: none;
+        border-radius: 5px;
+        transition: ease-in-out .3s;
+
+        background-color: #a0bbd9;
+        &:hover {
+          background: #8299b4;
+          scale: 1.05;
+          transition: 0.3s ease-in-out;
+        }
+      }
+    }
   }
 }
+
 
 @media screen and (width < 900px) {
   .Profile_Module{

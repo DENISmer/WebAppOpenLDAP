@@ -52,7 +52,7 @@ const Login = () => {
                     setLoading(true)
                     const userData: UserAuth | undefined = await sendParams(username, password)
                     if(userData.status === 200){
-                        setUserAuthCookie('userAuth', userData, {maxAge: 3600 * 6})
+                        setUserAuthCookie('userAuth', userData, {maxAge: 3600 * 10})
                         setAuthError(false)
                         setLoading(false)
                         navigate("/")

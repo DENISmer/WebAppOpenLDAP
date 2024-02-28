@@ -13,7 +13,7 @@ if (process.argv[4] !== 'development') {
     target = 'browserslist';
 }
 
-console.log("!!!mode =", process.argv[4]);
+console.log("!!!mode =", mode);
 
 
 const cssLoader = (extra) => {

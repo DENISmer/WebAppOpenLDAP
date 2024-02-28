@@ -72,9 +72,9 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
     })
 }
 
-export async function sendChanges(data: PatchParams['userData'], token: string, role: string): Promise<ReturnThenPatch> {
+export async function sendChanges(data: PatchParams['userData'], token: string, role: string, uid: string): Promise<ReturnThenPatch> {
     if (role === 'simple_user'){
-        return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+        return await axios.patch(`${APIS.USERS}/${uid}`,{
             mail: data.mail,
         }, {
             headers: {
@@ -89,7 +89,7 @@ export async function sendChanges(data: PatchParams['userData'], token: string, 
             .catch((e) => {
                 return e.response.data
             })
-    } else return await axios.patch(`${APIS.USERS}/${data.uid}`,{
+    } else return await axios.patch(`${APIS.USERS}/${uid}`,{
         uidNumber: data.uidNumber,
         gidNumber: data.gidNumber,
         uid: data.uid,
@@ -136,7 +136,7 @@ export async function deleteUser(uid: string,token: string) {
     }
 }
 
-export async function addUser(data: userAddDataForEdit, token: string) {
+export async function addUser(data: userAddDataForEdit, token: string): Promise<userGroupDataForEdit | ErrorData> {
     console.log("REQuest data: ",data)
     return await axios.post(`${APIS.USERS}`,
         {
@@ -162,12 +162,12 @@ export async function addUser(data: userAddDataForEdit, token: string) {
             }
         }
         )
-        .then((response) => {
+        .then((response): userGroupDataForEdit => {
             alert("Данные успешно сохранены")
-            return response
+            return response.data
         })
-        .catch((e) => {
-            return e
+        .catch((e): ErrorData  => {
+            return e.response.data
         })
 }
 
@@ -178,6 +178,23 @@ export async function getUserGroupData(data: getUserGroupData): Promise<userGrou
         }
     })
         .then((response): userGroupDataForEdit => {
+            return response.data
+        })
+        .catch((e): ErrorData => {
+            return e.response.data
+        })
+}
+
+export async function changePassword(params: getUserGroupData, password: string): Promise<userDataForEdit | ErrorData>{
+    return await axios.patch(`${APIS.USERS}/${params.uid}`,{
+        userPassword: password
+    },
+        {
+            headers: {
+                Authorization: `Bearer ${params.token}`
+            }
+        })
+        .then((response): userDataForEdit => {
             return response.data
         })
         .catch((e): ErrorData => {

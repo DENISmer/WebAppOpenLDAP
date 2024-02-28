@@ -17,7 +17,7 @@ import pen from "@/assets/icons/pen_edit1.png"
 import delete_user from "@/assets/icons/delete_user.png"
 import {ProfileView} from "@/components/pages/workroom/editor/ProfileView/ProfileView";
 import {UserGroupForm} from "@/components/pages/workroom/editor/userGroupEditor/userGroupForm";
-import {response} from "express";
+import {gRole} from "@/scripts/constants";
 
 
 export interface userDataForEdit {
@@ -53,7 +53,7 @@ export interface SimpleUserDataForEdit {
     sshPublicKey: string[],
     mail: string
 }
-interface CurrentEditor {
+export interface CurrentEditor {
     token: string,
     role: string,
     uid: string,
@@ -112,10 +112,9 @@ const WorkRoom: React.FC = () => {
     const [adminUserEdit, setAdminUserEdit] = useState(false)
     // const [currentUser, setCurrentUser] = useState({})
     const [addUserIsActive, setAddUserIsActive] = useState(false)
-
     const role: UserRole = {
         admin: 'webadmin',
-        simple: 'simple_user',
+        simple: 'simpleuser',
     }
 
     const fillUsersList = async (props: Params) => {
@@ -144,7 +143,7 @@ const WorkRoom: React.FC = () => {
     //then auth success
     useEffect(() => {
         if (userAuthCookies['userAuth']) {
-            if(userAuthCookies['userAuth'].role === role.simple) {
+            if(userAuthCookies['userAuth'].role === gRole.simple) {
                 setIsEditing({isEditing: true, uid: userAuthCookies['userAuth'].userName})
             }
             setCurrentEditor({
@@ -156,13 +155,13 @@ const WorkRoom: React.FC = () => {
         } else {
             navigate("/login")
         }
-        console.log(userAuthCookies['userAuth'])
+        // console.log(userAuthCookies['userAuth'])
     }, []);
 
 
     // hook works after editing trigger
     useEffect(() => {
-        console.log(isEditing)
+        // console.log(isEditing)
         if(isEditing.isEditing && isEditing.uid){
             getUserData(isEditing.uid)
                 .then((response: userDataForEdit ) => {
@@ -174,7 +173,7 @@ const WorkRoom: React.FC = () => {
                     setEditedUser(response)
                 })
                 .catch((e) => {
-                    console.log("error catched",e)
+                    // console.log("error catched",e)
                 })
         } else if (!isEditing.isEditing && isEditing.uid){
             deleteUserFromList()
@@ -196,7 +195,7 @@ const WorkRoom: React.FC = () => {
 
 
     useEffect(() => {
-        console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
+        // console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
         setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
     },[editedUser])
 
@@ -220,10 +219,10 @@ const WorkRoom: React.FC = () => {
                     }
                 })
                 .catch((e) => {
-                    console.log(e)
+                    // console.log(e)
                 })
         } catch { (e) => {
-            console.log(e)
+            // console.log(e)
         } }
     }
 
@@ -273,11 +272,11 @@ const WorkRoom: React.FC = () => {
 
         else {
             if(!editedUser.objectClass.includes('ldapPublicKey')){
-                delete editedUser['sshPublicKey']
-                console.log(editedUser)
+                editedUser['sshPublicKey'] = []
+                // console.log(editedUser)
             }
-            console.log(currentEditor.token)
-            await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role)
+            // console.log(currentEditor.token)
+            await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role, userForEditAdmin.uid)
                 .then((response: any) => {
                     if (response.status === 200){
                         setEditedUser(response.userData)
@@ -360,7 +359,7 @@ const WorkRoom: React.FC = () => {
         if(confirmForDelete){
             await deleteUser(isEditing.uid, currentEditor.token)
                 .then((response: any) => {
-                    console.log('delete_response',response)
+                    // console.log('delete_response',response)
                     if(response.status === 204) {
                         setCurrentListPage(currentListPage + 1)
                         setCurrentListPage(currentListPage - 1)
@@ -373,7 +372,7 @@ const WorkRoom: React.FC = () => {
                     }
                 })
                 .catch((e) => {
-                    console.log(e)
+                    // console.log(e)
                 })
         }
     }
@@ -398,6 +397,11 @@ const WorkRoom: React.FC = () => {
                 }
             )
         }
+    }
+
+    const forEditedUserImage = (newData: any) => {
+        setUserForEditAdmin(newData)
+        setEditedUser(newData)
     }
 
     const onCloseModalAddUser = (data: boolean) => {
@@ -435,8 +439,8 @@ const WorkRoom: React.FC = () => {
                     Выйти
                 </div>
 
-                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === role.simple)
-                    || (currentEditor && currentEditor.role === role.simple)
+                <div className={(userAuthCookies.userAuth && userAuthCookies.userAuth.role === gRole.simple)
+                    || (currentEditor && currentEditor.role === gRole.simple)
                     ? WR_S.Admin_Profile_disabled : WR_S.Admin_Profile}
                     onClick={() => setCurrentAdminProfileEdit()}>
                     Профиль
@@ -444,7 +448,7 @@ const WorkRoom: React.FC = () => {
 
             </div>
 
-            {currentEditor && currentEditor.role === role.admin &&
+            {currentEditor && currentEditor.role === gRole.admin &&
                 isEditing && !isEditing.isEditing && <div className={WR_S.Admin_Panel}>
                 {/*menu*/}
 
@@ -504,10 +508,12 @@ const WorkRoom: React.FC = () => {
                                                     }
                                                     )}><img src={pen} alt="Edit information"/>
                                         </button>
-                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({
-                                            isEditing: false,
-                                            uid: element.uid
-                                        })}><img src={delete_user} alt="Delete user"/>
+                                        <button className={WR_S.Delete_Button} onClick={() => {
+                                            setIsEditing({
+                                                isEditing: false,
+                                                uid: element.uid
+                                            })
+                                        }}><img src={delete_user} alt="Delete user"/>
                                         </button>
                                     </div>
                                 </div>)
@@ -517,15 +523,15 @@ const WorkRoom: React.FC = () => {
                 </div>}
 
             {/*simple and admin editing*/}
-            {(adminUserEdit || currentEditor) && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+            {currentEditor && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
 
-                {currentEditor.role === role.admin &&
-                    <button onClick={() => switchEditMode()} className={WR_S.Group_user_button}>
-                        edit group of this user
-                    </button>
-                }
+                {/*{currentEditor.role === gRole.admin &&*/}
+                {/*    <button onClick={() => switchEditMode()} className={WR_S.Group_user_button}>*/}
+                {/*        edit group of this user*/}
+                {/*    </button>*/}
+                {/*}*/}
 
-                <ProfileView data={editedUser}/>
+                {<ProfileView data={editedUser} key={editedUser.uid}/>}
 
                 {!isEditingGroup && <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange}
                                fieldIsChange={isFieldChanged}
@@ -555,10 +561,10 @@ const WorkRoom: React.FC = () => {
 
                 <button className={WR_S.cancelChanges}
                         onClick={() => {
-                            (currentEditor.role === role.simple) ?
+                            (currentEditor.role === gRole.simple) ?
                                 quitForSimpleUser() : quitForAdmin()
                         }}>
-                    выйти к {currentEditor.role === role.admin ?
+                    выйти к {currentEditor.role === gRole.admin ?
                     <span>списку</span> : <span>авторизации</span>}
                 </button>
             </div>}

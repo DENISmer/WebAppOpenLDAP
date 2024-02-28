@@ -86,18 +86,6 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                 delete validatedData[field];
             }
         }
-
-        // Валидация числовых полей
-        // if (formData.uidNumber && isNaN(Number(formData.uidNumber))) {
-        //     setError(`Field "uidNumber" must be a number.`);
-        //     return null;
-        // }
-        //
-        // if (formData.gidNumber && isNaN(Number(formData.gidNumber))) {
-        //     setError(`Field "gidNumber" must be a number.`);
-        //     return null;
-        // }
-
         setError(null);
         return validatedData;
     };
@@ -107,13 +95,13 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
         if (validatedData) {
             await addUser(validatedData, token)
                 .then((response: any) => {
-                    if(response && response.response.status === 201){
+                    if(response && !response.status){
+                        alert('Пользователь добавлен!')
                         onClose(true)
                     }
-                    else if(response && response.response.status === 400){
-                        alert(`Error ${response.response.status}\n
-                        ${JSON.stringify(response.response.data)}`)
-                    } else if (response && response.response.status === 401){
+                    else if(response && response.status === 400){
+                        alert(`Error ${response.status}\n${JSON.stringify(response.message)}\n${JSON.stringify(response.fields)}`)
+                    } else if (response && response.status === 401){
                         navigate('/login')
                     }
                 })
@@ -129,14 +117,20 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
         <div className={styles.modalOverlay}>
             <div className={styles.modal} >
                 <div className={styles.modalHeader}>
-                  <span onClick={() => onClose(dataIsSaved)} className={styles.modalCloseButton}>
+                  <span onClick={() => onClose(dataIsSaved)}
+                        className={styles.modalCloseButton}>
                     &Chi;
                   </span>
                 </div>
                 <div className={styles.modalContent}>
                     {Object.keys(formData).map((item, index) => (
                         <div className={error && error.field === item ? styles.inputGroup_error : styles.inputGroup}>
-                            <label title={requiredFields.includes(item) ? "Это поле обязательно" : "Это поле НЕ обязательно"} className={requiredFields.includes(item) ? styles.required : null} htmlFor="dn">{item}
+                            <label title={requiredFields.includes(item) ?
+                                "Это поле обязательно" :
+                                "Это поле НЕ обязательно"}
+                                   className={requiredFields.includes(item) ? styles.required : null}
+                                   htmlFor="dn">
+                                {item === 'objectClass' ? `${item} (через запятую)` : `${item}`}
                             </label>
                             <input
                                 type="text"
@@ -148,11 +142,13 @@ const ModalForAddUser: React.FC<ModalProps> = ({ onClose, token }) => {
                             />
                         </div>
                     ))}
-                    {error && <div className={styles.modalError}>{error.message}</div>}
+                    {error && <div className={styles.modalError}>
+                        {error.message}
+                    </div>}
                 </div>
                 <div className={styles.modalFooter}>
-
-                    <button onClick={handleSubmit} className={styles.modalSubmitButton}>
+                    <button onClick={handleSubmit}
+                            className={styles.modalSubmitButton}>
                         Submit
                     </button>
                 </div>

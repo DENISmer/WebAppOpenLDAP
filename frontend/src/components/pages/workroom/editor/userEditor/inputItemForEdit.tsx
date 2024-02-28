@@ -5,7 +5,7 @@ import {Modal} from "@/components/Modal_Window/modalWindow";
 import add_object from "@/assets/icons/add_item_v2.svg"
 import full_view from "@/assets/icons/openInModal_v2.svg"
 import expand_more from "@/assets/icons/expand_more.png"
-import {UserRole} from "@/components/pages/workroom/workRoom";
+import {gRole} from "@/scripts/constants";
 
 export interface userDataForEdit {
     dn?: string,
@@ -38,11 +38,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
     const [isModalActive, setIsModalActive] = useState({acive: false, text: null})
     const [expandMoreActive, setExpandMoreActive] = useState({mail: false, sshPublicKey: false, objectClass: false})
-
-    const uRole : UserRole = {
-        admin: 'webadmins',
-        simple: 'simple_user',
-    }
+    
     const handleInputChange = (key: string, value: string, index?: number) => {
         const newData = { ...userData };
         let updatedValue: any = value;
@@ -90,10 +86,14 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
         if (!Array.isArray(newData[key])) {
             return;
         }
-        newData[key] = [
-            ...newData[key].slice(0, index),
-            ...newData[key].slice(index + 1),
-        ];
+        if (index === 0){
+            newData[key] = []
+        } else {
+            newData[key] = [
+                ...newData[key].slice(0, index),
+                ...newData[key].slice(index + 1),
+            ];
+        }
         onUserDataChange(newData);
     };
 
@@ -154,7 +154,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                             name={inputName}
                             placeholder={`Enter ${key}`}
                             value={inputValue || ''}
-                            disabled={key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === uRole.simple}
+                            disabled={(key === 'dn' || key !== 'mail' && key !== 'userPassword' && key !== 'sshPublicKey' && role === gRole.simple)
+                                || key === 'uid' || key === 'jpegPhoto'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 handleInputChange(key, e.target.value, index)
                             }
@@ -165,8 +166,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
 
                             {isValueArray && index === value.length - 1 && <button
-                                className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                className={role === gRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== gRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                disabled={role === gRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                 type="button"
                                 title={"Добавить новое поле"}
                                 onClick={() => handleAddArrayItem(key)}>
@@ -182,10 +183,10 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                 </button>}
 
                             {isValueArray &&
-                                typeof index === 'number' && value.length > 1 && (
-                                    <button className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
+                                typeof index === 'number' && value.length >= 0 && (
+                                    <button className={role === gRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== gRole.simple ? FFE_S.Button_Remove : FFE_S.button_disabled}
                                             type="button"
-                                            disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                            disabled={role === gRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                             onClick={() => handleRemoveArrayItem(key, index)}
                                             title={"удалить текущее поле"}>
                                         <img src={delete_object} alt="Delete this field" width={20}/>
@@ -209,6 +210,7 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
 
         <form className={FFE_S.Admin_form}>
             {Object.entries(userData).sort().map(([key, value]) => {
+                if(key === 'jpegPhoto') return null
                 if (Array.isArray(value)) {
                     const inputs = value.map((val, index) => renderInput(key, value, index));
                     return (
@@ -226,8 +228,8 @@ export const UserEditForm: React.FC<Props> = ({ userData, onUserDataChange, fiel
                                 {value.length === 0 && <label style={{fontWeight: "bold"}}>{key}</label>}
                                 {inputs}
                                 {value.length === 0 && <button
-                                    className={role === uRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== uRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
-                                    disabled={role === uRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
+                                    className={role === gRole.simple && (key === 'mail' || key === 'sshPublicKey') || role !== gRole.simple ? FFE_S.Button_Add : FFE_S.button_disabled}
+                                    disabled={role === gRole.simple && (key !== 'mail' && key !== 'sshPublicKey')}
                                     type="button"
                                     title={"Добавить новое поле"}
                                     onClick={() => handleAddArrayItem(key)}>
