@@ -1,13 +1,13 @@
 import PV_S from "@/components/pages/workroom/editor/ProfileView/ProfileView.module.scss"
 import {CurrentEditor, userDataForEdit} from "@/components/pages/workroom/workRoom";
 import axios from "axios";
-import {APIS, homeUrl, gRole} from "@/scripts/constants";
+import {APIS, homeUrl} from "@/scripts/constants";
 import {useCookies} from "react-cookie";
 import {ChangeEvent, useEffect, useState} from "react";
 import {changePassword} from "@/scripts/requests/adminUserProvider";
 
 interface Props {
-    data: userDataForEdit
+    data: userDataForEdit,
 }
 interface Password {
     active: boolean,
@@ -27,7 +27,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     const [file, setFile] = useState<File | null>(null);
     const [jsonData, setJsonData] = useState<object>({dn: 'asd', sn: 'sn'});
 
-    const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0])
+    const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0] + '?t=' + new Date().getTime())
     const [imgError, setImgError] = useState<boolean>(false)
 
     const [passwordChanging,setPasswordChanging] = useState<Password>({active: false, password: ''})
@@ -54,6 +54,10 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                 })
         }
     },[])
+    // useEffect(() => {
+    //     console.log(counter)
+    //     setProfilePhoto(homeUrl + data.jpegPhoto[0] + `?t=${new Date().getTime()+ counter}`)
+    // },[counter])
 
     useEffect(() =>{
         handleSubmit(data.uid)
@@ -79,10 +83,11 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                 },
             }).then(async (response) => {
                 if(response.status === 200){
-                    console.log('new: ', homeUrl + response.data.jpegPhoto[0])
+                    // console.log('new: ', homeUrl + response.data.jpegPhoto[0])
                     const timestamp = new Date().getTime();
-                    await setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
-                    await setImgError(false)
+                    // setNewData(response.data)
+                    setProfilePhoto(`${homeUrl + response.data.jpegPhoto[0]}?t=${timestamp}`)
+                    setImgError(false)
                     alert(`Фото успешно изменено!`)
                 } else {
                     alert('somth went wrong')
@@ -154,12 +159,12 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                              alt="картинка профиля"
                              onError={() => setImgError(true)}
                         />
-                        {currentEditor && currentEditor.role === gRole.admin && <input
+                        <input
                             type={"file"}
                             accept={"image/jpeg, image/jpg, image/png, image/webp, image/bmp, image/svg, image/gif"}
                             onChange={handleFileChange}
                             className={PV_S.input_for_photo}
-                        />}
+                        />
                     </div>
                     <div className={PV_S.Profile_Information}>
                         <p>{data.displayName ?? data.uid}</p>

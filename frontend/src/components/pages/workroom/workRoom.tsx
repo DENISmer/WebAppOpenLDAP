@@ -112,7 +112,6 @@ const WorkRoom: React.FC = () => {
     const [adminUserEdit, setAdminUserEdit] = useState(false)
     // const [currentUser, setCurrentUser] = useState({})
     const [addUserIsActive, setAddUserIsActive] = useState(false)
-
     const role: UserRole = {
         admin: 'webadmin',
         simple: 'simpleuser',
@@ -156,13 +155,13 @@ const WorkRoom: React.FC = () => {
         } else {
             navigate("/login")
         }
-        console.log(userAuthCookies['userAuth'])
+        // console.log(userAuthCookies['userAuth'])
     }, []);
 
 
     // hook works after editing trigger
     useEffect(() => {
-        console.log(isEditing)
+        // console.log(isEditing)
         if(isEditing.isEditing && isEditing.uid){
             getUserData(isEditing.uid)
                 .then((response: userDataForEdit ) => {
@@ -174,7 +173,7 @@ const WorkRoom: React.FC = () => {
                     setEditedUser(response)
                 })
                 .catch((e) => {
-                    console.log("error catched",e)
+                    // console.log("error catched",e)
                 })
         } else if (!isEditing.isEditing && isEditing.uid){
             deleteUserFromList()
@@ -196,7 +195,7 @@ const WorkRoom: React.FC = () => {
 
 
     useEffect(() => {
-        console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
+        // console.log(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
         setUserIsChanged(JSON.stringify(editedUser) !== JSON.stringify(userForEditAdmin))
     },[editedUser])
 
@@ -220,10 +219,10 @@ const WorkRoom: React.FC = () => {
                     }
                 })
                 .catch((e) => {
-                    console.log(e)
+                    // console.log(e)
                 })
         } catch { (e) => {
-            console.log(e)
+            // console.log(e)
         } }
     }
 
@@ -274,9 +273,9 @@ const WorkRoom: React.FC = () => {
         else {
             if(!editedUser.objectClass.includes('ldapPublicKey')){
                 editedUser['sshPublicKey'] = []
-                console.log(editedUser)
+                // console.log(editedUser)
             }
-            console.log(currentEditor.token)
+            // console.log(currentEditor.token)
             await sendChanges(editedUser, currentEditor.token,currentEditor.role ?? userAuthCookies.userAuth.role, userForEditAdmin.uid)
                 .then((response: any) => {
                     if (response.status === 200){
@@ -360,7 +359,7 @@ const WorkRoom: React.FC = () => {
         if(confirmForDelete){
             await deleteUser(isEditing.uid, currentEditor.token)
                 .then((response: any) => {
-                    console.log('delete_response',response)
+                    // console.log('delete_response',response)
                     if(response.status === 204) {
                         setCurrentListPage(currentListPage + 1)
                         setCurrentListPage(currentListPage - 1)
@@ -373,7 +372,7 @@ const WorkRoom: React.FC = () => {
                     }
                 })
                 .catch((e) => {
-                    console.log(e)
+                    // console.log(e)
                 })
         }
     }
@@ -398,6 +397,11 @@ const WorkRoom: React.FC = () => {
                 }
             )
         }
+    }
+
+    const forEditedUserImage = (newData: any) => {
+        setUserForEditAdmin(newData)
+        setEditedUser(newData)
     }
 
     const onCloseModalAddUser = (data: boolean) => {
@@ -504,10 +508,12 @@ const WorkRoom: React.FC = () => {
                                                     }
                                                     )}><img src={pen} alt="Edit information"/>
                                         </button>
-                                        <button className={WR_S.Delete_Button} onClick={() => setIsEditing({
-                                            isEditing: false,
-                                            uid: element.uid
-                                        })}><img src={delete_user} alt="Delete user"/>
+                                        <button className={WR_S.Delete_Button} onClick={() => {
+                                            setIsEditing({
+                                                isEditing: false,
+                                                uid: element.uid
+                                            })
+                                        }}><img src={delete_user} alt="Delete user"/>
                                         </button>
                                     </div>
                                 </div>)
@@ -517,7 +523,7 @@ const WorkRoom: React.FC = () => {
                 </div>}
 
             {/*simple and admin editing*/}
-            {(adminUserEdit || currentEditor) && isEditing && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
+            {currentEditor && isEditing.isEditing && editedUser && <div className={WR_S.Admin_UseProfile}>
 
                 {/*{currentEditor.role === gRole.admin &&*/}
                 {/*    <button onClick={() => switchEditMode()} className={WR_S.Group_user_button}>*/}
@@ -525,7 +531,7 @@ const WorkRoom: React.FC = () => {
                 {/*    </button>*/}
                 {/*}*/}
 
-                <ProfileView data={editedUser}/>
+                {<ProfileView data={editedUser} key={editedUser.uid}/>}
 
                 {!isEditingGroup && <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange}
                                fieldIsChange={isFieldChanged}
