@@ -185,3 +185,20 @@ export async function getUserGroupData(data: getUserGroupData): Promise<userGrou
         })
 }
 
+export async function changePassword(params: getUserGroupData, password: string): Promise<userDataForEdit | ErrorData>{
+    return await axios.patch(`${APIS.USERS}/${params.uid}`,{
+        userPassword: password
+    },
+        {
+            headers: {
+                Authorization: `Bearer ${params.token}`
+            }
+        })
+        .then((response): userDataForEdit => {
+            return response.data
+        })
+        .catch((e): ErrorData => {
+            return e.response.data
+        })
+}
+

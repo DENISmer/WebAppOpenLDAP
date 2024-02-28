@@ -3,13 +3,23 @@ import {CurrentEditor, userDataForEdit} from "@/components/pages/workroom/workRo
 import axios from "axios";
 import {APIS, homeUrl, gRole} from "@/scripts/constants";
 import {useCookies} from "react-cookie";
-import {useEffect, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
+import {changePassword} from "@/scripts/requests/adminUserProvider";
 
 interface Props {
     data: userDataForEdit
 }
+interface Password {
+    active: boolean,
+    password: string,
+}
+interface PasswordError {
+    isError: boolean,
+    message: string
+}
 
 export const ProfileView: React.FC<Props> = ({data}) => {
+
     const [userAuthCookies, setUserAuthCookie, removeCookie] = useCookies(['userAuth', 'userAttempt'])
     const [currentEditor, serCurrentEditor] = useState<CurrentEditor>()
     const defaultPhoto = 'https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg'
@@ -19,6 +29,9 @@ export const ProfileView: React.FC<Props> = ({data}) => {
 
     const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0])
     const [imgError, setImgError] = useState<boolean>(false)
+
+    const [passwordChanging,setPasswordChanging] = useState<Password>({active: false, password: ''})
+    const [passwordError,setPasswordError] = useState<PasswordError>({isError: false, message: ''})
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0] && event.target.files.length > 0 && event.target.files[0].size < 2000000) {
             setFile(event.target.files[0]);
@@ -80,7 +93,57 @@ export const ProfileView: React.FC<Props> = ({data}) => {
         }
     };
 
+    const passwordInputHandler = (e: ChangeEvent<HTMLInputElement>) => {
+        setPasswordError({
+            isError: false,
+            message: ''
+        })
+        setPasswordChanging(
+            {
+                active: true,
+                password: e.target.value
+            })
+    }
 
+    const setChangePassword = () => {
+        setPasswordChanging(
+            {active: true,
+                password: passwordChanging.password
+            })
+    }
+
+    const validateNewPassword = async () => {
+        if(passwordChanging.active){
+            if(passwordChanging.password.length >= 8){
+                await changePassword({
+                    token: userAuthCookies.userAuth.token,
+                    uid: data.uid
+                },
+                    passwordChanging.password)
+                    .then((response: any) => {
+                        if (response.status){
+                            if(response.status === 400){
+                                alert(`Ошибка ${response.status}\n
+                                ${response.message}`)
+                            } else {
+                                alert('Неизвестная ошибка')
+                            }
+                        } else {
+                            alert('пароль успешно изменен')
+                            setPasswordChanging({
+                                active: false,
+                                password: ''
+                            })
+                        }
+                    })
+            } else {
+                setPasswordError({
+                    isError: true,
+                    message: 'Длина должна быть не меньше 8 символов!'
+                })
+            }
+        }
+    }
 
     return (
         <div className={PV_S.Profile_Module}>
@@ -106,6 +169,49 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                         <p>{data.homeDirectory}</p>
                         {data.street && <p>{data.street}</p>}
                         {data.postalCode && <p>{data.postalCode}</p>}
+                    </div>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        {!passwordChanging.active && <button onClick={() => setChangePassword()}>
+                            Изменить пароль
+                        </button>}
+
+                        {passwordChanging.active && <div>
+                            <input type={"password"}
+                                   value={passwordChanging.password}
+                                   onChange={(e) => {
+                                       passwordInputHandler(e)
+                                   }}/>
+                            <br/>
+                            {passwordError.isError &&
+                                <span style={{width: "20%",
+                                    maxWidth: '50px',
+                                    wordWrap: "break-word",
+                                    color: 'red',
+                                    fontWeight: 'bold'}}>
+                                    {passwordError.message}
+                                </span>}
+                        </div>}
+
+                        {passwordChanging.active &&
+                            <div>
+                                <button onClick={() => validateNewPassword()}>
+                                    сохранить пароль
+                                </button>
+
+                                <button onClick={() => {
+                                    setPasswordChanging({
+                                        active: false,
+                                        password: '',
+                                    })
+                                    setPasswordError({
+                                        isError: false,
+                                        message: '',
+                                    })
+                                }}>
+                                    отмена
+                                </button>
+                            </div>}
+
                     </div>
                 </div>
             </div>
