@@ -22,7 +22,7 @@ headers = {
     'Authorization': f'Bearer {data["token"]}',
     # 'Content-Type': 'multipart/form-data;',
 }
-url = 'http://127.0.0.1:5000/api/v1/files/john'
+url = 'http://127.0.0.1:5000/api/v1/files/rambo'
 
 fin = open('/home/grig/Изображения/тест2.png', 'rb')
 fin1 = open('/home/grig/Изображения/test1.png', 'rb')
@@ -30,7 +30,7 @@ from io import BytesIO
 file_buffer = BytesIO(fin.read())
 file_buffer1 = BytesIO(fin1.read())
 files = {'jpegPhoto': ('file.png', file_buffer, 'image/png')}
-files12 = {'photos': {'jpegPhoto': ('file.png', file_buffer, 'image/gif')}}
+files12 = {'jpegPhoto': {'jpegPhoto': ('file.png', file_buffer, 'image/gif')}}
 files_list = {'jpegPhoto': ('file.png', file_buffer, 'image/jpg'),
                 'jpegPhoto1': ('file1.png', file_buffer1, 'image/jpg')}
 files_list1 = [('jpegPhoto', ('file.png', file_buffer, 'image/png')),

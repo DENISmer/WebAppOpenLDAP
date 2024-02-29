@@ -81,7 +81,14 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
                 format_file = magic.from_buffer(chunks, mime=True)
                 print('FILESOPENLDAP')
                 print('format_file', format_file)
-                extension_tmp = mimetypes.guess_extension(format_file)
+                extension_tmp = mimetypes.guess_extension(format_file) if not format_file == 'image/webp' else '.webp'
+                if not extension_tmp:
+                    abort(
+                        400,
+                        fields={key: {"0": ['File is not allowed']}},
+                        status=400
+                    )
+
                 print('extension', extension_tmp)
                 print('file.filename', file.filename)
 
@@ -149,5 +156,8 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
             operation='update',  # deprecate
             not_modify_item=user
         )
+
+        tmp_filename = f'{username_uid}_jpegPhoto_*'
+        del_files(filename=tmp_filename)
 
         return None, 204

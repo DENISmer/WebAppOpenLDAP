@@ -26,7 +26,7 @@ app.config.from_object('backend.api.config.settings')  # or this
 api = Api(app)
 
 # Cross Origin Resource Sharing
-# cors = CORS(app, resources={r'/api/*': {"origins": "http://0.0.0.0:3000"}})
+# cors = CORS(app, resources={r'/api/*': {"origins": "*"}})
 # cors = CORS(
 #     app,
 #     resources={r'/api/*': {"origins": "*"}},

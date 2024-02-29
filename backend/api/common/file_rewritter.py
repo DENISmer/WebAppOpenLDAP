@@ -21,7 +21,7 @@ def rewrite_file(user, fields):
             file_base64_decode = base64.b64decode(file_base64)
             format_file = magic.from_buffer(file_base64_decode, mime=True)
             print('file_rewritter format_file', format_file)
-            extension = mimetypes.guess_extension(format_file)
+            extension = mimetypes.guess_extension(format_file) if not format_file == 'image/webp' else '.webp'
             print('file_rewritter format_file', extension)
             name = f'{user.get_username()}_{field}_{index}{extension}'
 
