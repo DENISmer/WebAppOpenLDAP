@@ -3,14 +3,18 @@ import {CurrentEditor, userDataForEdit} from "@/components/pages/workroom/workRo
 import axios from "axios";
 import {APIS, homeUrl} from "@/scripts/constants";
 import {useCookies} from "react-cookie";
-import {ChangeEvent, useEffect, useState} from "react";
-import {changePassword} from "@/scripts/requests/adminUserProvider";
+import {ChangeEvent, useEffect, useRef, useState} from "react";
+import {changePassword, deleteUserPhoto} from "@/scripts/requests/adminUserProvider";
 import done from "@/assets/icons/done.svg"
 import cancel from "@/assets/icons/cancel.svg"
 import openEye from "@/assets/icons/openEyePass.png";
 import closeEye from "@/assets/icons/closedEyePass.png";
 import password from "@/assets/icons/password.svg"
 import group from "@/assets/icons/group.svg"
+import upload from "@/assets/icons/upload.svg"
+import deletePng from "@/assets/icons/delete_object.png"
+import {useNavigate} from "react-router";
+import defaultPhoto from '@/assets/icons/default_photo.jpg'
 
 interface Props {
     data: userDataForEdit,
@@ -29,16 +33,18 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     const [showPass,setShowPass] = useState(true)
     const [userAuthCookies, setUserAuthCookie, removeCookie] = useCookies(['userAuth', 'userAttempt'])
     const [currentEditor, serCurrentEditor] = useState<CurrentEditor>()
-    const defaultPhoto = 'https://abrakadabra.fun/uploads/posts/2021-12/1640528610_2-abrakadabra-fun-p-serii-chelovek-na-avu-2.jpg'
-
     const [file, setFile] = useState<File | null>(null);
     const [jsonData, setJsonData] = useState<object>({dn: 'asd', sn: 'sn'});
 
-    const [profilePhoto, setProfilePhoto] = useState(homeUrl + data.jpegPhoto[0] + '?t=' + new Date().getTime())
+    const [profilePhoto, setProfilePhoto] = useState(defaultPhoto)
     const [imgError, setImgError] = useState<boolean>(false)
 
     const [passwordChanging,setPasswordChanging] = useState<Password>({active: false, password: ''})
     const [passwordError,setPasswordError] = useState<PasswordError>({isError: false, message: ''})
+
+    const inputRef = useRef()
+    const navigate = useNavigate()
+
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0] && event.target.files.length > 0 && event.target.files[0].size < 2000000) {
             setFile(event.target.files[0]);
@@ -49,6 +55,13 @@ export const ProfileView: React.FC<Props> = ({data}) => {
         } else {
             event.target.value = null
         }
+    };
+
+
+
+    const onChooseFile = () => {
+        // @ts-ignore
+        inputRef.current.click();
     };
 
     useEffect(() => {
@@ -67,8 +80,13 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     // },[counter])
 
     useEffect(() => {
-        const time = new Date().getTime()
-        setProfilePhoto(homeUrl + data.jpegPhoto[0] +`?t=${time}`)
+        if(data && data.jpegPhoto && data.jpegPhoto[0] !== undefined){
+            const time = new Date().getTime()
+            setProfilePhoto(homeUrl + data.jpegPhoto[0] +`?t=${time}`)
+        } else {
+            setProfilePhoto(defaultPhoto)
+        }
+
     },[])
 
     useEffect(() =>{
@@ -102,6 +120,11 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                     setImgError(false)
                     alert(`Фото успешно изменено!`)
                 } else {
+                    if(response.status === 401){
+                        removeCookie('userAuth')
+                        navigate('/login')
+
+                    }
                     alert('somth went wrong')
                 }
             })
@@ -120,6 +143,25 @@ export const ProfileView: React.FC<Props> = ({data}) => {
                 active: true,
                 password: e.target.value
             })
+    }
+
+    const deletePhotoHandler = async () => {
+        if(imgError || profilePhoto === defaultPhoto){
+            alert('Нет фото для удаления')
+        } else {
+            const askForDeletePhoto = confirm('Удалить фото?')
+            if(askForDeletePhoto){
+                await deleteUserPhoto(data.uid, userAuthCookies.userAuth.token)
+                    .then((response: any) => {
+                        if(response && response.status === 204){
+                            setProfilePhoto(defaultPhoto)
+                            alert('фото успешно удалено')
+                        } else {
+                            //alert('неизвестная ошибка')
+                        }
+                    })
+            }
+        }
     }
 
     const setChangePassword = () => {
@@ -171,16 +213,35 @@ export const ProfileView: React.FC<Props> = ({data}) => {
             <div className={PV_S.Profile_Body}>
                 <div className={PV_S.Profile_Content}>
                     <div className={PV_S.profile_img}>
-                        <img src={imgError ? defaultPhoto : profilePhoto}
+                        <img src={!profilePhoto || imgError ? defaultPhoto : profilePhoto}
                              alt="картинка профиля"
                              onError={() => setImgError(true)}
                         />
-                        <input
-                            type={"file"}
-                            accept={"image/jpeg, image/jpg, image/png, image/webp, image/bmp, image/svg, image/gif"}
-                            onChange={handleFileChange}
-                            className={PV_S.input_for_photo}
-                        />
+                        <div className={PV_S.button_photo_group}>
+                            <button className={PV_S.upload}
+                                    title={"заменить фото"}
+                                    onClick={() => {
+                                onChooseFile()
+                            }}>
+                                <img src={upload} alt="загрузить фото" width={10}/>
+                            </button>
+
+                            <input
+                                ref={inputRef}
+                                type={"file"}
+                                accept={"image/jpeg, image/jpg, image/png, image/webp, image/bmp, image/svg, image/gif"}
+                                onChange={handleFileChange}
+                                className={PV_S.input_for_photo}
+
+                            />
+                            <button className={PV_S.upload}
+                                    onClick={() => deletePhotoHandler()}
+                                    title={"удалить фото"}
+                            >
+                                <img src={deletePng} alt="удалить фото"/>
+                            </button>
+                        </div>
+
                     </div>
                     <div className={PV_S.Profile_Information}>
                         <p>{data.displayName ?? data.uid}</p>
@@ -195,7 +256,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
 
                     <div className={PV_S.Changes_div}>
 
-                        {!passwordChanging.active ? <button className={PV_S.Change_button} title={"Изменить параметры групп"}><img src={group} alt=""/></button> : null}
+                        {!passwordChanging.active ? <button className={PV_S.Change_button} title={"Параметры группы (скоро)"}><img src={group} alt=""/></button> : null}
 
                         <div className={PV_S.Password_changes_div}>
                             {!passwordChanging.active && <button className={PV_S.Change_button} onClick={() => setChangePassword()} title={"Сменить пароль"}>

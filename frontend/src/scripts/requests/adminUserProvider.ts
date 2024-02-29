@@ -65,9 +65,10 @@ export async function getUserDataByUid_Admin(props: string, Params): Promise<use
             Authorization: `Bearer ${Params.token}`
         },
     }).then((response) => {
-        //console.log(response,'anywayh')
+        console.log(response,'anywayh')
         return response.data
     }).catch((e: any) => {
+        console.log(e)
         return {error: e.response}
     })
 }
@@ -131,7 +132,24 @@ export async function deleteUser(uid: string,token: string) {
                 return response
             })
             .catch((e) => {
-                alert(`smth went wrong ${e}`)
+                return e
+            })
+    }
+}
+
+export async function deleteUserPhoto(uid: string, token: string) {
+    if(uid){
+        return await axios.delete(`${APIS.FILES}/${uid}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then((response) => {
+                return response
+            })
+            .catch((e) => {
+                alert(`что-то пошло не так. Попробуйте позже ${e}`)
             })
     }
 }

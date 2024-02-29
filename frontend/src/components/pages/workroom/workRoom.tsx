@@ -169,6 +169,7 @@ const WorkRoom: React.FC = () => {
                         removeCookie('userAuth');
                         navigate('/login')
                     }
+                    console.log(response)
                     setUserForEditAdmin(response)
                     setEditedUser(response)
                 })
@@ -361,7 +362,7 @@ const WorkRoom: React.FC = () => {
                 .then((response: any) => {
                     // console.log('delete_response',response)
                     if(response.status === 204) {
-                        setCurrentListPage(currentListPage + 1)
+                        setCurrentListPage(currentListPage + 2)
                         setCurrentListPage(currentListPage - 1)
                         if(currentEditor.uid === isEditing.uid){
                             removeCookie("userAuth")
@@ -486,7 +487,7 @@ const WorkRoom: React.FC = () => {
 
                             {!listLoading && searchResult1 && searchResult1.map((element, index) => (
                                 <div className={WR_S.UsersListItem}
-                                     key={index}
+                                     key={index + currentListPage}
                                      ref={optionRef}
                                 >
                                     <div className={WR_S.Div_User_List}>
