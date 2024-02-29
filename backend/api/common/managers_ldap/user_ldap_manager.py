@@ -16,7 +16,9 @@ class UserManagerLDAP(CommonManagerLDAP):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.free_id = GetFreeId()
+
+        if kwargs.get('free_id_use'):
+            self.free_id = GetFreeId()
 
     def item(self, uid, attributes=ALL_ATTRIBUTES) -> UserLdap | None:
 

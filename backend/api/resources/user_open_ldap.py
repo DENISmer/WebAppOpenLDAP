@@ -269,7 +269,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
         user_schema = kwargs['schema']
         user_fields = kwargs['fields']
 
-        user_obj = UserManagerLDAP(connection=self.connection)
+        user_obj = UserManagerLDAP(connection=self.connection, free_id_use=True)
         group_obj = GroupManagerLDAP(connection=self.connection)
 
         deserialized_data = self.deserialize_data(user_schema, json_data, partial=False)
@@ -307,7 +307,12 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
         )
 
         # found_group = group_obj.get_group_info_posix_group(user.uid, [])
-        found_group = group_obj.list(value=user.gidNumber, fields={'gidNumber': '%d'}, attributes=[])
+        found_group = group_obj.list(
+            value=user.gidNumber,
+            fields={'gidNumber': '%d'},
+            attributes=[],
+            required_fields={'objectClass':  'posixGroup'}
+        )
         if found_group:
             group_obj.delete(found_group)
 
