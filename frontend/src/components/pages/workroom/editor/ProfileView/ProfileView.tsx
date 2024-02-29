@@ -66,6 +66,11 @@ export const ProfileView: React.FC<Props> = ({data}) => {
     //     setProfilePhoto(homeUrl + data.jpegPhoto[0] + `?t=${new Date().getTime()+ counter}`)
     // },[counter])
 
+    useEffect(() => {
+        const time = new Date().getTime()
+        setProfilePhoto(homeUrl + data.jpegPhoto[0] +`?t=${time}`)
+    },[])
+
     useEffect(() =>{
         handleSubmit(data.uid)
     },[file])

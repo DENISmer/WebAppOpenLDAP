@@ -531,7 +531,7 @@ const WorkRoom: React.FC = () => {
                 {/*    </button>*/}
                 {/*}*/}
 
-                {<ProfileView data={editedUser} key={editedUser.uid}/>}
+                {<ProfileView data={editedUser} key={editedUser.jpegPhoto}/>}
 
                 {!isEditingGroup && <UserEditForm userData={editedUser} onUserDataChange={handleUserDataChange}
                                fieldIsChange={isFieldChanged}
