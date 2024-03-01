@@ -2,6 +2,8 @@ import re
 
 from flask_restful import abort
 
+from backend.api.config import settings
+
 
 def validate_str(value) -> bool:
     regex = '^\w+$'
@@ -75,3 +77,8 @@ def validate_uid_gid_number_to_unique(ids, uid_number=None, gid_number=None):
             fields=fields,
             status=400,
         )
+
+
+def validate_allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in settings.ALLOWED_EXTENSIONS

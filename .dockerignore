@@ -1,0 +1,11 @@
+
+**/README.md
+**/.gitignore
+**/Dockerfile
+**/.dockerignore
+
+
+**/*.ldif
+**/*.md
+**/example
+**/tests

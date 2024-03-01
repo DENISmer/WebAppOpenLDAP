@@ -12,10 +12,10 @@ class FreeIdsOpenLDAPResource(Resource):
         super().__init__(*args, **kwargs)
         self.connection = None
 
-    @auth.login_required(role=[Role.WEBADMIN])
+    @auth.login_required(role=[Role.WEB_ADMIN])
     @connection_ldap
     def get(self, *args, **kwargs):
-        conn_ldap = UserManagerLDAP(connection=self.connection)
+        conn_ldap = UserManagerLDAP(connection=self.connection, free_id_use=True)
         ids = conn_ldap.get_id_numbers()
         free_id = conn_ldap.get_free_id_number()
         get_free_id = GetFreeId()

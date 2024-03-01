@@ -1,4 +1,4 @@
-.env
+*.env
 **/venv/
 
 **/__pycache__/
@@ -13,3 +13,5 @@ rabbish.txt
 *.db
 .pytest_cache
 
+**/backend/files/
+**/ldap-cert

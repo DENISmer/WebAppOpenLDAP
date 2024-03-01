@@ -15,7 +15,7 @@ from backend.api.config.fields import webadmins_cn_posixgroup_fields
 
 
 class GroupManagerLDAP(CommonManagerLDAP):
-    def list(self, *args, **kwargs) -> list:
+    def list(self, *args, **kwargs) -> List[CnGroupLdap]:
         groups = self.search(
             value=kwargs.get('value'),
             fields=kwargs.get('fields'),
@@ -61,7 +61,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
 
     def get_webadmins_group(self) -> GroupWebAdmins:
         groups = self.search(
-            value=Role.WEBADMIN.value,
+            value=Group.WEBADMINS.value,
             fields={'cn': '%s'},
             required_fields={'objectClass': 'groupOfNames'}
         )
@@ -73,9 +73,11 @@ class GroupManagerLDAP(CommonManagerLDAP):
             dn=group['dn'], **group['attributes']
         )
 
-    def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES, abort_raise: bool = True):
+    def get_group_info_posix_group(self, username_cn: str, attributes=ALL_ATTRIBUTES):
         return self.item(
             username_cn, ['posixGroup'],
             webadmins_cn_posixgroup_fields,
             attributes=attributes,
         )
+
+    # def get_groups_by_filters(self, va) -> List[CnGroupLdap]:

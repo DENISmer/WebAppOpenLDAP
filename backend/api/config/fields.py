@@ -2,6 +2,7 @@
 TYPE_LIST = list
 TYPE_STR = str
 TYPE_INT = int
+TYPE_BYTES = bytes
 
 # Fields for simple user
 simple_user_fields = {
@@ -109,8 +110,8 @@ simple_user_fields = {
             'operation': ['read', ],
             'required': [],
         },
-        'jpegPhotoPath': {
-            'type': TYPE_STR,
+        'jpegPhoto': {
+            'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['read', ],
             'required': [],
@@ -224,13 +225,25 @@ webadmins_fields = {
             'operation': ['create', 'read', 'update',],
             'required': ['update'],
         },
-        'jpegPhotoPath': {
-            'type': TYPE_STR,
+        'jpegPhoto': {
+            'type': TYPE_LIST,
             'element_type': TYPE_STR,
             'operation': ['read', ],
             'required': [],
         }
     },
+}
+
+files_webadmins_fields = {
+    'name': 'files_webadmins_fields',
+    'fields': {
+        'jpegPhoto': {
+            'type': TYPE_STR,
+            'element_type': TYPE_BYTES,
+            'operation': ['read', 'update'],
+            'required': [],
+        }
+    }
 }
 
 webadmins_cn_posixgroup_fields = {

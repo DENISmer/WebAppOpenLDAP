@@ -43,6 +43,18 @@ class DbQueries:
 
         return instance
 
+    def update_instance_by_dn(self, model, dn, data: dict):
+        try:
+            self.session.query(model). \
+                filter(model.dn == dn). \
+                update(data)
+            self.session.commit()
+            return 'OK'
+        except Exception as e:
+            logging.log(logging.ERROR, e)
+            self.session.rollback()
+            return None
+
     def delete_instance(self, instance):
         try:
             self.session.delete(instance)

@@ -8,13 +8,15 @@ services:
       - web-client
       - web-server
     ports:
-      - "80:8080"
+      - "8083:8080"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - files-volume:/usr/src/app/files
+      - ./static:/usr/src/app/static
 
   web-client:
     build:
-      context: .
+      context: ./
       dockerfile: frontend/Dockerfile
     container_name: web-client-container
     ports:
@@ -29,7 +31,7 @@ services:
     depends_on:
       - redis
     env_file:
-      - backend/.env
+      - backend/prod.env
     environment:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
@@ -37,6 +39,7 @@ services:
       - "8000:8000"
     volumes:
       - proj-db-volume:/usr/src/app/instance
+      - files-volume:/usr/src/app/backend/files
 
   web-celery:
     build:
@@ -46,18 +49,21 @@ services:
     container_name: web-celery-container
     depends_on:
       - web-server
+      - redis
     env_file:
-      - backend/.env
+      - ./backend/prod.env
     environment:
-      CELERY_BROKER_URL: "redis://redis:6379/1"
-      CELERY_RESULT_BACKED: "redis://redis:6379/1"
+      CELERY_BROKER_URL: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
+      CELERY_RESULT_BACKED: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
     volumes:
       - proj-db-volume:/usr/src/app/instance
 
   redis:
     image: redis
     restart: always
-    command: redis-server
+    env_file:
+      - backend/prod.env
+    command: bash -c  "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     expose:
       - "6379"
 
@@ -85,3 +91,4 @@ services:
 
 volumes:
   proj-db-volume:
+  files-volume:

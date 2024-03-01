@@ -5,6 +5,8 @@ import functools
 from backend.api.common.groups import Group
 from backend.api.tests import datatest as dt
 
+from werkzeug.datastructures import FileStorage
+
 
 def authorize_user(client, user_data):
     data = orjson.dumps(user_data)
@@ -38,6 +40,25 @@ def delete_user(client, uid, headers):
     return response
 
 
+def delete_group(client, uid, headers):
+    response = client.delete(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{uid}',
+        headers=headers,
+    )
+    return response
+
+
+def create_group(client, user_data, headers):
+    data = orjson.dumps(user_data)
+    response = client.post(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+        headers=headers,
+        data=data,
+    )
+
+    return response
+
+
 def auth(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
@@ -67,7 +88,7 @@ def test_get_user_200(client):
     assert response.status_code == 200
 
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_get_bob_webadmins
+    expected_data = dt.data_user_get_bob_webadmins_response
 
     assert response_data == expected_data
 
@@ -147,7 +168,7 @@ def test_get_user_not_webadmins_own_profile_200(client):
     assert response.status_code == 200
 
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_get_john_simple_user
+    expected_data = dt.data_user_get_john_simple_user_response
 
     assert response_data == expected_data
 
@@ -182,29 +203,83 @@ def test_post_user_201(client):
     dt.data_user_post_margo_simple_user.update(
         {'userPassword': 'margo123'}
     )
+    del dt.data_user_post_margo_simple_user['jpegPhoto']
     payload = orjson.dumps(dt.data_user_post_margo_simple_user)
-    del dt.data_user_post_margo_simple_user['userPassword']
 
     response = client.post(
         dt.Route.USERS.value,
         headers=headers,
         data=payload
     )
-
-    assert response.status_code == 201
-
     response_data = orjson.loads(response.data)
-    expected_data = dt.data_user_post_margo_simple_user
 
-    assert response_data == expected_data
+    response_get = client.get(
+        f'{dt.Route.USERS.value}/'
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
+        headers=headers,
+    )
+    response_get_data = orjson.loads(response.data)
 
     response_group = client.get(
         f'{dt.Route.GROUPS.value}/posixGroup/'
         f'{dt.data_user_post_margo_simple_user["uid"]}',
         headers=headers,
     )
+    response_group_data = orjson.loads(response_group.data)
+
+    client.delete(
+        f'{dt.Route.USERS.value}/'
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
+        headers=headers,
+    )
+
+    assert response.status_code == 201
+
+    assert response_get.status_code == 200
+
+    assert response_data == response_get_data
 
     assert response_group.status_code == 200
+
+    assert response_group_data['memberUid'] == response_data["uid"] \
+        and response_group_data['gidNumber'] == response_data["gidNumber"]
+
+
+@auth
+def test_post_user_201_with_photo(client, **kwargs):
+    headers = kwargs['headers']
+    headers['Content-Type'] += '; multipart/form-data'
+
+    file = FileStorage(
+        stream=open('/home/grigoriy/Изображения/flat/1.png', 'rb'),
+        filename='flat.png',
+        content_type='image/png'
+    )
+
+    dt.data_user_post_margo_simple_user.update(
+        {'userPassword': 'margo123'}
+    )
+    # dt.data_user_post_margo_simple_user.update(
+    #     {'file_image': file}
+    # )
+    payload = orjson.dumps(dt.data_user_post_margo_simple_user)
+    del dt.data_user_post_margo_simple_user['userPassword']
+
+    response = client.post(
+        dt.Route.USERS.value,
+        headers=headers,
+        # data=payload,
+        files={'my_file': file}
+    )
+    response_data = orjson.loads(response.data)
+    print(response_data)
+    expected_data = dt.data_user_post_margo_simple_user
+
+    response_group = client.get(
+        f'{dt.Route.GROUPS.value}/posixGroup/'
+        f'{dt.data_user_post_margo_simple_user["uid"]}',
+        headers=headers,
+    )
 
     client.delete(
         f'{dt.Route.USERS.value}/'
@@ -214,8 +289,14 @@ def test_post_user_201(client):
 
     response_group_data = orjson.loads(response_group.data)
 
+    assert response.status_code == 201
+
+    assert response_data == expected_data
+
+    assert response_group.status_code == 200
+
     assert response_group_data['memberUid'] == response_data["uid"] \
-        and response_group_data['gidNumber'] == response_data["gidNumber"]
+           and response_group_data['gidNumber'] == response_data["gidNumber"]
 
 
 def test_post_user_data_not_required_field_is_null_400(client):
@@ -398,7 +479,16 @@ def test_post_user_data_only_required_field_201(client):
     expected_data = dt.data_user_post_james_data_required_fields_simple_user_response
     expected_data['uidNumber'] = expected_data['gidNumber'] = response_free_id
 
-    assert response_data == expected_data
+    response_get = client.get(
+        f'{dt.Route.USERS.value}/'
+        f'{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
+        headers=headers,
+    )
+    response_get_data = orjson.loads(response_get.data)
+
+    assert response_get.status_code == 200
+
+    assert response_get_data == response_data
 
     response_group = client.get(
         f'{dt.Route.GROUPS.value}/posixGroup/'
@@ -413,7 +503,6 @@ def test_post_user_data_only_required_field_201(client):
         f'{dt.data_user_post_james_data_required_fields_simple_user["uid"]}',
         headers=headers,
     )
-
     response_group_data = orjson.loads(response_group.data)
 
     assert response_group_data['memberUid'] == response_data["uid"] \
@@ -958,6 +1047,52 @@ def test_get_list_user_200(client, **kwargs):
 
     assert response_data['page'] == 1 and isinstance(response_data['items'], list)
 
+
+@auth
+def test_create_user_delete_groups(client, **kwargs):
+    headers = kwargs['headers']
+
+    # create groups
+    # response_gr = client.post(
+    #     f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+    #     headers=headers,
+    #     data=orjson.dumps(dt.data_group_post_margo)
+    # )
+    #
+    # response_gr2 = client.post(
+    #     f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}',
+    #     headers=headers,
+    #     data=orjson.dumps(dt.data_group_post_tom)
+    # )
+
+    dt.data_user_patch_rambo_for_create.update(
+        {'userPassword': 'margo123'}
+    )
+    del dt.data_user_post_margo_simple_user['jpegPhoto']
+    payload = orjson.dumps(dt.data_user_patch_rambo_for_create)
+
+    response_user = client.post(
+        dt.Route.USERS.value,
+        headers=headers,
+        data=payload
+    )
+
+    response_get_gr = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{dt.data_group_post_margo["memberUid"]}',
+        headers=headers
+    )
+    response_get_gr2 = client.get(
+        f'{dt.Route.GROUPS.value}/{Group.POSIXGROUP.value}/{dt.data_group_post_tom["memberUid"]}',
+        headers=headers
+    )
+
+    delete_group(client, dt.data_group_post_margo["memberUid"], headers)
+    delete_group(client, dt.data_group_post_tom["memberUid"], headers)
+    delete_user(client, dt.data_user_patch_rambo_for_create["uid"], headers)
+
+    # assert response_gr.status_code == response_gr2.status_code == 201
+    assert response_user.status_code == 201
+    assert response_get_gr.status_code == response_get_gr2.status_code == 404
 
 
 # THATS ALL
