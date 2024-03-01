@@ -15,6 +15,7 @@ services:
       - ./static:/usr/src/app/static
       - ../pki/ca.crt:/var/lib/certs/pki/ca.crt
       - ../pki/private/admin.icc.local.net.key:/var/lib/certs/pki/private/admin.icc.local.net.key
+      - ../pki/dh.pem:/var/lib/certs/pki/dh.pem
   web-client:
     build:
       context: ./
