@@ -362,8 +362,7 @@ const WorkRoom: React.FC = () => {
                 .then((response: any) => {
                     // console.log('delete_response',response)
                     if(response.status === 204) {
-                        setCurrentListPage(currentListPage + 2)
-                        setCurrentListPage(currentListPage - 1)
+                        window.location.reload()
                         if(currentEditor.uid === isEditing.uid){
                             removeCookie("userAuth")
                             setCurrentEditor(null)
