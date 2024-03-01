@@ -2,7 +2,9 @@ version: "3"
 
 services:
   nginx:
-    image: nginx
+    build:
+      context: ./
+      dockerfile: nginx/Dockerfile
     restart: always
     depends_on:
       - web-client
@@ -14,11 +16,13 @@ services:
       SSL_CERTIFICATE_FILENAME: "${SSL_CERTIFICATE_FILENAME}"
       SSL_CERTIFICATE_KEY_FILENAME: "${SSL_CERTIFICATE_KEY_FILENAME}"
     volumes:
-      - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
+#      - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
       - files-volume:/usr/src/app/files
       - ./static:/usr/src/app/static
       - ${SSL_CERTIFICATE}:/etc/ssl/${SSL_CERTIFICATE_FILENAME}
       - ${SSL_CERTIFICATE_KEY}:/etc/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
+    command: /bin/bash -c "envsubst '$SSL_CERTIFICATE_FILENAME' < /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+
   web-client:
     build:
       context: ./
