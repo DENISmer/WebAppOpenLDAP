@@ -9,13 +9,16 @@ services:
       - web-server
     ports:
       - "443:443"
+      - "8083:8080"
+    environment:
+      SSL_CERTIFICATE_FILENAME: "${SSL_CERTIFICATE_FILENAME}"
+      SSL_CERTIFICATE_KEY_FILENAME: "${SSL_CERTIFICATE_KEY_FILENAME}"
     volumes:
-      - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/prod.conf
+      - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
       - files-volume:/usr/src/app/files
       - ./static:/usr/src/app/static
-      - ../pki/ca.crt:/var/lib/certs/pki/ca.crt
-      - ../pki/private/admin.icc.local.net.key:/var/lib/certs/pki/private/admin.icc.local.net.key
-      - ../pki/dh.pem:/var/lib/certs/pki/dh.pem
+      - ${SSL_CERTIFICATE}:/etc/ssl/${SSL_CERTIFICATE_FILENAME}
+      - ${SSL_CERTIFICATE_KEY}:/etc/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
   web-client:
     build:
       context: ./
@@ -26,14 +29,14 @@ services:
 
   web-server:
     build:
-      context: .
+      context: ./
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     container_name: web-server-container
     depends_on:
       - redis
     env_file:
-      - backend/prod.env
+      - ${BACKEND_ENV}
     environment:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
@@ -45,7 +48,7 @@ services:
 
   web-celery:
     build:
-      context: .
+      context: ./
       dockerfile: backend/api/celery/Dockerfile
     restart: unless-stopped
     container_name: web-celery-container
@@ -53,7 +56,7 @@ services:
       - web-server
       - redis
     env_file:
-      - ./backend/prod.env
+      - ${BACKEND_ENV}
     environment:
       CELERY_BROKER_URL: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
       CELERY_RESULT_BACKED: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
@@ -64,14 +67,14 @@ services:
     image: redis
     restart: always
     env_file:
-      - backend/prod.env
+      - ${BACKEND_ENV}
     command: bash -c  "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     expose:
       - "6379"
 
   ldap-server:
     build:
-      context: .
+      context: ./
       dockerfile: backend/ldap/Dockerfile
     container_name: ldap-server-container
     environment:
@@ -82,7 +85,7 @@ services:
 
   ldap-load-data-conf:
     build:
-      context: .
+      context: ./
       dockerfile: backend/ldap/ldap-load-data-conf/Dockerfile
     container_name: ldap-load-data-container
     depends_on:
