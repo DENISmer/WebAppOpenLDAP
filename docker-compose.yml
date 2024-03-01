@@ -13,8 +13,8 @@ services:
       - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/prod.conf
       - files-volume:/usr/src/app/files
       - ./static:/usr/src/app/static
-      - /var/lib/certs/pki/ca.crt:/var/lib/certs/pki/ca.crt
-      - /var/lib/certs/pki/private/admin.icc.local.net.key:/var/lib/certs/pki/private/admin.icc.local.net.key
+      - ../pki/ca.crt:/var/lib/certs/pki/ca.crt
+      - ../pki/private/admin.icc.local.net.key:/var/lib/certs/pki/private/admin.icc.local.net.key
   web-client:
     build:
       context: ./
