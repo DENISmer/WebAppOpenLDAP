@@ -8,12 +8,14 @@ services:
       - web-client
       - web-server
     ports:
-      - "8083:8080"
+      - "443:443"
+      - "80:80"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/prod.conf
       - files-volume:/usr/src/app/files
       - ./static:/usr/src/app/static
-
+      - /var/lib/certs/pki/ca.crt:/var/lib/certs/pki/ca.crt
+      - /var/lib/certs/pki/private/admin.icc.local.net.key:/var/lib/certs/pki/private/admin.icc.local.net.key
   web-client:
     build:
       context: ./
