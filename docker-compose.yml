@@ -15,8 +15,8 @@ services:
       - web-client
       - web-server
     ports:
+      - "80:80"
       - "443:443"
-      - "8083:8080"
     environment:
       SSL_CERTIFICATE_FILENAME: "${SSL_CERTIFICATE_FILENAME}"
       SSL_CERTIFICATE_KEY_FILENAME: "${SSL_CERTIFICATE_KEY_FILENAME}"
