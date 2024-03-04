@@ -16,3 +16,4 @@ Celery[redis]
 gunicorn==20.1.0
 cryptography==42.0.2
 python-magic==0.4.27
+psycopg2-binary==2.9.5

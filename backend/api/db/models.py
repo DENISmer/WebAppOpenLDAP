@@ -3,7 +3,7 @@ import datetime
 from backend.api.db.database import db
 
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String, DateTime, BLOB
+from sqlalchemy import Integer, String, DateTime, LargeBinary
 
 
 class TokenModel(db.Model):
@@ -15,7 +15,7 @@ class TokenModel(db.Model):
     role: Mapped[str] = mapped_column(String(50))
     token: Mapped[str] = mapped_column(String(150))
     datetime_create = mapped_column(DateTime, default=datetime.datetime.utcnow)
-    userPassword: Mapped[bytes] = mapped_column(BLOB)
+    userPassword: Mapped[bytes] = mapped_column(LargeBinary)
 
     def __str__(self):
         return f'<{TokenModel.__name__} {self.dn}>'

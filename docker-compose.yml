@@ -39,15 +39,21 @@ services:
     build:
       context: ./
       dockerfile: backend/Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
     restart: unless-stopped
     container_name: web-server-container
     depends_on:
       - redis
+      - postgres
+    links:
+      - postgres
     env_file:
       - ${BACKEND_ENV}
     environment:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
+      POSTGRES_HOST: "postgres"
     ports:
       - "8000:8000"
     volumes:
@@ -58,16 +64,22 @@ services:
     build:
       context: ./
       dockerfile: backend/api/celery/Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
     restart: unless-stopped
     container_name: web-celery-container
     depends_on:
       - web-server
       - redis
+      - postgres
+    links:
+      - postgres
     env_file:
       - ${BACKEND_ENV}
     environment:
       CELERY_BROKER_URL: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
       CELERY_RESULT_BACKED: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
+      POSTGRES_HOST: "postgres"
     volumes:
       - proj-db-volume:/usr/src/app/instance
 
@@ -102,6 +114,21 @@ services:
       LDAP_HOST: "ldap-server"
     profiles: ["ldap-load-data-conf"]
 
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file:
+      - ${BACKEND_ENV}
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data/
+
 volumes:
   proj-db-volume:
   files-volume:
+  postgres-db-volume:

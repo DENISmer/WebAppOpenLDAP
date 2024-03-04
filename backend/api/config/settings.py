@@ -27,7 +27,15 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'svg', 'webp', 'bmp', 'gif'}
 
 FILE_DB_NAME = os.getenv('FILE_DB_NAME')
 # DATABASE URI
-SQLALCHEMY_DATABASE_URI = f'sqlite:///{FILE_DB_NAME}'
+# SQLALCHEMY_DATABASE_URI = f'sqlite:///{FILE_DB_NAME}'
+POSTGRES_USER = os.getenv('POSTGRES_USER')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', '0.0.0.0')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', 5432))
+POSTGRES_DB = os.getenv('POSTGRES_DB')
+
+SQLALCHEMY_DATABASE_URI = (f'postgresql://{POSTGRES_USER}:'
+                           f'{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}')
 
 CERT_FILE_PATH = os.getenv('CERT_FILE')
 CERT_FILE_LDAP = os.path.join(os.path.abspath('.'), CERT_FILE_PATH) if CERT_FILE_PATH else None
