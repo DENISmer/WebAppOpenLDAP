@@ -82,6 +82,7 @@ services:
       CELERY_RESULT_BACKED: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
       POSTGRES_HOST: "postgres"
     volumes:
+      - $HOME/.cache/pip:/root/.cache/pip
       - proj-db-volume:/usr/src/app/instance
 
   redis:
