@@ -57,6 +57,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - $HOME/.cache/pip:/root/.cache/pip
       - proj-db-volume:/usr/src/app/instance
       - files-volume:/usr/src/app/backend/files
 
