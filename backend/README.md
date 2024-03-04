@@ -396,3 +396,8 @@ Start from WebAppOpenLDAP directory:
 Start pytest command without warnigns:
 
     pytest backend/api/tests/test_api_auth.py::test_auth_post -p no:warnings
+
+Test cert for host: 0.0.0.0:
+
+    openssl req -x509 -out test-ca.crt -keyout test-priv.key   -newkey rsa:2048 -nodes -sha256   -subj '/CN=0.0.0.0' -extensions EXT -config <( \
+       printf "[dn]\nCN=0.0.0.0\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:0.0.0.0\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")

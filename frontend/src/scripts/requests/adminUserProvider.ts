@@ -44,7 +44,7 @@ export interface ErrorData {
 }
 
 export async function getUsersList(props: Params) {
-    console.log(props.token)
+    //console.log(props.token)
     return await axios.get(`${APIS.USERS}?search=${props.value}&page=${props.pageNumber}`,{
         headers: {
             Authorization: `Bearer ${props.token}`
@@ -59,16 +59,16 @@ export async function getUsersList(props: Params) {
 }
 
 export async function getUserDataByUid_Admin(props: string, Params): Promise<userDataForEdit> {
-    console.log(Params.token)
+    //console.log(Params.token)
     return await axios.get(`${APIS.USERS}/${props}`, {
         headers: {
             Authorization: `Bearer ${Params.token}`
         },
     }).then((response) => {
-        console.log(response,'anywayh')
+        //console.log(response,'anywayh')
         return response.data
     }).catch((e: any) => {
-        console.log(e)
+        //console.log(e)
         return {error: e.response}
     })
 }
@@ -155,7 +155,7 @@ export async function deleteUserPhoto(uid: string, token: string) {
 }
 
 export async function addUser(data: userAddDataForEdit, token: string): Promise<userGroupDataForEdit | ErrorData> {
-    console.log("REQuest data: ",data)
+    //console.log("REQuest data: ",data)
     return await axios.post(`${APIS.USERS}`,
         {
             dn: data.dn,

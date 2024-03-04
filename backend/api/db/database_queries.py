@@ -13,6 +13,8 @@ class DbQueries:
         except Exception as e:
             logging.log(logging.ERROR, e)
             abort(500, message='DB', status=500)
+        finally:
+            self.session.close()
 
         return instance
 
@@ -26,6 +28,8 @@ class DbQueries:
             logging.log(logging.ERROR, e)
             self.session.rollback()
             return None
+        finally:
+            self.session.close()
 
         return instance
 
@@ -40,6 +44,8 @@ class DbQueries:
             logging.log(logging.ERROR, e)
             self.session.rollback()
             return None
+        finally:
+            self.session.close()
 
         return instance
 
@@ -54,6 +60,8 @@ class DbQueries:
             logging.log(logging.ERROR, e)
             self.session.rollback()
             return None
+        finally:
+            self.session.close()
 
     def delete_instance(self, instance):
         try:
@@ -62,6 +70,8 @@ class DbQueries:
         except Exception as e:
             logging.log(logging.ERROR, e)
             self.session.rollback()
+        finally:
+            self.session.close()
 
     def delete_instance_by_params(self, model, **kwargs):
         try:
@@ -70,6 +80,8 @@ class DbQueries:
         except Exception as e:
             logging.log(logging.ERROR, e)
             self.session.rollback()
+        finally:
+            self.session.close()
 
     def bulk_delete(self, model, filter_del):
         try:
@@ -78,3 +90,5 @@ class DbQueries:
         except Exception as e:
             logging.log(logging.ERROR, str(e))
             self.session.rollback()
+        finally:
+            self.session.close()

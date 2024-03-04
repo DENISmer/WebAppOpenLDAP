@@ -2,17 +2,30 @@ version: "3"
 
 services:
   nginx:
-    image: nginx
+    build:
+      context: ./
+      dockerfile: nginx/Dockerfile
+      args:
+        - NGINX_CONF_PATH=$NGINX_CONF
+        - SSL_CERTIFICATE_FILENAME_ARG=$SSL_CERTIFICATE_FILENAME
+        - SSL_CERTIFICATE_KEY_FILENAME_ARG=$SSL_CERTIFICATE_KEY_FILENAME
+        - DOMAIN_NAME_ARG=$DOMAIN_NAME
     restart: always
     depends_on:
       - web-client
       - web-server
     ports:
-      - "8083:8080"
+      - "80:80"
+      - "443:443"
+    environment:
+      SSL_CERTIFICATE_FILENAME: "${SSL_CERTIFICATE_FILENAME}"
+      SSL_CERTIFICATE_KEY_FILENAME: "${SSL_CERTIFICATE_KEY_FILENAME}"
+      NGINX_CONF: "${NGINX_CONF}"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
       - files-volume:/usr/src/app/files
       - ./static:/usr/src/app/static
+      - ${SSL_CERTIFICATE}:/etc/ssl/${SSL_CERTIFICATE_FILENAME}
+      - ${SSL_CERTIFICATE_KEY}:/etc/ssl/${SSL_CERTIFICATE_KEY_FILENAME}
 
   web-client:
     build:
@@ -24,14 +37,14 @@ services:
 
   web-server:
     build:
-      context: .
+      context: ./
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     container_name: web-server-container
     depends_on:
       - redis
     env_file:
-      - backend/prod.env
+      - ${BACKEND_ENV}
     environment:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
@@ -43,7 +56,7 @@ services:
 
   web-celery:
     build:
-      context: .
+      context: ./
       dockerfile: backend/api/celery/Dockerfile
     restart: unless-stopped
     container_name: web-celery-container
@@ -51,7 +64,7 @@ services:
       - web-server
       - redis
     env_file:
-      - ./backend/prod.env
+      - ${BACKEND_ENV}
     environment:
       CELERY_BROKER_URL: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
       CELERY_RESULT_BACKED: "redis://default:${REDIS_PASSWORD}@redis:6379/1"
@@ -62,14 +75,14 @@ services:
     image: redis
     restart: always
     env_file:
-      - backend/prod.env
+      - ${BACKEND_ENV}
     command: bash -c  "redis-server --appendonly yes --requirepass $$REDIS_PASSWORD"
     expose:
       - "6379"
 
   ldap-server:
     build:
-      context: .
+      context: ./
       dockerfile: backend/ldap/Dockerfile
     container_name: ldap-server-container
     environment:
@@ -80,7 +93,7 @@ services:
 
   ldap-load-data-conf:
     build:
-      context: .
+      context: ./
       dockerfile: backend/ldap/ldap-load-data-conf/Dockerfile
     container_name: ldap-load-data-container
     depends_on:

@@ -19,7 +19,7 @@ const Login = () => {
 
     useEffect(() => {
         //setUserAuthCookie('userAuth', undefined)
-        console.log(userAuthCookies['userAuth'])
+        // console.log(userAuthCookies['userAuth'])
     },[])
 
     useEffect(() => {
@@ -65,7 +65,7 @@ const Login = () => {
                 } catch (e){
                     setAuthError(true)
                     setLoading(false)
-                    console.log(e.message,'Auth failed')
+                    //console.log(e.message,'Auth failed')
                 }
             } else {
                 setAuthError(true)
@@ -84,7 +84,7 @@ const Login = () => {
     <div className={L_S.Page}>
         <div className={L_S.Content}>
             <div className={L_S.Title}>
-                Welcome to the OpenLPAD web service
+                Welcome to the OpenLDAP web service
             </div>
             <form className={L_S.LoginForm} onSubmit={setCurrentUserCookie}>
                 {authError ?
