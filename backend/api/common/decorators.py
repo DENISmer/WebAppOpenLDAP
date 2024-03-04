@@ -271,7 +271,10 @@ def error_auth_ldap(func):
     def wraps(*args, **kwargs):
 
         try:
-            res = func(*args, **kwargs)
+            start = time.perf_counter()
+            res = func(*args, **kwargs)  ####
+            end = time.perf_counter()
+            print(f'Time of work func {func.__name__} : {(end - start):.4f}s')
         except LDAPNoSuchObjectResult as e:
             logging.log(logging.ERROR, e)
             abort(
