@@ -256,7 +256,7 @@ export const ProfileView: React.FC<Props> = ({data}) => {
 
                     <div className={PV_S.Changes_div}>
 
-                        {!passwordChanging.active ? <button className={PV_S.Change_button} title={"Параметры группы (скоро)"}><img src={group} alt=""/></button> : null}
+                        {!passwordChanging.active ? <button className={PV_S.Change_button} title={"Параметры группы (скоро)"} onClick={() => {alert("Параматры групп находятся в разработке, но уже скоро всё будет работать")}}><img src={group} alt=""/></button> : null}
 
                         <div className={PV_S.Password_changes_div}>
                             {!passwordChanging.active && <button className={PV_S.Change_button} onClick={() => setChangePassword()} title={"Сменить пароль"}>
