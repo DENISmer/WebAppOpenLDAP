@@ -1,8 +1,6 @@
-import pprint
-
 import orjson
 
-from backend.api.tests import datatest as dt
+from backend.api.tests.api import datatest as dt
 
 
 def test_auth_post_200(client):

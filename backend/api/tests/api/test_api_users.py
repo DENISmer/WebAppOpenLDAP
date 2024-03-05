@@ -3,7 +3,7 @@ import orjson
 import functools
 
 from backend.api.common.groups import Group
-from backend.api.tests import datatest as dt
+from backend.api.tests.api import datatest as dt
 
 from werkzeug.datastructures import FileStorage
 
