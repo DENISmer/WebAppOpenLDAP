@@ -347,6 +347,7 @@ def define_schema(func):
             fields = getattr(fields_module, fields)
 
         kwargs['schema'] = schema_name
+        kwargs['schemaResponse'] = f'{schema_name}Response'
         kwargs['fields'] = fields
 
         if not kwargs.get('username_uid'):

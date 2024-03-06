@@ -14,8 +14,6 @@ from backend.api.common.token_manager import TokenManagerDB
 from backend.api.common.managers_ldap.authentication_ldap_manager import AuthenticationManagerLDAP
 from backend.api.common.user_manager import UserLdap
 from backend.api.config import settings
-from backend.api.redis.redis_storage import RedisStorage
-from backend.api.resources.schema import AuthSchemaLdapCreate, TokenSchemaLdap
 
 
 class AuthOpenLDAP(Resource):
@@ -32,17 +30,12 @@ class AuthOpenLDAP(Resource):
         then performs authentication, if authentication is successful
         token is sent user, else error 401.
         """
-        start1 = time.perf_counter()
         schema = kwargs['schema']
-
-        sum_time = 0
-
-        start = time.perf_counter()
+        schema_response = kwargs['schemaResponse']
         json_data = request.get_json()
+        sum_time = 0
         deserialized_data = self.serializer.deserialize_data(schema, json_data)
-        end = time.perf_counter()
-        print(f'Time of work deseriaz : {(end - start):.4f}s')
-        sum_time += end - start
+
         user = UserLdap(**deserialized_data)
 
         start = time.perf_counter()
@@ -58,10 +51,6 @@ class AuthOpenLDAP(Resource):
             print(f'Time of work conn : {(end - start):.4f}s')
             sum_time += end - start
 
-            # start = time.perf_counter()
-            # print('redis', RedisStorage().get('ggg'))
-            # end = time.perf_counter()
-            # print(f'Time of work redis : {(end - start):.4f}s')
 
             start = time.perf_counter()
             group = GroupManagerLDAP(connection=connection).get_webadmins_group()
@@ -70,10 +59,7 @@ class AuthOpenLDAP(Resource):
             print(f'Time of work define group : {(end - start):.4f}s')
             sum_time += end - start
 
-        if user.is_webadmin: user.role = Role.WEB_ADMIN
-        else: user.role = Role.SIMPLE_USER
-
-        # connection.close()
+        user.role = Role.WEB_ADMIN if user.is_webadmin else Role.SIMPLE_USER
 
         start = time.perf_counter()
         user.userPassword = CryptPasswd(
@@ -93,15 +79,10 @@ class AuthOpenLDAP(Resource):
         if not token:
             abort(400, message='Try again now or later', status=400)
 
-        start = time.perf_counter()
         serialized_data = self.serializer.serialize_data(
-            TokenSchemaLdap.__name__, {'token': token, 'uid': user.uid, 'role': user.role.value}
+            schema_response, {
+                'token': token, 'uid': user.uid, 'role': user.role.value
+            }
         )
-        end = time.perf_counter()
-        print(f'Time of work seriaz : {(end - start):.4f}s')
-        sum_time += end - start
-        print('sum-time', sum_time)
 
-        end1 = time.perf_counter()
-        print(f'Time of work com : {(end1 - start1):.4f}s')
         return serialized_data, 200

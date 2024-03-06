@@ -12,6 +12,7 @@ class DbQueries:
             instance = self.session.query(model).filter_by(**kwargs).one_or_none()
         except Exception as e:
             logging.log(logging.ERROR, e)
+            # return None
             abort(500, message='DB', status=500)
 
         return instance

@@ -255,13 +255,13 @@ class AuthSchemaLdapCreate(Schema):
         return f'<{AuthSchemaLdapCreate.__name__} {id(self)}>'
 
 
-class TokenSchemaLdap(Schema):
+class AuthSchemaLdapCreateResponse(Schema):
     token = fields.Str(dump_only=True)
     uid = fields.Str(dump_only=True)
     role = fields.Str(dump_only=True)
 
     def __repr__(self):
-        return f'<{TokenSchemaLdap.__name__} {id(self)}>'
+        return f'<{AuthSchemaLdapCreateResponse.__name__} {id(self)}>'
 
 
 class GroupPosixgroupBaseSchema(Schema,

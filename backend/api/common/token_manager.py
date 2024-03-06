@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 
@@ -96,9 +97,9 @@ class TokenManagerDB(TokenManagerAbstract):
         :return token
         '''
 
+        token = uuid.uuid4().hex
         instance = self.db_queries.get_instance(TokenModel, dn=self.user.dn)
 
-        token = uuid.uuid4().hex
         if instance:
             res = self.db_queries.update_instance(
                 instance,
