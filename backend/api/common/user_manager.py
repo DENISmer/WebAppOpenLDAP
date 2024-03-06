@@ -20,7 +20,7 @@ class UserCnAbstract(ABC):
 
     @property
     def dn(self):
-        return self.__dn.lower()
+        return self.__dn.lower() if self.__dn else None
 
     @dn.setter
     def dn(self, value: str):

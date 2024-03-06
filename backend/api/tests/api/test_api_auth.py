@@ -1,5 +1,6 @@
 import orjson
 
+from backend.api.common.roles import Role
 from backend.api.tests.api import datatest as dt
 
 
@@ -18,7 +19,7 @@ def test_auth_post_200(client):
     expected_data = {
         'token': 'token',
         'uid': dt.data_user_auth_bob_webadmins['username'],
-        'role': 'webadmins'
+        'role': Role.WEB_ADMIN.value
     }
 
     assert response_data.get('token') is not None
@@ -127,7 +128,7 @@ def test_auth_post_not_webadmins_200(client):
     expected_data = {
         'token': 'token',
         'uid': dt.data_user_auth_john_simple_user['username'],
-        'role': 'simple_user'
+        'role': Role.SIMPLE_USER.value
     }
 
     assert response_data.get('token') is not None

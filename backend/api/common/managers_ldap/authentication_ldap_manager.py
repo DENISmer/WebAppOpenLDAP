@@ -1,16 +1,25 @@
+import time
+
 from backend.api.common.decorators import error_auth_ldap
-from backend.api.common.managers_ldap.ldap_manager import ManagerLDAP
+from backend.api.common.managers_ldap.connection_ldap_manager import ConnectionManagerLDAP
+from backend.api.common.user_manager import UserLdap
 
 
 class AuthenticationManagerLDAP:
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user: UserLdap, connection: ConnectionManagerLDAP, *args, **kwargs):
         self.user = user
-        self.ldap_manager = ManagerLDAP()
+        self.connection = connection
 
     @error_auth_ldap
-    def authenticate(self, *args, **kwargs):
-        response = self.ldap_manager.authenticate(
+    def authenticate(self, *args, **kwargs) -> UserLdap:
+        user_dn = '{rdn}={username},{user_search_dn}'.format(
+            rdn=self.connection.ldap_manager.config.get('LDAP_USER_LOGIN_ATTR'),
             username=self.user.get_username(),
-            password=self.user.userPassword,
+            user_search_dn=self.connection.ldap_manager.full_user_search_dn,
         )
-        return response  # *.status: 2 - success, 1 - failed
+        self.user.dn = user_dn
+        self.user.uid = self.user.get_username()
+
+        self.connection.rebind(user=self.user)
+
+        return self.user

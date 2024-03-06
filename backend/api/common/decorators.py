@@ -67,6 +67,7 @@ def connection_ldap(func):
             setattr(args[0], 'connection', connection)
 
         connection.connect()
+        connection.bind()
 
         start = time.perf_counter()
         res = func(*args, **kwargs) ####
@@ -271,11 +272,8 @@ def error_auth_ldap(func):
     def wraps(*args, **kwargs):
 
         try:
-            start = time.perf_counter()
             res = func(*args, **kwargs)  ####
-            end = time.perf_counter()
-            print(f'Time of work func {func.__name__} : {(end - start):.4f}s')
-        except LDAPNoSuchObjectResult as e:
+        except (LDAPNoSuchObjectResult, LDAPInvalidCredentialsResult) as e:
             logging.log(logging.ERROR, e)
             abort(
                 401,
@@ -298,6 +296,8 @@ def error_auth_ldap(func):
 def define_schema(func):
     @functools.wraps(func)
     def wraps(*args, **kwargs):
+        start = time.perf_counter()
+
         username_uid = kwargs.get('username_uid')
         if username_uid:
             del kwargs['username_uid']
@@ -352,7 +352,10 @@ def define_schema(func):
         if not kwargs.get('username_uid'):
             kwargs['username_uid'] = username_uid
 
+        # start = time.perf_counter()
         res = func(*args, **kwargs)
+        end = time.perf_counter()
+        print(f'Time of work definer : {(end - start):.4f}s')
 
         return res
 

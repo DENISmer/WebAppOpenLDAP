@@ -1,4 +1,5 @@
 import pprint
+import time
 
 from ldap3 import Connection, EXTERNAL
 from flask_restful import abort
@@ -35,11 +36,13 @@ class ConnectionManagerLDAP:
     @error_operation_ldap
     def connect(self):
         self.create_connection()
-        self.connection.open()
+        # self.connection.open()
         if config['LDAP_USE_SSL']:
             self.connection.start_tls()
             # self.connection.tls_started()
-        self.connection.bind()
+
+    def bind(self, **kwargs):
+        self.connection.bind(**kwargs)
 
     def get_connection(self):
         """
@@ -54,7 +57,7 @@ class ConnectionManagerLDAP:
         :return: None
         """
         self.connection.rebind(
-            username=user.dn,
+            user=user.dn,
             password=user.userPassword,
         )
 
@@ -72,3 +75,16 @@ class ConnectionManagerLDAP:
                 f'closed={self.connection.closed} '
                 f'listening={self.connection.listening}'
                 f')>')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
+# with ConnectionManagerLDAP(user=UserLdap(dn='uid=bob,ou=people,dc=example,dc=com', password='bob')) as con:
+#     con.create_connection()
+#     con.connection.bind()
+#     print(con.connection.result)
+#     con.rebind(UserLdap(dn='uid=bob,ou=people,dc=example,dc=com', password='bob1'))
