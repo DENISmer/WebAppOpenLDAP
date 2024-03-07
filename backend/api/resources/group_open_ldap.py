@@ -11,7 +11,7 @@ from backend.api.common.paginator import Pagintion
 from backend.api.common.roles import Role
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.route import Route
-from backend.api.common.user_manager import CnGroupLdap, UserLdap
+from backend.api.common.user_manager import CnUserGroupLdap, UserLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import search_posixgroup_fields
@@ -32,7 +32,7 @@ class GroupOpenLDAPResource(Resource):
         group_fields,
         user_fields,
         update_gid_number_user: bool = False
-    ) -> CnGroupLdap | None:
+    ) -> CnUserGroupLdap | None:
         group_obj = GroupManagerLDAP(connection=self.connection)
         user_obj = UserManagerLDAP(connection=self.connection)
 
@@ -40,7 +40,7 @@ class GroupOpenLDAPResource(Resource):
         if not group:
             abort(404, message='Group not found', status=404)
 
-        updated_group = CnGroupLdap(
+        updated_group = CnUserGroupLdap(
             username=username_uid,
             dn=group.dn,
             input_field_keys=deserialized_data.keys(),
@@ -180,7 +180,7 @@ class GroupListOpenLDAPResource(Resource):
         group_obj = GroupManagerLDAP(connection=self.connection)
         deserialized_data = self.serializer.deserialize_data(group_schema, json_data)
 
-        group = CnGroupLdap(
+        group = CnUserGroupLdap(
             **deserialized_data,
             fields=group_field['fields'],
             input_field_keys=deserialized_data.keys(),

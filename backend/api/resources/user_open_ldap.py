@@ -10,7 +10,7 @@ from backend.api.common.managers_ldap.group_ldap_manager import GroupManagerLDAP
 from backend.api.common.managers_ldap.user_ldap_manager import UserManagerLDAP
 from backend.api.common.paginator import Pagintion
 from backend.api.common.route import Route
-from backend.api.common.user_manager import UserLdap, CnGroupLdap
+from backend.api.common.user_manager import UserLdap, CnUserGroupLdap
 from backend.api.common.validators import validate_uid_gid_number_to_unique
 from backend.api.config import settings
 from backend.api.config.fields import (search_fields,
@@ -84,7 +84,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
         if group and (updated_user.uidNumber or updated_user.gidNumber) \
                 and group.gidNumber not in (updated_user.gidNumber, updated_user.uidNumber):
 
-            updated_user = CnGroupLdap(
+            updated_user = CnUserGroupLdap(
                 dn=group.dn,
                 gidNumber=updated_user.gidNumber or updated_user.uidNumber,
                 input_field_keys=['gidNumber'],
@@ -97,7 +97,7 @@ class UserOpenLDAPResource(Resource, CommonSerializer):
             )
 
         elif not group:
-            new_group = CnGroupLdap(
+            new_group = CnUserGroupLdap(
                 cn=username_uid,
                 memberUid=username_uid,
                 objectClass=['posixGroup'],
@@ -287,7 +287,7 @@ class UserListOpenLDAPResource(Resource, CommonSerializer):
             input_field_keys=deserialized_data.keys(),
             **deserialized_data
         )
-        group = CnGroupLdap(
+        group = CnUserGroupLdap(
             cn=user.uid,
             memberUid=user.uid,
             objectClass=['posixGroup'],

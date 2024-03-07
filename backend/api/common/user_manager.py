@@ -92,7 +92,7 @@ class UserLdap(UserCnAbstract):
         return f'DN {self.dn}'
 
 
-class CnGroupLdap(UserCnAbstract):
+class CnUserGroupLdap(UserCnAbstract):
     def __init__(self, username=None, *args, **kwargs):
         super().__init__(
             username=username,

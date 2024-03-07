@@ -32,8 +32,9 @@ class DbQueries:
 
     def update_instance(self, instance, **kwargs):
         try:
-            for key, value in kwargs.items():
-                setattr(instance, key, value)
+            if len(kwargs.items()) > 0:
+                for key, value in kwargs.items():
+                    setattr(instance, key, value)
 
             self.session.flush()
             self.session.commit()

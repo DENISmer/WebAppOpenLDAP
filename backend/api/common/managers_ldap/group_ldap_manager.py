@@ -10,12 +10,12 @@ from ldap3.core.exceptions import (LDAPException,
 from backend.api.common.groups import Group
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.roles import Role
-from backend.api.common.user_manager import CnGroupLdap, GroupWebAdmins
+from backend.api.common.user_manager import CnUserGroupLdap, GroupWebAdmins
 from backend.api.config.fields import webadmins_cn_posixgroup_fields
 
 
 class GroupManagerLDAP(CommonManagerLDAP):
-    def list(self, *args, **kwargs) -> List[CnGroupLdap]:
+    def list(self, *args, **kwargs) -> List[CnUserGroupLdap]:
         groups = self.search(
             value=kwargs.get('value'),
             fields=kwargs.get('fields'),
@@ -26,7 +26,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
             return []
 
         return [
-            CnGroupLdap(dn=group['dn'], **group['attributes'])
+            CnUserGroupLdap(dn=group['dn'], **group['attributes'])
             for group in groups
         ]
 
@@ -36,7 +36,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
         type_group: list,
         fields: dict,
         attributes=ALL_ATTRIBUTES,
-    ) -> CnGroupLdap | None:
+    ) -> CnUserGroupLdap | None:
 
         dn = 'cn={0},{1}'.format(
             uid,
@@ -51,7 +51,7 @@ class GroupManagerLDAP(CommonManagerLDAP):
         if not data:
             return None
 
-        group = CnGroupLdap(
+        group = CnUserGroupLdap(
             username=uid,
             dn=data['dn'],
             **data['attributes'],
@@ -80,4 +80,11 @@ class GroupManagerLDAP(CommonManagerLDAP):
             attributes=attributes,
         )
 
-    # def get_groups_by_filters(self, va) -> List[CnGroupLdap]:
+    def is_webadmin(self, user) -> bool:
+        group = self.get_webadmins_group()
+        if not group:
+            return False
+        if user.dn not in group.member:
+            return False
+
+        return True

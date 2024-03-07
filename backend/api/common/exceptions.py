@@ -25,10 +25,6 @@ class RouteIsNotDefine(Exception):
     pass
 
 
-# def get_attribute_error_message(fields: list, row: str) -> list:
-#     return list(set(re.findall("|".join(fields), row)))
-
-
 def get_attribute_error_message(fields: list, row: str) -> list:
     row = re.sub(
         r'[:\'\";\\/]',

@@ -9,7 +9,7 @@ from flask_restful import abort
 
 from backend.api.common.managers_ldap.common_ldap_manager import CommonManagerLDAP
 from backend.api.common.getting_free_id import GetFreeId
-from backend.api.common.user_manager import UserLdap, CnGroupLdap, GroupWebAdmins
+from backend.api.common.user_manager import UserLdap, CnUserGroupLdap, GroupWebAdmins
 
 
 class UserManagerLDAP(CommonManagerLDAP):
@@ -51,14 +51,6 @@ class UserManagerLDAP(CommonManagerLDAP):
             )
             for user in users
         ]
-
-    def is_webadmin(self, dn: str, group: GroupWebAdmins) -> bool:
-        if not group:
-            return False
-        if dn not in group.member:
-            return False
-
-        return True
 
     def get_free_id_number(self):
         unique_ids = self.get_id_numbers()

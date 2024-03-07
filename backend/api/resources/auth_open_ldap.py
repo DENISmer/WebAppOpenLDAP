@@ -30,51 +30,30 @@ class AuthOpenLDAP(Resource):
         then performs authentication, if authentication is successful
         token is sent user, else error 401.
         """
+
         schema = kwargs['schema']
         schema_response = kwargs['schemaResponse']
         json_data = request.get_json()
-        sum_time = 0
         deserialized_data = self.serializer.deserialize_data(schema, json_data)
 
         user = UserLdap(**deserialized_data)
 
-        start = time.perf_counter()
         with ConnectionManagerLDAP(user) as connection:
             connection.connect()
-            end = time.perf_counter()
-            print(f'Time of work connnnnn : {(end - start):.4f}s')
 
-            start = time.perf_counter()
             ldap_auth = AuthenticationManagerLDAP(user, connection)
             user = ldap_auth.authenticate()
-            end = time.perf_counter()
-            print(f'Time of work conn : {(end - start):.4f}s')
-            sum_time += end - start
 
-
-            start = time.perf_counter()
-            group = GroupManagerLDAP(connection=connection).get_webadmins_group()
-            user.is_webadmin = UserManagerLDAP(connection=connection).is_webadmin(user.dn, group)
-            end = time.perf_counter()
-            print(f'Time of work define group : {(end - start):.4f}s')
-            sum_time += end - start
+            user.is_webadmin = GroupManagerLDAP(connection=connection).is_webadmin(user)
 
         user.role = Role.WEB_ADMIN if user.is_webadmin else Role.SIMPLE_USER
 
-        start = time.perf_counter()
         user.userPassword = CryptPasswd(
             password=deserialized_data['userPassword'].encode(),
             secret_key=bytes(settings.SECRET_KEY.encode())
         ).crypt()
-        end = time.perf_counter()
-        print(f'Time of work crypt : {(end - start):.4f}s')
-        sum_time += end - start
 
-        start = time.perf_counter()
         token = TokenManagerDB(user=user).create_token()
-        end = time.perf_counter()
-        print(f'Time of work db : {(end - start):.4f}s')
-        sum_time += end - start
 
         if not token:
             abort(400, message='Try again now or later', status=400)
