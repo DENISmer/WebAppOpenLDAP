@@ -10,8 +10,6 @@
 
 .Page {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -171,7 +169,7 @@
       .Page_Button_Left{
         margin: 0 5px 0 10px;
         border: none;
-        background-color: white;
+        background: inherit;
         //display: inline-block;
         width: 15px;
         height: 15px;
@@ -191,7 +189,7 @@
       .Page_Button_disabled{
         margin: 0 5px 0 10px;
         border: none;
-        background-color: #ffffff;
+        background: inherit;
         //display: inline-block;
         width: 15px;
         height: 15px;
@@ -202,9 +200,9 @@
       }
 
       .Page_Button_disabled_right{
-        margin: 0 5px 0 10px;
+        margin: 0 10px 0 5px;
         border: none;
-        background-color: #ffffff;
+        background: inherit;
         //display: inline-block;
         width: 15px;
         height: 15px;
@@ -217,7 +215,7 @@
       .Page_Button_Right{
         margin: 0 10px 0 5px;
         border: none;
-        background-color: white;
+        background: inherit;
         //display: inline-block;
         width: 15px;
         height: 15px;
