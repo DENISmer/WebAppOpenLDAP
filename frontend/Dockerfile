@@ -1,7 +1,5 @@
 FROM node:18.16.1
 
-EXPOSE 3000
-
 RUN useradd -ms /bin/bash web-client-user
 
 RUN mkdir -p /usr/src/app/frontend/

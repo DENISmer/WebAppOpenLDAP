@@ -32,8 +32,8 @@ services:
       context: ./
       dockerfile: frontend/Dockerfile
     container_name: web-client-container
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
 
   web-server:
     build:
@@ -54,8 +54,8 @@ services:
       REDIS_HOST: "redis"
       REDIS_PORT: 6379
       POSTGRES_HOST: "postgres"
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
       - $HOME/.cache/pip:/root/.cache/pip
       - proj-db-volume:/usr/src/app/instance
@@ -119,14 +119,16 @@ services:
   postgres:
     image: postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
+    expose:
+      - "${POSTGRES_PORT}"
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       POSTGRES_DB: "${POSTGRES_DB}"
       POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data/
+    command: -p $POSTGRES_PORT
 
 volumes:
   proj-db-volume:

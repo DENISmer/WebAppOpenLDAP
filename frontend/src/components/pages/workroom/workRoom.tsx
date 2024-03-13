@@ -169,7 +169,7 @@ const WorkRoom: React.FC = () => {
                         removeCookie('userAuth');
                         navigate('/login')
                     }
-                    console.log(response)
+                    //console.log(response)
                     setUserForEditAdmin(response)
                     setEditedUser(response)
                 })
@@ -466,14 +466,14 @@ const WorkRoom: React.FC = () => {
 
                         <div className={WR_S.pageSelect}>
                             page <button
-                            className={listLoading || currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left}
+                            className={currentListPage === 1 ? WR_S.Page_Button_disabled : WR_S.Page_Button_Left}
                             onClick={() => pageSwitch(false)}
                             disabled={listLoading || currentListPage === 1}></button>
 
                             {currentListPage + "..." + pagesCount}
 
                             <button
-                                className={listLoading || currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right}
+                                className={currentListPage === pagesCount ? WR_S.Page_Button_disabled_right : WR_S.Page_Button_Right}
                                 onClick={() => pageSwitch(true)}
                                 disabled={listLoading || currentListPage === pagesCount}></button>
                         </div>
