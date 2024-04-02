@@ -1,5 +1,7 @@
 import os
 import mimetypes
+import pprint
+
 import magic
 import base64
 import glob
@@ -12,12 +14,21 @@ def rewrite_file(user, fields):
 
     for field in fields:
         attr = getattr(user, field)
-
+        pprint.pprint(attr)
         if not attr:
             tmp_filename = f'{user.get_username()}_{field}_*.*'
             del_files(filename=tmp_filename)
 
-        for index, file_base64 in enumerate(attr):
+        for index, data in enumerate(attr):
+            if not isinstance(data, dict):
+                out_path.setdefault(field, [])
+                continue
+
+            file_base64 = data.get("encoded")
+
+            if not file_base64:
+                continue
+
             file_base64_decode = base64.b64decode(file_base64)
             format_file = magic.from_buffer(file_base64_decode, mime=True)
             print('file_rewritter format_file', format_file)

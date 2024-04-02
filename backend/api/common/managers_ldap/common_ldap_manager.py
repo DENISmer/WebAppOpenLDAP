@@ -1,5 +1,6 @@
 import logging
 import pprint
+import orjson
 from typing import Dict
 
 from flask_restful import abort
@@ -169,8 +170,9 @@ class CommonManagerLDAP(IniCommonManagerLDAP):
 
         if not status_search:
             return None
-
-        return self._connection.response[0]
+        entries = self._connection.entries[0]
+        data = orjson.loads(entries.entry_to_json())
+        return data
 
     def get_id_numbers(self, required_fields=None):
         if required_fields is None:

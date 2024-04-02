@@ -10,6 +10,7 @@ ENV NGINX_CONF_INNER=${DIR_NGINX_CONF}/nginx.conf
 
 RUN mkdir -p $DIR_NGINX_CONF
 
+COPY ../backend/cert /usr/src/app/cert
 COPY ${NGINX_CONF_PATH} ${NGINX_CONF_INNER}
 
 RUN envsubst '$SSL_CERTIFICATE_FILENAME_ARG,$SSL_CERTIFICATE_KEY_FILENAME_ARG,$DOMAIN_NAME_ARG' < ${NGINX_CONF_INNER} > /etc/nginx/conf.d/default.conf

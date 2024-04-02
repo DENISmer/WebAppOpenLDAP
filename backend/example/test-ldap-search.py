@@ -33,11 +33,65 @@ connection.bind()
 # pprint.pprint(connection.__dict__)
 connection_search = connection.search(
     'dc=local,dc=net',
-    '(uid=serbinovichgs)',
-    attributes=['userPassword']
+    '(uid=alex)',
+    attributes=['jpegPhoto']
 )
-ssh_key = orjson.loads(connection.entries[0].entry_to_json())
-print(ssh_key['attributes'])
+ssh_key = connection.entries[0]
+# pprint.pprint(ssh_key)
+ssh_key_json = orjson.loads(connection.entries[0].entry_to_json())
+# print(ssh_key_json)
+print(type(ssh_key["jpegPhoto"]), len(ssh_key["jpegPhoto"]))
+print(type(ssh_key["jpegPhoto"][0]))
+# print(ssh_key["jpegPhoto"][0])
+import base64
+# print(ssh_key["jpegPhoto"][0])
+data_file = base64.b64decode(ssh_key["jpegPhoto"].value)
+# for line in ssh_key["jpegPhoto"]:
+#     print('++|++ ->>', line)
+print(type(data_file))
+# pprint.pprint(ssh_key.jpegPhoto.__dict__)
+for item in ssh_key["jpegPhoto"].__dict__:
+    print(item)
+
+pprint.pprint(ssh_key.jpegPhoto.__dict__["response"])
+with open('file.bin', 'wb') as fb:
+    fb.write(ssh_key.jpegPhoto.value)
+# pprint.pprint(ssh_key_json)
+jpeg_photo = ssh_key_json["attributes"]["jpegPhoto"]
+# print(type(jpeg_photo), len(jpeg_photo))
+# for item in jpeg_photo[0]:
+#     print(item)
+
+print(type(jpeg_photo[0]["encoded"]), len(jpeg_photo[0]["encoded"]))
+chunks = jpeg_photo[0]["encoded"].encode()
+# print(ssh_key["jpegPhoto"])
+# pprint.pprint(ssh_key['attributes']["jpegPhoto"])
+# print(len(ssh_key['attributes']["jpegPhoto"][0]))
+# chunks = b''.join(list(ssh_key['attributes']["jpegPhoto"][0]))
+# chunks = ssh_key["jpegPhoto"]
+exit(0)
+import magic, mimetypes, base64
+# print(chunks)
+data_file = base64.b64decode(chunks)
+
+format_file = magic.from_buffer(data_file, mime=True)
+extension_tmp = mimetypes.guess_extension(format_file)
+with open(f'image-test{extension_tmp}', 'wb') as f:
+    f.write(data_file)
+print(format_file, extension_tmp)
+
+
+import numpy as np
+from PIL import Image
+
+
+# Read file using numpy "fromfile()"
+# with open(f'image-test{extension_tmp}', mode='rb') as f:
+
+Image.open(f'image-test{extension_tmp}').save('image-test.png', 'PNG')
+
+# for key, value in ssh_key["attributes"].items():
+#     print(key)
 # print(type(ssh_key), bytearray(ssh_key).decode())
 
 # True - not empty, False - empty

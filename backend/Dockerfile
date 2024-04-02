@@ -16,7 +16,7 @@ RUN mkdir backend files instance
 
 COPY ../backend/requirements.txt backend/.
 COPY ../backend/api/ backend/api
-COPY ../backend/ldap-cert/ ldap-cert
+COPY ../backend/cert/ cert
 COPY ../backend/startapp_server.sh startapp_server.sh
 
 RUN python -m venv backend/venv

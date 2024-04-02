@@ -7,6 +7,7 @@ import os
 import pprint
 import glob
 
+import orjson
 from flask_restful import Resource, request, abort
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
@@ -109,12 +110,16 @@ class FileOpenLDAPResource(Resource, CommonSerializer):
                     with open(path_to_save, 'rb') as f_r:
                         file_data_exists = f_r.read()
 
-                if file_data_exists != chunks: # edit
+                data_chunks = chunks
+
+                if file_data_exists != data_chunks: # edit
                     if not save_deserialize_data.get(key):
                         save_deserialize_data[key] = []
                     with open(path_to_save, 'wb') as f:
                         f.write(chunks)
-                        save_deserialize_data[key].append(base64.b64encode(chunks))
+                        save_deserialize_data[key].append(
+                            data_chunks
+                        )
 
         if save_deserialize_data:
             updated_user = UserLdap(
