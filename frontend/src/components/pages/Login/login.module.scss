@@ -20,6 +20,15 @@ $second-clr-txt: white;
   justify-content: center;
   align-items: center;
 }
+.btnSecurityCertificate{
+  font-family: "Roboto", sans-serif;
+  position: relative;
+  display: flex;
+  bottom: 10px;
+  right: 10px;
+  margin-left: auto;
+  padding: 5px;
+}
 .Content {
   display: flex;
   flex-direction: column;

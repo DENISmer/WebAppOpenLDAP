@@ -126,6 +126,7 @@ const Login = () => {
                 </form>
 
         </div>
+        <a className={L_S.btnSecurityCertificate} href={'/cert/ICT-CA.crt'}>Скачать сертификат безопасности</a>
     </div>
     </>)
 }
