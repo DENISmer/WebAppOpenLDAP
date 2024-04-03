@@ -14,7 +14,7 @@ def rewrite_file(user, fields):
 
     for field in fields:
         attr = getattr(user, field)
-        pprint.pprint(attr)
+
         if not attr:
             tmp_filename = f'{user.get_username()}_{field}_*.*'
             del_files(filename=tmp_filename)
