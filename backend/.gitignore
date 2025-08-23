@@ -15,3 +15,9 @@ rabbish.txt
 
 **/backend/files/
 **/ldap-cert
+
+**/ldap-load-data-conf
+example
+files/uploads/
+
+ldap/docker_loader.sh

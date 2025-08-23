@@ -1,6 +1,6 @@
 import datetime
 
-from backend.api.db.database import db
+from api.db.database import db
 
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime, LargeBinary

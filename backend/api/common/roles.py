@@ -1,8 +1,18 @@
-from enum import Enum
+from enum import Enum, EnumMeta
 
-from backend.api.common.route import MetaEnum
+
+class MetaEnum(EnumMeta):
+    def __call__(cls, *args, **kwargs):
+        names = kwargs.get('names')
+        if names is not None:
+            return super().__call__(*args, **kwargs)
+
+        try:
+            return super().__call__(*args, **kwargs)
+        except ValueError:
+            return None
 
 
 class Role(Enum, metaclass=MetaEnum):
-    WEB_ADMIN = 'webadmin'
+    WEB_ADMINS = 'webadmins'
     SIMPLE_USER = 'simpleuser'

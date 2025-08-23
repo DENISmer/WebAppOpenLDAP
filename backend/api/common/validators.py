@@ -1,82 +1,36 @@
-import re
-
 from flask_restful import abort
 
-from backend.api.config import settings
+from api.conf import settings
+
+def validate_dn(json_data):
+    dn = json_data.get("dn")
+    if not dn:
+        abort(400, message="'dn' attribute is not found.")
+
+    return dn
 
 
-def validate_str(value) -> bool:
-    regex = '^\w+$'
-    pattern = re.compile(regex)
+def validate_attributes(json_data):
+    attributes = json_data.get("attributes")
+    if not attributes:
+        abort(400, message="'Attributes' attribute is not found.")
 
-    if pattern.search(value) is None:
-        return False
-
-    return True
+    return attributes
 
 
-def validate_uid_gid_number(data, errors):
-    uid_number = data.get('uidNumber')
-    gid_number = data.get('gidNumber')
+def validate_uid_gid_numbers(attributes):
+    uid_number, gid_number = attributes.get("uidNumber"), attributes.get("gidNumber")
+
+    if uid_number and not gid_number:
+        attributes["gidNumber"] = uid_number
+    elif not uid_number and gid_number:
+        attributes["uidNumber"] = gid_number
+
     if uid_number and gid_number and uid_number != gid_number:
-        errors['uidNumber'] = ['uidNumber must be equals to gidNumber']
-        errors['gidNumber'] = ['gidNumber must be equals to uidNumber']
-    if (uid_number and uid_number < 10000) or (gid_number and gid_number < 10000):
-        errors['uidNumber'] = ['uidNumber must be greater than or equal to 10000']
-        errors['gidNumber'] = ['gidNumber must be greater than or equal to 10000']
+        abort(400, message="uidNumber and gidNumber must be equals", )
 
-
-def validate_required_fields(data, errors, declared_field):
-    for key, value in data.items():
-        required = getattr(declared_field[key], 'required')
-        if not getattr(declared_field[key], 'allow_none') \
-                and required:
-            if not value:
-                errors[key] = ['Missing data for required field.']
-                continue
-            if isinstance(value, list):
-                for item in value:
-                    if not item:
-                        errors[key] = ['Missing data for required field.']
-                        break
-        else:
-            if isinstance(value, list) and value:
-                for index, item in enumerate(value):
-                    if not item:
-                        if not errors.get(key):
-                            errors[key] = {}
-                        errors[key].update(
-                            {f"{index}": ['Missing data for required field.']}
-                        )
-
-
-def validate_uid_dn(data, errors):
-    uid, dn = data.get('uid'), data.get('dn')
-
-    dn_dict = {}
-    if dn:
-        dn_dict = {item[0]: item[1] for item in map(lambda i: i.split('='), dn.split(',')) if 1 < len(item) < 3}
-
-    if dn and not dn_dict.get('uid'):
-        errors['dn'] = ['The uid parameter is missing']
-
-    if uid and dn and (uid != dn_dict.get('uid')):
-        errors['uid'] = ['The uid does not match the one specified in the dn field']
-
-
-def validate_uid_gid_number_to_unique(ids, uid_number=None, gid_number=None):
-    fields = {}
-    if uid_number in ids or gid_number in ids:
-        if uid_number:
-            fields['uidNumber'] = ['An element with such a uidNumber already exists']
-        if gid_number:
-            fields['gidNumber'] = ['An element with such a gidNumber already exists']
-
-        abort(
-            400,
-            fields=fields,
-            status=400,
-        )
+    if (uid_number and uid_number[0] < 10000) or (gid_number and gid_number[0] < 10000):
+        abort(400, message="uidNumber or gidNumber must be greater than or equal to 10000")
 
 
 def validate_allowed_file(filename):

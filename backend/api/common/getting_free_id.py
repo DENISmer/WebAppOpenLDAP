@@ -1,17 +1,44 @@
-from backend.api.redis.redis_storage import RedisStorage
+import datetime
+
+from api.common.redis_storage import RedisStorage
+from api.conf.ldap import config as ldap_conf
 
 
-class GetFreeId:
+class FreeIdGetter:
 
-    def __init__(self):
+    def __init__(self, connection):
         self.reserved_identifiers = RedisStorage()
+        self.connection = connection
 
-    def reserve(self, value):
-        self.reserved_identifiers.add(name=value, value=f'{value}')
+    def have_greater_five_minute(self, timestamp_value):
+        return datetime.datetime.fromtimestamp(int(timestamp_value)) + \
+            datetime.timedelta(minutes=5) < datetime.datetime.now()
 
-    def delete_from_reserved(self, value):
-        if value:
-            self.reserved_identifiers.delete(value)
+    def get_uid_numbers_from_ldap(self):
+        self.connection.search(
+            search_base=ldap_conf['LDAP_BASE_DN'],
+            search_filter="(objectClass=Person)",
+            attributes=["gidNumber"]
+        )
+        items = self.connection.response
+        ids = []
+        for item in items:
+            ids.append(item["attributes"]["gidNumber"])
+
+        return set(ids)
+
+    def remove_all(self):
+        self.reserved_identifiers.remove_all()
+
+    def reserve(self, name):
+        self.reserved_identifiers.add(
+            name=name,
+            value=int(datetime.datetime.now().timestamp())
+        )
+
+    def delete_from_reserved(self, name):
+        if name:
+            self.reserved_identifiers.delete(name)
 
     def get_free_spaces(self, ids):  # redis storage
 
@@ -23,20 +50,23 @@ class GetFreeId:
         if not sorted_ids:
             return 10000
 
-        j = 1
-        for i in range(len(sorted_ids)-1):
-            count_free_spaces = sorted_ids[i+1] - sorted_ids[i] - 1
+        for i in range(len(sorted_ids) - 1):
+            count_free_spaces = sorted_ids[i + 1] - sorted_ids[i] - 1
             if count_free_spaces > 0:
-                not_reserved_id = sorted_ids[i] + j
+                for number in range(sorted_ids[i] + 1, sorted_ids[i + 1]):
+                    value = self.reserved_identifiers.get(number)
+                    if value and self.have_greater_five_minute(value):
+                        self.delete_from_reserved(number)
+                        self.reserve(number)
+                        return number
 
-                if not self.reserved_identifiers.get(not_reserved_id):
-                    self.reserve(not_reserved_id)
-                    return not_reserved_id
-                j += 1
+                    if not value:
+                        self.reserve(number)
+                        return number
 
-        new_val = sorted_ids[-1] + 1
-        while self.reserved_identifiers.get(new_val):
-            new_val += 1
+        new_value = sorted_ids[-1] + 1
+        while self.reserved_identifiers.get(new_value):
+            new_value += 1
 
-        self.reserve(new_val)
-        return new_val
+        self.reserve(new_value)
+        return new_value
