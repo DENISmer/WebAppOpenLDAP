@@ -14,17 +14,10 @@ WORKDIR /usr/src/app/
 
 RUN mkdir files instance
 
-<<<<<<< HEAD
-COPY ../backend/requirements.txt backend/.
-COPY ../backend/api/ backend/api
-COPY ../backend/cert/ cert
-COPY ../backend/startapp_server.sh startapp_server.sh
-=======
 COPY requirements.txt .
 COPY api/ api
 COPY ldap-cert/ ldap-cert
 COPY startapp_server.sh startapp_server.sh
->>>>>>> server-dev-new
 
 RUN python -m venv backend/venv
 RUN python -m pip install -U pip
