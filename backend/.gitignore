@@ -14,4 +14,14 @@ rabbish.txt
 .pytest_cache
 
 **/backend/files/
+<<<<<<< HEAD
 **/cert
+=======
+**/ldap-cert
+
+**/ldap-load-data-conf
+example
+files/uploads/
+
+ldap/docker_loader.sh
+>>>>>>> server-dev-new

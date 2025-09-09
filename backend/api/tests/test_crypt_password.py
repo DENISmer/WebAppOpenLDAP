@@ -1,6 +1,6 @@
 import unittest
 
-from backend.api.common.crypt_passwd import CryptPasswd
+from api.common.crypt_passwd import CryptPasswd
 
 
 class TestCryptPasswd(unittest.TestCase):

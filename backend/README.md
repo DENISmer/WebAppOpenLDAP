@@ -1,18 +1,5 @@
 
 
-olcAccess to change:
-
-    olcAccess: to attrs=userPassword
-      by self write
-      by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
-      by anonymous auth
-      by * none
-    
-    olcAccess: to *
-      by self write
-      by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
-      by * read
-
 ## OpenLDAP
 
 -----
@@ -40,7 +27,18 @@ Modify olcDatabase:
     
     sudo ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f modify_olcdatabase.ldif -D cn=admin,dc=example,dc=com -W
 
+olcAccess to change:
 
+    olcAccess: to attrs=userPassword
+      by self write
+      by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
+      by anonymous auth
+      by * none
+    
+    olcAccess: to *
+      by self write
+      by group.exact="cn=webadmins,ou=Groups,dc=example,dc=com" write
+      by * read
 
 ## Flask
 
@@ -69,6 +67,7 @@ Run app:
 
 ## Gunicorn
 
+----
 Run gunicorn (example):
 
     gunicorn --workers 6 --bind 0.0.0.0:8080 backend.api.app:app
@@ -91,313 +90,42 @@ Run celery (example):
 
 -----
 - /api/v1/groups
-- /api/v1/groups/{type_group}
-- /api/v1/groups/{type_group}/{username_cn}
+- /api/v1/groups
+- /api/v1/groups/{username_cn}
 
 
-- /api/v1/users/
-- /api/v1/users/me/
+- /api/v1/users
+- /api/v1/users
 - /api/v1/users/{username_uid}
 
 
 - /api/v1/auth/token
 
-## Requests groups
 
------
-### GET LIST
-**route**: /api/v1/groups/posixgroup
-**GET PARAMS**: search 
-```json
-{
-    "groups": [
-        {
-            "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
-            "gidNumber": 10000,
-            "cn": "testuser",
-            "objectClass": ["posixGroup"],
-            "memberUid": "testuser"
-        }
-    ]
-}
-```
-**status code**: 200
+##  Documentation
 
-### GET
-**route**: /api/v1/groups/posixgroup/testuser
-```json
-{
-    "dn": "cn=testuser,ou=Groups,dc=example,dc=com",
-    "gidNumber": 10000,
-    "cn": "testuser",
-    "objectClass": ["posixGroup"],
-    "memberUid": "testuser"
-}
-```
-**status code**: 200
-### POST
-**route**: /api/v1/groups/posixgroup
-```json
-{
-    "dn": required,
-    "gidNumber": required,
-    "cn": required,
-    "objectClass": [required],
-    "memberUid": required
-}
-```
-**status code**: 201
-### PATCH
-**route**: /api/v1/groups/posixgroup/testuser
-```json
-{
-    "gidNumber": nonrequired,
-    "cn": nonrequired,
-    "objectClass": [nonrequired],
-    "memberUid": nonrequired
-}
-```
-**status code**: 200
-### PUT
-**route**: /api/v1/groups/posixgroup/testuser
-- **role**: webadmins
-  ```json
-  {
-      "gidNumber": required,
-      "cn": required,
-      "objectClass": [required],
-      "memberUid": required
-  }
-  ```
-**status code**: 200
-### DELETE
-**route**: /api/v1/groups/posixgroup/testuser
-- **role**: webadmins
-
-**status code**: 204
-
-## Requests users
-
------
-### GET LIST
-
-**GET PARAMS**: search 
-
-**route**: /api/v1/users
-```json
-{
-  "users":[ 
-      {
-        "uidNumber": 10000, 
-        "gidNumber": 10000, 
-        "uid": "testuser", 
-        "sshPublicKey": [], 
-        "st": "Moskow city", 
-        "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-        "street": "green street 12", 
-        "cn": "Test User", 
-        "displayName": "Test User", 
-        "givenName": "testuser", 
-        "sn": "Test User", 
-        "postalCode": 123414,
-        "homeDirectory": "/home/testuser", 
-        "loginShell": ["/bin/bash"], 
-        "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
-      }
-  ] 
-}
-```
-### GET
-**route**: /api/v1/users/testuser
-```json
-{
-    "dn": "uid=testuser,ou=People,dc=example,dc=com",
-    "uidNumber": 10000, 
-    "gidNumber": 10000, 
-    "uid": "testuser", 
-    "sshPublicKey": [], 
-    "st": "Moskow city", 
-    "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-    "street": "green street 12", 
-    "cn": "Test User", 
-    "displayName": "Test User", 
-    "givenName": "testuser", 
-    "sn": "Test User", 
-    "postalCode": 100128,
-    "homeDirectory": "/home/testuser", 
-    "loginShell": ["/bin/bash"], 
-    "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
-}
-```
-**status code**: 200
-### GET
-**route**: /api/v1/users/me/
-
-**role**: webadmins
-
-**role**: user
-```json
-{
-    "uidNumber": 10000, 
-    "gidNumber": 10000, 
-    "uid": "testuser", 
-    "sshPublicKey": [], 
-    "st": "Moskow city", 
-    "mail": ["testuser@mail.ru", "testuser@mail.ru"], 
-    "street": "green street 12", 
-    "cn": "testuser", 
-    "displayName": "Test User", 
-    "givenName": "testuser", 
-    "sn": "Test User", 
-    "postalCode": 100123,
-    "homeDirectory": "/home/testuser", 
-    "loginShell": ["/bin/bash"], 
-    "objectClass": ["inetOrgPerson", "posixAccount", "shadowAccount"]
-}
-```
-**status code**: 200
-### POST
-**route**: /api/v1/users
-
-**role**: webadmins
-```json
-{
-    "dn": required
-    "uidNumber": nonrequired, 
-    "gidNumber": nonrequired, 
-    "uid": required, 
-    "sshPublicKey": [nonrequired], 
-    "st": nonrequired, 
-    "mail": [nonrequired], 
-    "street": nonrequired, 
-    "cn": required, 
-    "displayName": nonrequired, 
-    "givenName": nonrequired, 
-    "sn": required, 
-    "postalCode": nonrequired,
-    "homeDirectory": required, 
-    "loginShell": nonrequired, 
-    "objectClass": [required],
-    "userPassword": required
-}
-```
-**status code**: 201
-### PUT
-**route**: /api/v1/users/testuser
-- **role**: webadmins
-    ```json
-    {
-        "uidNumber": required, 
-        "gidNumber": required, 
-        "uid": required, 
-        "sshPublicKey": [required], 
-        "st": required, 
-        "mail": [required], 
-        "street": required, 
-        "cn": required, 
-        "displayName": required, 
-        "givenName": required, 
-        "sn": required, 
-        "postalCode": required,
-        "homeDirectory": required, 
-        "loginShell": required, 
-        "objectClass": [required],
-        "userPassword": required
-    }
-    ```
-- **role**: user
-    ```json
-    {
-        "sshPublicKey": [required], 
-        "mail": [required], 
-        "userPassword": [required]
-    }
-    ```
-**status code**: 200
-### PATCH
-**route**: /api/v1/users/testuser
-- **role**: webadmins
-    ```json
-    {
-        "dn": nonrequired
-        "uidNumber": nonrequired, 
-        "gidNumber": nonrequired, 
-        "uid": nonrequired, 
-        "sshPublicKey": [nonrequired], 
-        "st": nonrequired, 
-        "mail": [nonrequired], 
-        "street": nonrequired, 
-        "cn": nonrequired, 
-        "displayName": nonrequired, 
-        "givenName": nonrequired, 
-        "sn": nonrequired, 
-        "postalCode": nonrequired,
-        "homeDirectory": nonrequired, 
-        "loginShell": nonrequired, 
-        "objectClass": [nonrequired],
-        "userPassword": nonrequired
-    }
-    ```
-- **role**: user
-    ```json
-    {
-        "sshPublicKey": [nonrequired], 
-        "mail": [nonrequired], 
-        "userPassword": nonrequired
-    }
-    ```
-**status code**: 200
-### DELETE
-**route**: /api/v1/users/testuser
-- **role**: webadmins
-
-**status code**: 204
-
-
-## Requests tokens
-
------
-### POST
-**route**: /api/v1/auth/token
-```json
-{
-    "username": required,
-    "userPassword": required
-}
-```
-Response:
-```json
-{
-    "token": "adsdasdasfasdfsdgfasdsgdsdgsd",
-    "uid": "testuser"
-}
-```
-**status code**: 200
+----
+- /docs/swagger/
 
 ## Docker run
 
-Docker build:
+Environment files: copy "docker.env" to root app and copy ".env" to ./backend/. 
 
-    docker build -t web-app-ldap .
+Docker build
+    
+    docker-compose --file docker-compose-debug.yml --env-file docker.env up
 
-Docker build celery from WebAppOpenLDAP directory:
+## Docker LDAP
 
-    sudo docker build -f ../backend/api/celery/Dockerfile -t celery-app-ldap .
+----
+Perform commands below
 
-Docker run:
+    docker exec -it ldap-server-container ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /opt/ldap/files/ppolicy-module.ldif;
 
-    docker run --rm -d --name web-app-ldap -p 8000:8000 --network=host web-app-ldap
+    docker exec -it ldap-server-container ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /opt/ldap/files/ppolicy-conf.ldif;
 
-LDAP Docker run:
-Start from WebAppOpenLDAP directory:
-
-     ./backend/ldap-conf/startapp_ldap_server.sh 0.0.0.0 backend/ldap-conf
-
-Start pytest command without warnigns:
-
-    pytest backend/api/tests/test_api_auth.py::test_auth_post -p no:warnings
-
-Test cert for host: 0.0.0.0:
-
-    openssl req -x509 -out test-ca.crt -keyout test-priv.key   -newkey rsa:2048 -nodes -sha256   -subj '/CN=0.0.0.0' -extensions EXT -config <( \
-       printf "[dn]\nCN=0.0.0.0\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:0.0.0.0\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+    docker exec -it ldap-server-container ldapadd -H ldap:/// -f /opt/ldap/files/add_content.ldif -D cn=admin,dc=example,dc=com -w 1234;
+    
+    docker exec -it ldap-server-container ldapadd -H ldap:/// -f /opt/ldap/files/add_group_webadmins.ldif -D cn=admin,dc=example,dc=com -w 1234;
+    
+    docker exec -it ldap-server-container ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /opt/ldap/files/modify_olcdatabase.ldif;
