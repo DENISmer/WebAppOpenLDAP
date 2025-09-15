@@ -212,6 +212,7 @@ class UserOpenLDAPResource(Resource):
         json_data = request.get_json()
         return self.__modify(uid, json_data, *args, **kwargs)
 
+    @auth.login_required(role=[Role.WEB_ADMINS, Role.SIMPLE_USER])
     @swagger.doc({
         "tags": ["UserOpenLDAP"],
         "summary": "Change user's personal information",
